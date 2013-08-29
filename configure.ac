@@ -1,9 +1,9 @@
 dnl AM_CONFIG_HEADER(config.h)
 
-AC_INIT([GeoIPXUpdate], [0.0.1],[support@maxmind.com],[GeoIPXUpdate])
+AC_INIT([GeoIPUpdate], [0.0.1],[support@maxmind.com],[GeoIPUpdate])
 AC_GNU_SOURCE
 AM_INIT_AUTOMAKE
-AC_CONFIG_SRCDIR([src/GeoIPXUpdate.c])
+AC_CONFIG_SRCDIR([src/GeoIPUpdate.c])
 GEOIP_VERSION_INFO=`echo $VERSION | awk -F. '{ printf "%d:%d:%d", $1+$2, $3, $2 }'`
 AC_SUBST(GEOIP_VERSION_INFO)
 
@@ -30,7 +30,6 @@ AC_CHECK_HEADERS(zlib.h, , AC_MSG_ERROR(Zlib header (zlib.h) not found. You may 
 
 AC_CHECK_FUNC(getopt, AC_DEFINE(HAVE_GETOPT))
 AC_CHECK_FUNC(gettimeofday, AC_DEFINE(HAVE_GETTIMEOFDAY))
-AC_CHECK_FUNC(pread, AC_DEFINE(HAVE_PREAD))
 AC_CHECK_FUNC(vasprintf, AC_DEFINE(HAVE_VASPRINTF))
 AC_CHECK_FUNC(vsnprintf, AC_DEFINE(HAVE_VSNPRINTF))
 AC_CHECK_FUNC(vsprintf, AC_DEFINE(HAVE_VSPRINTF))
@@ -60,12 +59,7 @@ AS_IF([test "x$enable_data_files" != xno],
 
 AC_OUTPUT([
 Makefile
-GeoIP.spec
-geoip.pc
-libGeoIP/Makefile
+src/Makefile
 apps/Makefile
-conf/Makefile
-data/Makefile
 man/Makefile
-test/Makefile
 ])
