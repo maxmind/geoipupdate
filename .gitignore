@@ -1,3 +1,9 @@
+config.guess
+config.sub
+configure.scan
+ltmain.sh
+autoscan.log
+
 *.la
 *.lo
 *~
