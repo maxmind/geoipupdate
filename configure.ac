@@ -3,9 +3,11 @@ dnl AM_CONFIG_HEADER(config.h)
 AC_INIT([GeoIPXUpdate], [0.0.1],[support@maxmind.com],[GeoIPXUpdate])
 AC_GNU_SOURCE
 AM_INIT_AUTOMAKE
-AC_CONFIG_SRCDIR([libGeoIPUpdate/GeoIPUpdate.c])
+AC_CONFIG_SRCDIR([src/GeoIPXUpdate.c])
 GEOIP_VERSION_INFO=`echo $VERSION | awk -F. '{ printf "%d:%d:%d", $1+$2, $3, $2 }'`
 AC_SUBST(GEOIP_VERSION_INFO)
+
+AC_PREREQ
 
 AC_PROG_CC
 AC_PROG_LIBTOOL
@@ -23,7 +25,7 @@ AC_TYPE_UINT32_T
 
 AC_C_BIGENDIAN([AC_DEFINE(BIG_ENDIAN_HOST,1)],[AC_DEFINE(LITTLE_ENDIAN_HOST,1)])
 
-AC_CHECK_HEADERS(stdint.h)
+AC_CHECK_HEADERS([arpa/inet.h stdint.h netdb.h netinet/in.h sys/socket.h])
 AC_CHECK_HEADERS(zlib.h, , AC_MSG_ERROR(Zlib header (zlib.h) not found. You may need to install a zlib development package.))
 
 AC_CHECK_FUNC(getopt, AC_DEFINE(HAVE_GETOPT))
@@ -45,7 +47,7 @@ AC_CHECK_FUNC(gethostbyname_r, [
 		AC_DEFINE(GETHOSTBYNAME_R_RETURNS_INT)])
 	])
 
-AC_CHECK_FUNCS([memset socket strchr strdup strstr ])
+AC_CHECK_FUNCS([memset socket strchr strdup strstr strrchr ])
 
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
