@@ -315,7 +315,6 @@ short int GeoIP_update_database(char *license_key, int verbose,
     unsigned char buffer[1024], digest[16];
     char hex_digest[33] = "00000000000000000000000000000000\0";
     unsigned int i;
-    char *db_info;
     char block[BLOCK_SIZE];
     int block_size = BLOCK_SIZE;
     size_t len;
@@ -545,13 +544,9 @@ short int GeoIP_update_database_general(char *user_id, char *license_key,
     char hex_digest2[33] = "0000000000000000000000000000000\0";
     unsigned int i;
     char *f_str;
-    GeoIP *gi;
-    char *db_info;
     char *ipaddress;
     char *geoipfilename;
     char *tmpstr;
-    int dbtype;
-    int lookupresult = 1;
     char block[BLOCK_SIZE];
     int block_size = BLOCK_SIZE;
     size_t len;
