@@ -315,7 +315,6 @@ short int GeoIP_update_database(char *license_key, int verbose,
     unsigned char buffer[1024], digest[16];
     char hex_digest[33] = "00000000000000000000000000000000\0";
     unsigned int i;
-    GeoIP *gi;
     char *db_info;
     char block[BLOCK_SIZE];
     int block_size = BLOCK_SIZE;
@@ -509,52 +508,6 @@ short int GeoIP_update_database(char *license_key, int verbose,
     if (verbose == 1) {
         GeoIP_printf(f, WritingFile, GeoIPDBFileName[GEOIP_COUNTRY_EDITION]);
     }
-
-    /* sanity check */
-    gi = GeoIP_open(file_path_test, GEOIP_STANDARD);
-
-    if (verbose == 1)
-        GeoIP_printf(f, "Performing sanity checks ... ");
-
-    if (gi == NULL) {
-        GeoIP_printf(f, "Error opening sanity check database\n");
-        return GEOIP_SANITY_OPEN_ERR;
-    }
-
-    /* this checks to make sure the files is complete, since info is at the end */
-    /* dependent on future databases having MaxMind in info */
-    if (verbose == 1)
-        GeoIP_printf(f, "database_info  ");
-    db_info = GeoIP_database_info(gi);
-    if (db_info == NULL) {
-        GeoIP_delete(gi);
-        if (verbose == 1)
-            GeoIP_printf(f, "FAIL\n");
-        return GEOIP_SANITY_INFO_FAIL;
-    }
-    if (strstr(db_info, "MaxMind") == NULL) {
-        free(db_info);
-        GeoIP_delete(gi);
-        if (verbose == 1)
-            GeoIP_printf(f, "FAIL\n");
-        return GEOIP_SANITY_INFO_FAIL;
-    }
-    free(db_info);
-    if (verbose == 1)
-        GeoIP_printf(f, "PASS  ");
-
-    /* this performs an IP lookup test of a US IP address */
-    if (verbose == 1)
-        GeoIP_printf(f, "lookup  ");
-    if (strcmp(GeoIP_country_code_by_addr(gi, "24.24.24.24"), "US") != 0) {
-        GeoIP_delete(gi);
-        if (verbose == 1)
-            GeoIP_printf(f, "FAIL\n");
-        return GEOIP_SANITY_LOOKUP_FAIL;
-    }
-    GeoIP_delete(gi);
-    if (verbose == 1)
-        GeoIP_printf(f, "PASS\n");
 
     /* install GeoIP.dat.test -> GeoIP.dat */
     err = rename(file_path_test, GeoIPDBFileName[GEOIP_COUNTRY_EDITION]);
@@ -961,124 +914,6 @@ short int GeoIP_update_database_general(char *user_id, char *license_key,
         free(f_str);
     }
 
-    /* sanity check */
-    gi = GeoIP_open(file_path_test, GEOIP_STANDARD);
-
-    if (verbose == 1)
-        GeoIP_printf(f, "Performing sanity checks ... ");
-
-    if (gi == NULL) {
-        GeoIP_printf(f, "Error opening sanity check database\n");
-        return GEOIP_SANITY_OPEN_ERR;
-    }
-
-    /* get the database type */
-    dbtype = GeoIP_database_edition(gi);
-    if (verbose == 1) {
-        GeoIP_printf(f, "Database type is %d\n", dbtype);
-    }
-
-    /* this checks to make sure the files is complete, since info is at the end
-       dependent on future databases having MaxMind in info (ISP and Organization databases currently don't have info string */
-
-    if ((dbtype != GEOIP_ISP_EDITION) && (dbtype != GEOIP_ORG_EDITION)) {
-        if (verbose == 1)
-            GeoIP_printf(f, "database_info  ");
-        db_info = GeoIP_database_info(gi);
-        if (db_info == NULL) {
-            GeoIP_delete(gi);
-            if (verbose == 1)
-                GeoIP_printf(f, "FAIL null\n");
-            return GEOIP_SANITY_INFO_FAIL;
-        }
-        if (strstr(db_info, "MaxMind") == NULL) {
-            free(db_info);
-            GeoIP_delete(gi);
-            if (verbose == 1)
-                GeoIP_printf(f, "FAIL maxmind\n");
-            return GEOIP_SANITY_INFO_FAIL;
-        }
-        free(db_info);
-        if (verbose == 1)
-            GeoIP_printf(f, "PASS  ");
-    }
-
-    /* this performs an IP lookup test of a US IP address */
-    if (verbose == 1)
-        GeoIP_printf(f, "lookup  ");
-    if (dbtype == GEOIP_NETSPEED_EDITION) {
-        int netspeed = GeoIP_id_by_name(gi, "24.24.24.24");
-        lookupresult = 0;
-        if (netspeed == GEOIP_CABLEDSL_SPEED) {
-            lookupresult = 1;
-        }
-    }
-    if (dbtype == GEOIP_COUNTRY_EDITION) {
-        /* if data base type is country then call the function
-         * named GeoIP_country_code_by_addr */
-        lookupresult = 1;
-        if (strcmp(GeoIP_country_code_by_addr(gi, "24.24.24.24"), "US") != 0) {
-            lookupresult = 0;
-        }
-        if (verbose == 1) {
-            GeoIP_printf(f, "testing GEOIP_COUNTRY_EDITION\n");
-        }
-    }
-    if (dbtype == GEOIP_REGION_EDITION_REV1) {
-        /* if data base type is region then call the function
-         * named GeoIP_region_by_addr */
-        GeoIPRegion *r = GeoIP_region_by_addr(gi, "24.24.24.24");
-        lookupresult = 0;
-        if (r != NULL) {
-            lookupresult = 1;
-            free(r);
-        }
-        if (verbose == 1) {
-            GeoIP_printf(f, "testing GEOIP_REGION_EDITION\n");
-        }
-    }
-    if (dbtype == GEOIP_CITY_EDITION_REV1) {
-        /* if data base type is city then call the function
-         * named GeoIP_record_by_addr */
-        GeoIPRecord *r = GeoIP_record_by_addr(gi, "24.24.24.24");
-        lookupresult = 0;
-        if (r != NULL) {
-            lookupresult = 1;
-            free(r);
-        }
-        if (verbose == 1) {
-            GeoIP_printf(f, "testing GEOIP_CITY_EDITION\n");
-        }
-    }
-    if ((dbtype == GEOIP_ISP_EDITION) || (dbtype == GEOIP_ORG_EDITION)) {
-        /* if data base type is isp or org then call the function
-         * named GeoIP_org_by_addr */
-        GeoIPRecord *r = (GeoIPRecord *) GeoIP_org_by_addr(gi, "24.24.24.24");
-        lookupresult = 0;
-        if (r != NULL) {
-            lookupresult = 1;
-            free(r);
-        }
-        if (verbose == 1) {
-            if (dbtype == GEOIP_ISP_EDITION) {
-                GeoIP_printf(f, "testing GEOIP_ISP_EDITION\n");
-            }
-            if (dbtype == GEOIP_ORG_EDITION) {
-                GeoIP_printf(f, "testing GEOIP_ORG_EDITION\n");
-            }
-        }
-    }
-    if (lookupresult == 0) {
-        GeoIP_delete(gi);
-        if (verbose == 1)
-            GeoIP_printf(f, "FAIL\n");
-        return GEOIP_SANITY_LOOKUP_FAIL;
-    }
-    GeoIP_delete(gi);
-    if (verbose == 1)
-        GeoIP_printf(f, "PASS\n");
-
-    /* install GeoIP.dat.test -> GeoIP.dat */
     err = rename(file_path_test, geoipfilename);
     if (err != 0) {
         GeoIP_printf(f, "GeoIP Install error while renaming file\n");
