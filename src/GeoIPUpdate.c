@@ -19,12 +19,9 @@
  */
 
 #include "base64.h"
-
-#include "GeoIPCity.h"
-#include "GeoIP.h"
 #include "GeoIPUpdate.h"
-#include "GeoIP_internal.h"
-
+#include <stdlib.h>
+#include <string.h>
 #include "global.h"
 #include "md5.h"
 #include <sys/types.h>
