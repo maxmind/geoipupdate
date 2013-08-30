@@ -319,7 +319,6 @@ short int GeoIP_update_database(char *license_key, int verbose,
     int block_size = BLOCK_SIZE;
     size_t len;
     size_t written;
-    _GeoIP_setup_dbfilename();
 
     /* get MD5 of current GeoIP database file */
     if ((cur_db_fh =
@@ -638,7 +637,6 @@ short int GeoIP_update_database_general(char *user_id, char *license_key,
         GeoIP_printf(f, "database product id %s database file name %s \n",
                      data_base_type, geoipfilename);
     }
-    _GeoIP_setup_dbfilename();
 
     /* get MD5 of current GeoIP database file */
     if ((cur_db_fh = fopen(geoipfilename, "rb")) == NULL) {
