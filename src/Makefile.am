@@ -7,8 +7,7 @@ AM_CPPFLAGS = -DGEOIPDATADIR=\"$(pkgdatadir)\" -Wall
 include_HEADERS = GeoIPUpdate.h
 
 libGeoIPUpdate_la_SOURCES = GeoIPUpdate.c md5.c base64.c
-
-libGeoIP_la_LDFLAGS = -no-undefined -version-info @GEOIP_VERSION_INFO@
+#libGeoIP_la_LDFLAGS = -no-undefined -version-info @GEOIP_VERSION_INFO@
 
 libGeoIPUpdate_la_LIBADD = -lz 
 
