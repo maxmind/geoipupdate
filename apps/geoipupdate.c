@@ -10,10 +10,15 @@
 #endif
 #include <ctype.h>
 
-#define PRODUCT_ID_TOKEN "ProductIds"
-#define USER_ID_TOKEN "UserId"
-#define LICENSE_KEY_TOKEN "LicenseKey"
-#define LICENSE_KEY_LENGTH 12
+static void *xmalloc(size_t size)
+{
+    void *ptr = malloc(size);
+    if (!ptr) {
+        fprintf(stderr, "Out of memory\n");
+        exit(1);
+    }
+    return ptr;
+}
 
 int main(int argc, const char *argv[])
 {
