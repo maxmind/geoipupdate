@@ -1,5 +1,7 @@
 
 #include "geoipupdate.h"
+#include "geoipupdate_s.h"
+
 #include <curl/curl.h>
 
 #include <unistd.h>
@@ -10,7 +12,7 @@
 #endif
 #include <ctype.h>
 
-static void *xmalloc(size_t size)
+void *xmalloc(size_t size)
 {
     void *ptr = malloc(size);
     if (!ptr) {
@@ -20,65 +22,6 @@ static void *xmalloc(size_t size)
     return ptr;
 }
 
-typedef struct {
-    int user_id;
-    char license_key[12];
-    product_id_s *first;
-} license_s;
-
-typedef struct product_id_s {
-    char *product_id;
-    struct product_id_s *next;
-} product_id_s;
-
-typedef struct {
-    license_s license;
-    CURL *curl;
-
-    // user might change these before geoipupdate_s_init
-    int skip_peer_verification;
-    int skip_hostname_verification;
-} geoipupdate_s;
-
-int geoipupdate_s_new(void)
-{
-    size_t size = sizeof(geoipupdate_s);
-    geoipupdate_s *gu = xmalloc(size);
-    memset(gu, 0, size);
-    return gu;
-}
-
-void geoipupdate_s_delete(geoipupdate_s * gu)
-{
-    if (gu)
-        free(gu);
-}
-
-// return false on error
-int geoipupdate_s_init(geoipupdate_s * gu)
-{
-    if ((gu->curl = curl_easy_init())) {
-        curl_easy_setopt(gu->curl, CURLOPT_SSL_VERIFYPEER,
-                         gu->skip_peer_verification);
-        curl_easy_setopt(gu->curl, CURLOPT_SSL_VERIFYHOST,
-                         gu->skip_hostname_verification);
-        return 1;
-    }
-    return 0;
-}
-
-void geoipupdate_s_cleanup(geoipupdate_s * gu)
-{
-    if (gu->curl) {
-        curl_easy_cleanup(gu->curl);
-    }
-}
-
-void geoipupdate_s_delete(geoipupdate_s * gu)
-{
-    if (gu->curl)
-        curl_easy_cleanup(curl);
-}
 
 int main(int argc, const char *argv[])
 {
@@ -87,7 +30,6 @@ int main(int argc, const char *argv[])
     if (gu) {
 
         if (geoipupdate_s_init(gu)) {
-
             geoipupdate_s_cleanup(gu);
         }
         geoipupdate_s_delete(gu);
