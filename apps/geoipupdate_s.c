@@ -1,16 +1,16 @@
 
-#include "geoipupdate_s.h"
+#include "geoipupdate.h"
 #include <string.h>
 #include <curl/curl.h>
 #include <stdlib.h>
-
-extern void * xmalloc(size_t );
 
 geoipupdate_s * geoipupdate_s_new(void)
 {
     size_t size = sizeof(geoipupdate_s);
     geoipupdate_s *gu = xmalloc(size);
     memset(gu, 0, size);
+    gu->license_file = "/usr/local/etc/GeoIP.conf";
+    gu->verbose = 1;
     return gu;
 }
 
