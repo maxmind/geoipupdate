@@ -11,6 +11,7 @@ geoipupdate_s *geoipupdate_s_new(void)
     memset(gu, 0, size);
     gu->license_file = "/usr/local/etc/GeoIP.conf";
     gu->verbose = 1;
+    gu->license.user_id = NO_USER_ID;
     gu->license.license_key[13] = 0;
     return gu;
 }

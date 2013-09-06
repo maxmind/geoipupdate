@@ -41,4 +41,6 @@ void exit_unless(int expr, const char *fmt, ...);
 void say_if(int expr, const char *fmt, ...);
 void *xmalloc(size_t size);
 
+# define NO_USER_ID (-1)
+
 #endif
