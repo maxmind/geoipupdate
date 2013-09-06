@@ -37,4 +37,8 @@ void product_insert_once(geoipupdate_s * gu, const char *product_id);
 product_s *product_new(const char *product_id);
 void product_delete(product_s * p);
 
+void exit_unless(int expr, const char *fmt, ...);
+void say_if(int expr, const char *fmt, ...);
+void *xmalloc(size_t size);
+
 #endif
