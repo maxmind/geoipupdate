@@ -48,7 +48,7 @@ int main(int argc, const char *argv[])
     if (gu) {
 
         if (geoipupdate_s_init(gu)) {
-          //  parse_opts(argc, argv, gu);
+            //  parse_opts(argc, argv, gu);
             parse_license_file(gu);
 
             geoipupdate_s_cleanup(gu);
@@ -76,7 +76,7 @@ int parse_license_file(geoipupdate_s * up)
             continue;
         if (sscanf(strt, "UserId %d", &up->license.user_id) == 1)
             continue;
-        if (sscanf(strt, "LicenseKey %[12]s", &up->license.license_key) == 1)
+        if (sscanf(strt, "LicenseKey %[12]s", &up->license.license_key[0]) == 1)
             continue;
 
         char *p, *last;
@@ -93,6 +93,4 @@ int parse_license_file(geoipupdate_s * up)
     say_if(up->verbose,
            "Read in license key %s\nNumber of product ids %d\n",
            up->license_file, product_count(up));
-
 }
-
