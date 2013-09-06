@@ -93,4 +93,5 @@ int parse_license_file(geoipupdate_s * up)
     say_if(up->verbose,
            "Read in license key %s\nNumber of product ids %d\n",
            up->license_file, product_count(up));
+    return 1;
 }
