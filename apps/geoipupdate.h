@@ -11,7 +11,7 @@ typedef struct product_s {
 
 typedef struct {
     int user_id;
-    char license_key[12];
+    char license_key[13];
     product_s *first;
 } license_s;
 
