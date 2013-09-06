@@ -22,6 +22,9 @@ typedef struct {
     // user might change these before geoipupdate_s_init
     int skip_peer_verification;
     int skip_hostname_verification;
+    char * license_file;
+    int verbose;
+
 } geoipupdate_s;
 
 geoipupdate_s * geoipupdate_s_new(void);
