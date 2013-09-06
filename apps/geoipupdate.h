@@ -1,6 +1,6 @@
 
-#ifndef GEOIPUPDATE_S_H
-# define GEOIPUPDATE_S_H (1)
+#ifndef GEOIPUPDATE_H
+# define GEOIPUPDATE_H (1)
 
 #include <curl/curl.h>
 
