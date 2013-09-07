@@ -3,7 +3,6 @@ AM_CPPFLAGS = -Wall -ansi
 AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS =		\
-	src	\
 	apps		\
 	man
 
