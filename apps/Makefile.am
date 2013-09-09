@@ -1,12 +1,8 @@
 AM_CPPFLAGS = -I$(top_srcdir)/src -DSYSCONFDIR=\"$(sysconfdir)\" -Wall
 
-#DEPS = $(top_builddir)/libGeoIP/libGeoIP.la
-#LDADDS = $(top_builddir)/libGeoIP/libGeoIP.la
-
 bin_PROGRAMS = geoipupdate
 
-geoipupdate_SOURCES = geoipupdate.c
+geoipupdate_SOURCES = geoipupdate.c  md5.c base64.c geoipupdate_s.c product_s.c
 geoipupdate_LDFLAGS =
-geoipupdate_DEPENDENCIES = $(top_builddir)/libGeoIP/libGeoIPUpdate.la
-geoipupdate_LDADD = $(top_builddir)/src/libGeoIPUpdate.la
-EXTRA_DIST = geoipupdate-pureperl.pl
+geoipupdate_LDADD = -lcurl -lz
+EXTRA_DIST = geoipupdate-pureperl.pl md5.h base64.h global.h types.h geoiplookup.h
