@@ -148,9 +148,6 @@ void update_country_database(geoipupdate_s * gu)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
     curl_easy_setopt(curl, CURLOPT_URL, data);
     int res = curl_easy_perform(curl);
-    fclose(f);
-    free(data);
-    free(geoip_filename);
 
 #if 0
     struct curl_httppost *post = NULL;
@@ -178,5 +175,10 @@ void update_country_database(geoipupdate_s * gu)
     if (res != CURLE_OK)
         fprintf(stderr, "curl_easy_perform() failed: %s\n",
                 curl_easy_strerror(res));
+
+    curl_easy_cleanup(curl);
+    fclose(f);
+    free(data);
+    free(geoip_filename);
 
 }
