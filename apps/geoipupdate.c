@@ -115,7 +115,7 @@ int md5hex(const char *fname, char *hex_digest)
 
     FILE *fh = fopen(fname, "rb");
     if (fh == NULL) {
-        strcpy(zero_hex_digest, hex_digest);
+        strcpy( hex_digest, zero_hex_digest);
         return 0;
     }
     md5_init(&context);
