@@ -137,7 +137,7 @@ void update_country_database(geoipupdate_s * gu)
     exit_unless(geoip_filename != NULL, "Out of memory\n");
 
     md5hex(geoip_filename, hex_digest);
-    say_if(up->verbose, "md5hex_digest: %s\n", hex_digest);
+    say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
     CURL *curl = curl_easy_init();
     asprintf(&data,
              "https://updates.maxmind.com/app/update?license_key=%s&md5=%s",
