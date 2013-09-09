@@ -11,7 +11,9 @@
 #endif
 #include <ctype.h>
 #include <stdarg.h>
+#include "md5.h"
 int parse_license_file(geoipupdate_s * up);
+void update_country_database(geoipupdate_s * gu);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -49,7 +51,10 @@ int main(int argc, const char *argv[])
 
         if (geoipupdate_s_init(gu)) {
             //  parse_opts(argc, argv, gu);
-            parse_license_file(gu);
+            if (parse_license_file(gu)) {
+//                if (gu->license.user_id == NO_USER_ID)
+                update_country_database(gu);
+            }
 
             geoipupdate_s_cleanup(gu);
         }
@@ -74,10 +79,14 @@ int parse_license_file(geoipupdate_s * up)
         char *strt = &buffer[idx];
         if (*strt == '#')
             continue;
-        if (sscanf(strt, "UserId %d", &up->license.user_id) == 1)
+        if (sscanf(strt, "UserId %d", &up->license.user_id) == 1) {
+            say_if(up->verbose, "UserId %d\n", up->license.user_id);
             continue;
-        if (sscanf(strt, "LicenseKey %[12]s", &up->license.license_key[0]) == 1)
+        }
+        if (sscanf(strt, "LicenseKey %12s", &up->license.license_key[0]) == 1) {
+            say_if(up->verbose, "LicenseKey %s\n", up->license.license_key);
             continue;
+        }
 
         char *p, *last;
         if ((p = strtok_r(strt, sep, &last))) {
@@ -94,4 +103,80 @@ int parse_license_file(geoipupdate_s * up)
            "Read in license key %s\nNumber of product ids %d\n",
            up->license_file, product_count(up));
     return 1;
+}
+
+int md5hex(const char *fname, char *hex_digest)
+{
+    int bsize = 1024;
+    unsigned char buffer[bsize], digest[16];
+    const char zero_hex_digest[33] = "00000000000000000000000000000000\0";
+    size_t len;
+    MD5_CONTEXT context;
+
+    FILE *fh = fopen(fname, "rb");
+    if (fh == NULL) {
+        strcpy(zero_hex_digest, hex_digest);
+        return 0;
+    }
+    md5_init(&context);
+    while ((len = fread(buffer, 1, bsize, fh)) > 0)
+        md5_write(&context, buffer, len);
+    md5_final(&context);
+    memcpy(digest, context.buf, 16);
+    fclose(fh);
+    for (int i = 0; i < 16; i++)
+        snprintf(&hex_digest[2 * i], 3, "%02x", digest[i]);
+    return 1;
+}
+
+void update_country_database(geoipupdate_s * gu)
+{
+    char *geoip_filename, *data;
+    char hex_digest[33];
+    asprintf(&geoip_filename, "%s/GeoIP.dat", gu->database_dir);
+    exit_unless(geoip_filename != NULL, "Out of memory\n");
+
+    md5hex(geoip_filename, hex_digest);
+    say_if(up->verbose, "md5hex_digest: %s\n", hex_digest);
+    CURL *curl = curl_easy_init();
+    asprintf(&data,
+             "https://updates.maxmind.com/app/update?license_key=%s&md5=%s",
+             &gu->license.license_key[0], hex_digest);
+    exit_unless(data != NULL, "Out of memory\n");
+    FILE *f = fopen("/tmp/xxq", "w+");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
+    curl_easy_setopt(curl, CURLOPT_URL, data);
+    int res = curl_easy_perform(curl);
+    fclose(f);
+    free(data);
+    free(geoip_filename);
+
+#if 0
+    struct curl_httppost *post = NULL;
+    CURL *curl = curl_easy_init();
+    char *data;
+    asprintf(&data, "license_key=%s&md5=00000000000000000000000000000000",
+             &gu->license.license_key[0]);
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
+
+    // curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:12345/app/update");
+    curl_easy_setopt(curl, CURLOPT_URL,
+                     "http://updates.maxmind.com/app/update");
+//    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+    FILE *f = fopen("/tmp/xxq", "w+");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
+//    curl_easy_setopt(curl, CURLOPT_HTTPPOST, post);
+    int res = curl_easy_perform(curl);
+    fclose(f);
+
+#endif
+
+    /* Check for errors */
+    if (res != CURLE_OK)
+        fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                curl_easy_strerror(res));
+
 }
