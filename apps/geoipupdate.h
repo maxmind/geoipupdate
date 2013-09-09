@@ -23,6 +23,7 @@ typedef struct {
     int skip_peer_verification;
     int skip_hostname_verification;
     char * license_file;
+    char * database_dir;
     int verbose;
 
 } geoipupdate_s;

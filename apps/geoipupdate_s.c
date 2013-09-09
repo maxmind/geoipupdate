@@ -9,7 +9,8 @@ geoipupdate_s *geoipupdate_s_new(void)
     size_t size = sizeof(geoipupdate_s);
     geoipupdate_s *gu = xmalloc(size);
     memset(gu, 0, size);
-    gu->license_file = "/usr/local/etc/GeoIP.conf";
+    gu->license_file = strdup("/usr/local/etc/GeoIP.conf");
+    gu->database_dir = strdup("/tmp");
     gu->verbose = 1;
     gu->license.user_id = NO_USER_ID;
     gu->license.license_key[13] = 0;
