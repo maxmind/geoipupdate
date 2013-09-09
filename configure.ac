@@ -9,7 +9,7 @@ AC_SUBST(GEOIP_VERSION_INFO)
 
 AC_PREREQ
 
-AC_PROG_CC
+AC_PROG_CC_C99
 AC_PROG_LIBTOOL
 
 AC_CHECK_TYPE(byte,[AC_DEFINE(HAVE_BYTE_TYPEDEF)],[])
@@ -22,10 +22,11 @@ AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
 
 AC_C_BIGENDIAN([AC_DEFINE(BIG_ENDIAN_HOST,1)],[AC_DEFINE(LITTLE_ENDIAN_HOST,1)])
 
-AC_CHECK_HEADERS([arpa/inet.h stdint.h netdb.h netinet/in.h sys/socket.h])
+AC_CHECK_HEADERS([arpa/inet.h stdint.h netdb.h netinet/in.h sys/socket.h limits.h stddef.h])
 AC_CHECK_HEADERS(zlib.h, , AC_MSG_ERROR(Zlib header (zlib.h) not found. You may need to install a zlib development package.))
 
 AC_CHECK_FUNC(getopt, AC_DEFINE(HAVE_GETOPT))
@@ -46,16 +47,14 @@ AC_CHECK_FUNC(gethostbyname_r, [
 		AC_DEFINE(GETHOSTBYNAME_R_RETURNS_INT)])
 	])
 
-AC_CHECK_FUNCS([memset socket strchr strdup strstr strrchr ])
+AC_CHECK_FUNCS([memset socket strchr strdup strstr strrchr memchr strspn])
 
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
+AC_CHECK_HEADER_STDBOOL
 
-AC_ARG_ENABLE([data-files],
-    AS_HELP_STRING([--disable-data-files], [Install library without installing data files]))
-
-AS_IF([test "x$enable_data_files" != xno],
-    AC_SUBST([GEOIP_DB_FILE],[GeoIP.dat]))
+#AC_FUNC_MALLOC
+#AC_FUNC_REALLOC
+AC_C_INLINE
+AC_C_RESTRICT
 
 AC_OUTPUT([
 Makefile
