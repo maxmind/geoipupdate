@@ -14,6 +14,11 @@
 #include "md5.h"
 #include <zlib.h>
 
+typedef struct {
+    char *ptr;
+    size_t size;
+} in_mem_s;
+
 int parse_license_file(geoipupdate_s * up);
 void update_country_database(geoipupdate_s * gu);
 static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
@@ -167,6 +172,22 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
     fclose(f);
 }
 
+static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp)
+{
+    size_t realsize = size * nmemb;
+
+    if (realsize == 0)
+        return realsize;
+
+    in_mem_s *mem = (in_mem_s *) userp;
+
+    mem->ptr = xrealloc(mem->ptr, mem->size + realsize + 1);
+    memcpy(&(mem->ptr[mem->size]), contents, realsize);
+    mem->size += realsize;
+    mem->ptr[mem->size] = 0;
+
+    return realsize;
+}
 
 static in_mem_s *in_mem_s_new(void)
 {
