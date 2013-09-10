@@ -22,6 +22,8 @@ typedef struct {
 int parse_license_file(geoipupdate_s * up);
 void update_country_database(geoipupdate_s * gu);
 static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
+static void update_database_general(geoipupdate_s * gu, const char *product_id);
+static in_mem_s *get(geoipupdate_s * gu, const char *url);
 static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
                                const char *geoip_filename);
 
@@ -206,7 +208,7 @@ static void in_mem_s_delete(in_mem_s * mem)
     }
 }
 
-in_mem_s *get(geoipupdate_s * gu, const char *url)
+static in_mem_s *get(geoipupdate_s * gu, const char *url)
 {
     in_mem_s *mem = in_mem_s_new();
 
@@ -236,6 +238,45 @@ void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
     for (int i = 0; i < 16; i++)
         snprintf(&new_digest_str[2 * i], 3, "%02x", digest[i]);
 }
+
+static void update_database_general(geoipupdate_s * gu, const char *product_id)
+{
+    char *url, *geoip_filename, *geoip_gz_filename, *client_ipaddr;
+    char hex_digest[33], hex_digest2[33];
+
+    asprintf(&url,
+             "%s://%s/app/update_getfilename?product_id=%s",
+             gu->proto, gu->host, product_id);
+    in_mem_s *mem = get(gu, url);
+    free(url);
+    asprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
+    in_mem_s_delete(mem);
+    md5hex(geoip_filename, hex_digest);
+    say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
+    asprintf(&url, "%s://%s/app/update_getipaddr", gu->proto, gu->host);
+    mem = get(gu, url);
+    free(url);
+    client_ipaddr = strdup(mem->ptr);
+    in_mem_s_delete(mem);
+
+    md5hex_license_ipaddr(gu, client_ipaddr, hex_digest2);
+    free(client_ipaddr);
+    say_if(gu->verbose, "md5hex_digest2: %s\n", hex_digest2);
+
+    asprintf(&url,
+             "%s://%s/app/update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%s",
+             gu->proto, gu->host, hex_digest, hex_digest2, gu->license.user_id,
+             product_id);
+    say_if(gu->verbose, "url: %s\n", url);
+
+    asprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
+    get_to_disc(gu, url, geoip_gz_filename);
+    free(url);
+    gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
+    free(geoip_gz_filename);
+    free(geoip_filename);
+}
+
 
 void update_country_database(geoipupdate_s * gu)
 {
