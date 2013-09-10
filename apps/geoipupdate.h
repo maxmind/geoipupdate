@@ -24,6 +24,8 @@ typedef struct {
     int skip_hostname_verification;
     char * license_file;
     char * database_dir;
+    char * host;
+    char * proto;
     int verbose;
 
 } geoipupdate_s;

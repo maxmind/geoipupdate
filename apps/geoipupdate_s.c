@@ -10,7 +10,9 @@ geoipupdate_s *geoipupdate_s_new(void)
     geoipupdate_s *gu = xmalloc(size);
     memset(gu, 0, size);
     gu->license_file = strdup("/usr/local/etc/GeoIP.conf");
-    gu->database_dir = strdup("/tmp");
+    gu->database_dir = strdup("/usr/local/share/GeoIP");
+    gu->proto = strdup("https");
+    gu->host = strdup("updates.maxmind.com");
     gu->verbose = 1;
     gu->license.user_id = NO_USER_ID;
     gu->license.license_key[13] = 0;
