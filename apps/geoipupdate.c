@@ -167,6 +167,40 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
     fclose(f);
 }
 
+
+static in_mem_s *in_mem_s_new(void)
+{
+    in_mem_s *mem = xmalloc(sizeof(in_mem_s));
+    mem->ptr = xmalloc(1);
+    mem->size = 0;
+    return mem;
+}
+
+static void in_mem_s_delete(in_mem_s * mem)
+{
+    if (mem) {
+        if (mem->ptr)
+            free(mem->ptr);
+        free(mem);
+    }
+}
+
+in_mem_s *get(geoipupdate_s * gu, const char *url)
+{
+    in_mem_s *mem = in_mem_s_new();
+
+    CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, GEOIP_USERAGENT);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, mem_cb);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)mem);
+    int res = curl_easy_perform(curl);
+    exit_unless(res == CURLE_OK, "curl_easy_perform() failed: %s\n",
+                curl_easy_strerror(res));
+    curl_easy_cleanup(curl);
+    return mem;
+}
+
 void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
                            char *new_digest_str)
 {
