@@ -167,6 +167,21 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
     fclose(f);
 }
 
+void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
+                           char *new_digest_str)
+{
+    unsigned char digest[16];
+    MD5_CONTEXT context;
+    md5_init(&context);
+    md5_write(&context, gu->license.license_key,
+              strlen(gu->license.license_key));
+    md5_write(&context, client_ipaddr, strlen(client_ipaddr));
+    md5_final(&context);
+    memcpy(digest, context.buf, 16);
+    for (int i = 0; i < 16; i++)
+        snprintf(&new_digest_str[2 * i], 3, "%02x", digest[i]);
+}
+
 void update_country_database(geoipupdate_s * gu)
 {
     char *geoip_filename, *geoip_gz_filename, *url;
