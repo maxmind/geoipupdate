@@ -232,9 +232,9 @@ void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
     unsigned char digest[16];
     MD5_CONTEXT context;
     md5_init(&context);
-    md5_write(&context, gu->license.license_key,
+    md5_write(&context, (unsigned char *)gu->license.license_key,
               strlen(gu->license.license_key));
-    md5_write(&context, client_ipaddr, strlen(client_ipaddr));
+    md5_write(&context, (unsigned char *)client_ipaddr, strlen(client_ipaddr));
     md5_final(&context);
     memcpy(digest, context.buf, 16);
     for (int i = 0; i < 16; i++)
