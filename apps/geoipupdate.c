@@ -18,7 +18,7 @@ int parse_license_file(geoipupdate_s * up);
 void update_country_database(geoipupdate_s * gu);
 static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
 static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                        const char *geoip_filename);
+                               const char *geoip_filename);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -192,7 +192,7 @@ void update_country_database(geoipupdate_s * gu)
 }
 
 static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                        const char *geoip_filename)
+                               const char *geoip_filename)
 {
     gzFile gz_fh;
     FILE *fh = fopen(gzipfile, "rb");
@@ -221,9 +221,9 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
         amt = gzread(gz_fh, buffer, bsize);
         if (amt == 0)
             break;              // EOF
-       exit_unless(amt != -1, "Gzip read error while reading from %s\n",
+        exit_unless(amt != -1, "Gzip read error while reading from %s\n",
                     gzipfile);
-         exit_unless(fwrite(buffer, 1, amt, fhw) == amt, "Gzip write error\n");
+        exit_unless(fwrite(buffer, 1, amt, fhw) == amt, "Gzip write error\n");
     }
     fclose(fhw);
     gzclose(gz_fh);
@@ -234,4 +234,3 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     unlink(gzipfile);
     free(file_path_test);
 }
-
