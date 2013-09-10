@@ -47,7 +47,7 @@ AC_CHECK_FUNC(gethostbyname_r, [
 		AC_DEFINE(GETHOSTBYNAME_R_RETURNS_INT)])
 	])
 
-AC_CHECK_FUNCS([memset socket strchr strdup strstr strrchr memchr strspn])
+AC_CHECK_FUNCS([ strcasecmp memset socket strchr strdup strstr strrchr memchr strspn])
 
 AC_CHECK_HEADER_STDBOOL
 
