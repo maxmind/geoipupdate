@@ -16,6 +16,7 @@
 
 int parse_license_file(geoipupdate_s * up);
 void update_country_database(geoipupdate_s * gu);
+static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -144,6 +145,24 @@ int md5hex(const char *fname, char *hex_digest)
     for (int i = 0; i < 16; i++)
         snprintf(&hex_digest[2 * i], 3, "%02x", digest[i]);
     return 1;
+}
+
+void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
+{
+    FILE *f = fopen(fname, "w+");
+    exit_unless(f != NULL, "Can't open %s\n", fname);
+    CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, GEOIP_USERAGENT);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    int res = curl_easy_perform(curl);
+
+    exit_unless(res == CURLE_OK, "curl_easy_perform() failed: %s\n",
+                curl_easy_strerror(res));
+
+    curl_easy_cleanup(curl);
+    fclose(f);
 }
 
 void update_country_database(geoipupdate_s * gu)
