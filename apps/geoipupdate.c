@@ -12,6 +12,8 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include "md5.h"
+#include <zlib.h>
+
 int parse_license_file(geoipupdate_s * up);
 void update_country_database(geoipupdate_s * gu);
 
@@ -163,28 +165,6 @@ void update_country_database(geoipupdate_s * gu)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
     curl_easy_setopt(curl, CURLOPT_URL, data);
     int res = curl_easy_perform(curl);
-
-#if 0
-    struct curl_httppost *post = NULL;
-    CURL *curl = curl_easy_init();
-    char *data;
-    asprintf(&data, "license_key=%s&md5=00000000000000000000000000000000",
-             &gu->license.license_key[0]);
-
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-
-    // curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:12345/app/update");
-    curl_easy_setopt(curl, CURLOPT_URL,
-                     "http://updates.maxmind.com/app/update");
-//    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
-    FILE *f = fopen("/tmp/xxq", "w+");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
-//    curl_easy_setopt(curl, CURLOPT_HTTPPOST, post);
-    int res = curl_easy_perform(curl);
-    fclose(f);
-
-#endif
 
     /* Check for errors */
     if (res != CURLE_OK)
