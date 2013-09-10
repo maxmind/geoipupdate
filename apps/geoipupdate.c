@@ -43,6 +43,13 @@ void *xmalloc(size_t size)
     return ptr;
 }
 
+void *xrealloc(void *ptr, size_t size)
+{
+    void *mem = realloc(ptr, size);
+    exit_unless(mem != NULL, "Out of memory\n");
+    return mem;
+}
+
 int main(int argc, const char *argv[])
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
