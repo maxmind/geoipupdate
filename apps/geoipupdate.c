@@ -17,6 +17,8 @@
 int parse_license_file(geoipupdate_s * up);
 void update_country_database(geoipupdate_s * gu);
 static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
+static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
+                        const char *geoip_filename);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -167,32 +169,69 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
 
 void update_country_database(geoipupdate_s * gu)
 {
-    char *geoip_filename, *data;
+    char *geoip_filename, *geoip_gz_filename, *url;
     char hex_digest[33];
     asprintf(&geoip_filename, "%s/GeoIP.dat", gu->database_dir);
     exit_unless(geoip_filename != NULL, "Out of memory\n");
+    asprintf(&geoip_gz_filename, "%s/GeoIP.dat.gz", gu->database_dir);
+    exit_unless(geoip_gz_filename != NULL, "Out of memory\n");
 
     md5hex(geoip_filename, hex_digest);
     say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
-    CURL *curl = curl_easy_init();
-    asprintf(&data,
-             "https://updates.maxmind.com/app/update?license_key=%s&md5=%s",
-             &gu->license.license_key[0], hex_digest);
-    exit_unless(data != NULL, "Out of memory\n");
-    FILE *f = fopen("/tmp/xxq", "w+");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
-    curl_easy_setopt(curl, CURLOPT_URL, data);
-    int res = curl_easy_perform(curl);
+    asprintf(&url,
+             "%s://%s/app/update?license_key=%s&md5=%s",
+             gu->proto, gu->host, &gu->license.license_key[0], hex_digest);
+    exit_unless(url != NULL, "Out of memory\n");
 
-    /* Check for errors */
-    if (res != CURLE_OK)
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
+    get_to_disc(gu, url, geoip_gz_filename);
+    free(url);
 
-    curl_easy_cleanup(curl);
-    fclose(f);
-    free(data);
+    gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
+    free(geoip_gz_filename);
     free(geoip_filename);
-
 }
+
+static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
+                        const char *geoip_filename)
+{
+    gzFile gz_fh;
+    FILE *fh = fopen(gzipfile, "rb");
+    exit_unless(fh != NULL, "Can't open %s\n", gzipfile);
+    size_t bsize = 8096;
+    char *buffer = xmalloc(bsize);
+    ssize_t read_bytes = getline(&buffer, &bsize, fh);
+    fclose(fh);
+    exit_unless(read_bytes >= 0, "Read error %s\n", gzipfile);
+    const char *no_new_upd = "No new updates available";
+    if (strncmp(no_new_upd, buffer, strlen(no_new_upd)) == 0) {
+        say_if(gu->verbose, "%s\n", no_new_upd);
+        free(buffer);
+        return;
+    }
+    char *file_path_test;
+    asprintf(&file_path_test, "%s.test", geoip_filename);
+    say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
+    gz_fh = gzopen(gzipfile, "rb");
+    exit_unless(gz_fh != NULL, "Can't open %s\n", gzipfile);
+    FILE *fhw = fopen(file_path_test, "wb");
+    exit_unless(fhw >= 0, "Can't open %s\n", file_path_test);
+
+    for (;;) {
+        int amt;
+        amt = gzread(gz_fh, buffer, bsize);
+        if (amt == 0)
+            break;              // EOF
+       exit_unless(amt != -1, "Gzip read error while reading from %s\n",
+                    gzipfile);
+         exit_unless(fwrite(buffer, 1, amt, fhw) == amt, "Gzip write error\n");
+    }
+    fclose(fhw);
+    gzclose(gz_fh);
+    free(buffer);
+    int err = rename(file_path_test, geoip_filename);
+    exit_unless(!err, "Rename %s to %s failed\n", file_path_test,
+                geoip_filename);
+    unlink(gzipfile);
+    free(file_path_test);
+}
+
