@@ -36,6 +36,14 @@ void say_if(int expr, const char *fmt, ...)
     va_end(ap);
 }
 
+void say(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stdout, fmt, ap);
+    va_end(ap);
+}
+
 void *xmalloc(size_t size)
 {
     void *ptr = malloc(size);
