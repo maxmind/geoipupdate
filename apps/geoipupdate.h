@@ -43,5 +43,5 @@ void say_if(int expr, const char *fmt, ...);
 void *xmalloc(size_t size);
 
 # define NO_USER_ID (-1)
-
+# define GEOIP_USERAGENT "geoipupdate/2.0"
 #endif
