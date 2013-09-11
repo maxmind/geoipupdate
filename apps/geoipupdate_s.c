@@ -21,10 +21,24 @@ geoipupdate_s *geoipupdate_s_new(void)
     return gu;
 }
 
+static void xfree(void *p)
+{
+    if (p) {
+        free(p);
+    }
+}
+
 void geoipupdate_s_delete(geoipupdate_s * gu)
 {
-    if (gu)
+    if (gu) {
+        xfree(gu->license_file);
+        xfree(gu->database_dir);
+        xfree(gu->proto);
+        xfree(gu->proxy_port);
+        xfree(gu->proxy_user_password);
+        xfree(gu->host);
         free(gu);
+    }
 }
 
 // return false on error
