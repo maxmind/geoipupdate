@@ -2,7 +2,7 @@
 #ifndef GEOIPUPDATE_H
 # define GEOIPUPDATE_H (1)
 
-#include <curl/curl.h>
+#include <stdlib.h>
 
 typedef struct product_s {
     char *product_id;
@@ -17,7 +17,6 @@ typedef struct {
 
 typedef struct {
     license_s license;
-    CURL *curl;
 
     // user might change these before geoipupdate_s_init
     int skip_peer_verification;
