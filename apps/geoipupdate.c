@@ -158,15 +158,32 @@ int md5hex(const char *fname, char *hex_digest)
     return 1;
 }
 
+static void common_req(geoipupdate_s * gu)
+{
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, GEOIP_USERAGENT);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+    if (strcasecmp(gu->proto, "https") == 0) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER,
+                         gu->skip_peer_verification != 0);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST,
+                         gu->skip_hostname_verification != 0);
+    }
+
+    if (gu->proxy_port && strlen(gu->proxy_port))
+        curl_easy_setopt(curl, CURLOPT_PROXY, gu->proxy_port);
+    if (gu->proxy_user_password && strlen(gu->proxy_user_password))
+        curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, gu->proxy_user_password);
+}
+
 void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
 {
-    FILE *f = fopen(fname, "w+");
+    FILE *f = fopen(fname, "w");
     exit_unless(f != NULL, "Can't open %s\n", fname);
     CURL *curl = curl_easy_init();
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, GEOIP_USERAGENT);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
     curl_easy_setopt(curl, CURLOPT_URL, url);
+    common_req(gu);
     int res = curl_easy_perform(curl);
 
     exit_unless(res == CURLE_OK, "curl_easy_perform() failed: %s\n",
@@ -216,9 +233,9 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
 
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, GEOIP_USERAGENT);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, mem_cb);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)mem);
+    common_req(gu);
     int res = curl_easy_perform(curl);
     exit_unless(res == CURLE_OK, "curl_easy_perform() failed: %s\n",
                 curl_easy_strerror(res));

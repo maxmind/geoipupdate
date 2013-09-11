@@ -13,6 +13,8 @@ geoipupdate_s *geoipupdate_s_new(void)
     gu->database_dir = strdup("/usr/local/share/GeoIP");
     gu->proto = strdup("https");
     gu->host = strdup("updates.maxmind.com");
+    gu->proxy_port = strdup("");
+    gu->proxy_user_password = strdup("");
     gu->verbose = 1;
     gu->license.user_id = NO_USER_ID;
     gu->license.license_key[13] = 0;
