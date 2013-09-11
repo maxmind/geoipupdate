@@ -126,7 +126,8 @@ int parse_license_file(geoipupdate_s * up)
             }
         }
     }
-    free(buffer);
+    if (buffer)
+        free(buffer);
     fclose(fh);
     say_if(up->verbose,
            "Read in license key %s\nNumber of product ids %d\n",
