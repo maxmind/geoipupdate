@@ -14,7 +14,7 @@ geoipupdate_s *geoipupdate_s_new(void)
     gu->host = strdup("updates.maxmind.com");
     gu->proxy_port = strdup("");
     gu->proxy_user_password = strdup("");
-    gu->verbose = 1;
+    gu->verbose = 0;
     gu->license.user_id = NO_USER_ID;
     gu->license.license_key[12] = 0;
     return gu;
