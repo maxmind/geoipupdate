@@ -5,4 +5,4 @@ bin_PROGRAMS = geoipupdate
 geoipupdate_SOURCES = geoipupdate.c  md5.c base64.c geoipupdate_s.c product_s.c
 geoipupdate_LDFLAGS =
 geoipupdate_LDADD = -lcurl -lz
-EXTRA_DIST = geoipupdate-pureperl.pl md5.h base64.h global.h types.h geoiplookup.h
+EXTRA_DIST = geoipupdate-pureperl.pl md5.h base64.h types.h geoiplookup.h
