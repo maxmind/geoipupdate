@@ -95,6 +95,8 @@ int parse_opts(geoipupdate_s * gu, int argc, char **argv)
         case 'd':
             xfree(gu->database_dir);
             gu->database_dir = strdup(optarg);
+            // The database directory in the config file is ignored if we use -d
+            gu->do_not_overwrite_database_directory = 1;
             break;
         case 'f':
             xfree(gu->license_file);
@@ -195,10 +197,13 @@ int parse_license_file(geoipupdate_s * up)
                 xfree(up->host);
                 up->host = strdup(p);
             } else if (!strcmp(p, "DatabaseDirectory")) {
-                p = strtok_r(NULL, sep, &last);
-                exit_unless(p != NULL, "DatabaseDirectory must be defined\n");
-                xfree(up->database_dir);
-                up->database_dir = strdup(p);
+                if (!up->do_not_overwrite_database_directory) {
+                    p = strtok_r(NULL, sep, &last);
+                    exit_unless(p != NULL,
+                                "DatabaseDirectory must be defined\n");
+                    xfree(up->database_dir);
+                    up->database_dir = strdup(p);
+                }
             } else if (!strcmp(p, "ProxyPort")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL,
