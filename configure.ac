@@ -47,7 +47,6 @@ AC_C_RESTRICT
 
 AC_OUTPUT([
 Makefile
-src/Makefile
 apps/Makefile
 man/Makefile
 ])
