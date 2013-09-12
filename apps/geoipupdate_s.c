@@ -16,7 +16,7 @@ geoipupdate_s *geoipupdate_s_new(void)
     gu->proxy_user_password = strdup("");
     gu->verbose = 1;
     gu->license.user_id = NO_USER_ID;
-    gu->license.license_key[13] = 0;
+    gu->license.license_key[12] = 0;
     return gu;
 }
 
