@@ -75,6 +75,51 @@ void *xrealloc(void *ptr, size_t size)
     return mem;
 }
 
+static void usage(void)
+{
+    fprintf(stderr,
+            "Usage: geoipupdate [-hv] [-f license_file] [-d custom directory]\n");
+}
+
+int parse_opts(geoipupdate_s * gu, int argc, char **argv)
+{
+    int c;
+
+    opterr = 0;
+
+    while ((c = getopt(argc, argv, "vhf:d:")) != -1)
+        switch (c) {
+        case 'v':
+            gu->verbose = 1;
+            break;
+        case 'd':
+            xfree(gu->database_dir);
+            gu->database_dir = strdup(optarg);
+            break;
+        case 'f':
+            xfree(gu->license_file);
+            gu->license_file = strdup(optarg);
+            break;
+        case 'h':
+            usage();
+            exit(1);
+            break;
+        case '?':
+            if (optopt == 'f' || optopt == 'd')
+                fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+            else if (isprint(optopt))
+                fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+            else
+                fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+        default:
+            exit(1);
+        }
+    return 0;
+
+}
+
+
+
 int main(int argc, const char *argv[])
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
