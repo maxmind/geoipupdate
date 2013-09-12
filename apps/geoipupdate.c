@@ -174,6 +174,10 @@ int parse_license_file(geoipupdate_s * up)
                 }
             } else if (!strcmp(p, "SkipPeerVerification")) {
                 p = strtok_r(NULL, sep, &last);
+		exit_unless(p != NULL
+                            && (!strcmp(p, "0") || !strcmp(p, "1")),
+                            "SkipPeerVerification must be 0 or 1\n");
+                up->skip_peer_verification = atoi(p);
             } else if (!strcmp(p, "Protocol")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL
