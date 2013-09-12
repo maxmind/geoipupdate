@@ -118,8 +118,6 @@ int parse_opts(geoipupdate_s * gu, int argc, char **argv)
 
 }
 
-
-
 int main(int argc, const char *argv[])
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -174,22 +172,21 @@ int parse_license_file(geoipupdate_s * up)
                 }
             } else if (!strcmp(p, "SkipPeerVerification")) {
                 p = strtok_r(NULL, sep, &last);
-		exit_unless(p != NULL
+                exit_unless(p != NULL
                             && (!strcmp(p, "0") || !strcmp(p, "1")),
                             "SkipPeerVerification must be 0 or 1\n");
                 up->skip_peer_verification = atoi(p);
             } else if (!strcmp(p, "Protocol")) {
                 p = strtok_r(NULL, sep, &last);
-                exit_unless(p != NULL
-                            && (!strcmp(p, "http")
-                                || !strcmp(p, "https")),
+                exit_unless(p != NULL && (!strcmp(p, "http")
+                                          || !strcmp(p, "https")),
                             "Protocol must be http or https\n");
                 xfree(up->proto);
                 up->proto = strdup(p);
             } else if (!strcmp(p, "SkipHostnameVerification")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL
-                            && (!strcmp(p, "0") || !strcmp(p, "1") ),
+                            && (!strcmp(p, "0") || !strcmp(p, "1")),
                             "SkipHostnameVerification must be 0 or 1\n");
                 up->skip_hostname_verification = atoi(p);
             } else if (!strcmp(p, "Host")) {
