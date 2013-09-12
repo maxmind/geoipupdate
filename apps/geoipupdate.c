@@ -124,7 +124,6 @@ int main(int argc, char *const argv[])
     curl_global_init(CURL_GLOBAL_DEFAULT);
     geoipupdate_s *gu = geoipupdate_s_new();
     if (gu) {
-
         if (geoipupdate_s_init(gu)) {
             parse_opts(gu, argc, argv);
             if (parse_license_file(gu)) {
@@ -448,6 +447,7 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     exit_unless(!strncmp(buffer, "\x1f\x8b", 2), "%s\n", buffer);
     char *file_path_test;
     asprintf(&file_path_test, "%s.test", geoip_filename);
+    exit_unless(file_path_test != NULL, "Out of memory\n");
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
     gz_fh = gzopen(gzipfile, "rb");
     exit_unless(gz_fh != NULL, "Can't open %s\n", gzipfile);
