@@ -436,6 +436,7 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
         free(buffer);
         return;
     }
+    exit_unless(!strncmp(buffer, "\x1f\x8b", 2), "%s\n", buffer);
     char *file_path_test;
     asprintf(&file_path_test, "%s.test", geoip_filename);
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
