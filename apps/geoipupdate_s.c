@@ -30,6 +30,7 @@ static void xfree(void *p)
 void geoipupdate_s_delete(geoipupdate_s * gu)
 {
     if (gu) {
+        product_delete_all(gu);
         xfree(gu->license_file);
         xfree(gu->database_dir);
         xfree(gu->proto);

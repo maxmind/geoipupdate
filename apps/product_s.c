@@ -12,6 +12,16 @@ int product_count(geoipupdate_s * gu)
     return cnt;
 }
 
+void product_delete_all(geoipupdate_s * gu)
+{
+    product_s *next, *current;
+
+    for (next = gu->license.first; (current = next);) {
+        next = current->next;
+        product_delete(current);
+    }
+}
+
 void product_insert_once(geoipupdate_s * gu, const char *product_id)
 {
     product_s **next = &gu->license.first;
