@@ -29,23 +29,10 @@ AC_C_BIGENDIAN([AC_DEFINE(BIG_ENDIAN_HOST,1)],[AC_DEFINE(LITTLE_ENDIAN_HOST,1)])
 AC_CHECK_HEADERS([arpa/inet.h stdint.h netdb.h netinet/in.h sys/socket.h limits.h stddef.h])
 AC_CHECK_HEADERS(zlib.h, , AC_MSG_ERROR(Zlib header (zlib.h) not found. You may need to install a zlib development package.))
 
-AC_CHECK_FUNC(getopt, AC_DEFINE(HAVE_GETOPT))
 AC_CHECK_FUNC(gettimeofday, AC_DEFINE(HAVE_GETTIMEOFDAY))
 AC_CHECK_FUNC(vasprintf, AC_DEFINE(HAVE_VASPRINTF))
 AC_CHECK_FUNC(vsnprintf, AC_DEFINE(HAVE_VSNPRINTF))
 AC_CHECK_FUNC(vsprintf, AC_DEFINE(HAVE_VSPRINTF))
-
-AC_CHECK_FUNC(gethostbyname, AC_DEFINE(HAVE_GETHOSTBYNAME),
-	AC_CHECK_LIB(nsl, gethostbyname, AC_DEFINE(HAVE_GETHOSTBYNAME)
-	LIBS="${LIBS} -lsocket -lnsl"))
-
-AC_CHECK_FUNC(gethostbyname_r, [
-	AC_DEFINE(HAVE_GETHOSTBYNAME_R)
-	# We look for the one that returns `int'.
-	# Hopefully this check is robust enough.
-	AC_EGREP_HEADER(int.*gethostbyname_r, netdb.h, [
-		AC_DEFINE(GETHOSTBYNAME_R_RETURNS_INT)])
-	])
 
 AC_CHECK_FUNCS([ strcasecmp memset socket strchr strdup strstr strrchr memchr strspn])
 
