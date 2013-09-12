@@ -446,8 +446,7 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     exit_unless(fhw >= 0, "Can't open %s\n", file_path_test);
 
     for (;;) {
-        int amt;
-        amt = gzread(gz_fh, buffer, bsize);
+        int amt = gzread(gz_fh, buffer, bsize);
         if (amt == 0)
             break;              // EOF
         exit_unless(amt != -1, "Gzip read error while reading from %s\n",
