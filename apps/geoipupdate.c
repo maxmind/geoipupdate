@@ -82,7 +82,7 @@ int main(int argc, const char *argv[])
     if (gu) {
 
         if (geoipupdate_s_init(gu)) {
-            //  parse_opts(argc, argv, gu);
+            parse_opts(gu, argc, argv);
             if (parse_license_file(gu)) {
                 if (gu->license.user_id == NO_USER_ID)
                     update_country_database(gu);
