@@ -276,8 +276,9 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
     common_req(curl, gu);
     int res = curl_easy_perform(curl);
 
-    exit_unless(res == CURLE_OK, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
+    exit_unless(res == CURLE_OK,
+                "curl_easy_perform() failed: %s\nConnect to %s\n",
+                curl_easy_strerror(res), url);
 
     curl_easy_cleanup(curl);
     fclose(f);
@@ -327,8 +328,9 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)mem);
     common_req(curl, gu);
     int res = curl_easy_perform(curl);
-    exit_unless(res == CURLE_OK, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
+    exit_unless(res == CURLE_OK,
+                "curl_easy_perform() failed: %s\nConnect to %s\n",
+                curl_easy_strerror(res), url);
     curl_easy_cleanup(curl);
     return mem;
 }
