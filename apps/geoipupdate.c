@@ -148,7 +148,7 @@ int parse_license_file(geoipupdate_s * up)
     exit_unless(!!fh, "Can't open license file %s\n", up->license_file);
     say_if(up->verbose, "Opened License file %s\n", up->license_file);
 
-    const char *sep = " \t";
+    const char *sep = " \t\r\n";
     size_t bsize = 1024;
     char *buffer = xmalloc(bsize);
     ssize_t read_bytes;
