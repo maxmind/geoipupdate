@@ -168,43 +168,43 @@ int parse_license_file(geoipupdate_s * up)
 
         char *p, *last;
         if ((p = strtok_r(strt, sep, &last))) {
-            if (strcmp(p, "ProductIds") == 0) {
+            if (!strcmp(p, "ProductIds")) {
                 while ((p = strtok_r(NULL, sep, &last))) {
                     product_insert_once(up, p);
                 }
-            } else if (strcmp(p, "SkipPeerVerification") == 0) {
+            } else if (!strcmp(p, "SkipPeerVerification")) {
                 p = strtok_r(NULL, sep, &last);
-            } else if (strcmp(p, "Protocol") == 0) {
+            } else if (!strcmp(p, "Protocol")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL
-                            && (strcmp(p, "http") == 0
-                                || strcmp(p, "https") == 0),
+                            && (!strcmp(p, "http")
+                                || !strcmp(p, "https")),
                             "Protocol must be http or https\n");
                 xfree(up->proto);
                 up->proto = strdup(p);
-            } else if (strcmp(p, "SkipHostnameVerification") == 0) {
+            } else if (!strcmp(p, "SkipHostnameVerification")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL
                             && (!strcmp(p, "0") || !strcmp(p, "1") ),
                             "SkipHostnameVerification must be 0 or 1\n");
                 up->skip_hostname_verification = atoi(p);
-            } else if (strcmp(p, "Host") == 0) {
+            } else if (!strcmp(p, "Host")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL, "Host must be defined\n");
                 xfree(up->host);
                 up->host = strdup(p);
-            } else if (strcmp(p, "DatabaseDirectory") == 0) {
+            } else if (!strcmp(p, "DatabaseDirectory")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL, "DatabaseDirectory must be defined\n");
                 xfree(up->database_dir);
                 up->database_dir = strdup(p);
-            } else if (strcmp(p, "ProxyPort") == 0) {
+            } else if (!strcmp(p, "ProxyPort")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL,
                             "ProxyPort must be defined 1.2.3.4:12345\n");
                 xfree(up->proxy_port);
                 up->proxy_port = strdup(p);
-            } else if (strcmp(p, "ProxyUserPassword") == 0) {
+            } else if (!strcmp(p, "ProxyUserPassword")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL,
                             "ProxyUserPassword must be defined xyz:abc\n");
@@ -251,7 +251,7 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
 {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, GEOIP_USERAGENT);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-    if (strcasecmp(gu->proto, "https") == 0) {
+    if (!strcasecmp(gu->proto, "https")) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER,
                          gu->skip_peer_verification != 0);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST,
@@ -428,7 +428,7 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     fclose(fh);
     exit_unless(read_bytes >= 0, "Read error %s\n", gzipfile);
     const char *no_new_upd = "No new updates available";
-    if (strncmp(no_new_upd, buffer, strlen(no_new_upd)) == 0) {
+    if (!strncmp(no_new_upd, buffer, strlen(no_new_upd))) {
         say_if(gu->verbose, "%s\n", no_new_upd);
         free(buffer);
         return;
