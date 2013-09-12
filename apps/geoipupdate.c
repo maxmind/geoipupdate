@@ -81,7 +81,7 @@ static void usage(void)
             "Usage: geoipupdate [-hv] [-f license_file] [-d custom directory]\n");
 }
 
-int parse_opts(geoipupdate_s * gu, int argc, char **argv)
+int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
 {
     int c;
 
@@ -120,7 +120,7 @@ int parse_opts(geoipupdate_s * gu, int argc, char **argv)
 
 }
 
-int main(int argc, const char *argv[])
+int main(int argc, char *const argv[])
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     geoipupdate_s *gu = geoipupdate_s_new();
