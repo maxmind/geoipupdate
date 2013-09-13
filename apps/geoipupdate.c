@@ -261,7 +261,7 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
                          gu->skip_hostname_verification != 0);
     }
 
-   if (gu->proxy_user_password && strlen(gu->proxy_user_password)) {
+    if (gu->proxy_user_password && strlen(gu->proxy_user_password)) {
         say_if(gu->verbose, "Use proxy_user_password: %s\n",
                gu->proxy_user_password);
         curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, gu->proxy_user_password);
@@ -270,7 +270,7 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
         say_if(gu->verbose, "Use proxy_port: %s\n", gu->proxy_port);
         curl_easy_setopt(curl, CURLOPT_PROXY, gu->proxy_port);
     }
- }
+}
 
 void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
 {
@@ -440,10 +440,15 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     const char *no_new_upd = "No new updates available";
     if (!strncmp(no_new_upd, buffer, strlen(no_new_upd))) {
         say_if(gu->verbose, "%s\n", no_new_upd);
+        unlink(gzipfile);
         free(buffer);
         return;
     }
-    exit_unless(!strncmp(buffer, "\x1f\x8b", 2), "%s\n", buffer);
+    if (strncmp(buffer, "\x1f\x8b", 2)) {
+        // error not a zip file
+        unlink(gzipfile);
+        exit_unless(0, "%s\n", buffer);
+    }
     char *file_path_test;
     asprintf(&file_path_test, "%s.test", geoip_filename);
     exit_unless(file_path_test != NULL, "Out of memory\n");
