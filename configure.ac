@@ -3,10 +3,10 @@ dnl AM_CONFIG_HEADER(config.h)
 AC_INIT([geoipupdate], [0.0.1],[support@maxmind.com],[geoipupdate])
 AC_GNU_SOURCE
 AM_INIT_AUTOMAKE
+AUTOMAKE_OPTIONS = foreign
 AC_CONFIG_SRCDIR([apps/geoipupdate.c])
 GEOIP_VERSION_INFO=`echo $VERSION | awk -F. '{ printf "%d:%d:%d", $1+$2, $3, $2 }'`
 AC_SUBST(GEOIP_VERSION_INFO)
-
 AC_PREREQ
 
 AC_PROG_CC_C99
@@ -18,15 +18,12 @@ AC_CHECK_TYPE(ulong,[AC_DEFINE(HAVE_ULONG_TYPEDEF)],[])
 AC_CHECK_TYPE(u16,[AC_DEFINE(HAVE_U16_TYPEDEF)],[])
 AC_CHECK_TYPE(u32,[AC_DEFINE(HAVE_U32_TYPEDEF)],[])
 
-AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
-AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 
 AC_C_BIGENDIAN([AC_DEFINE(BIG_ENDIAN_HOST,1)],[AC_DEFINE(LITTLE_ENDIAN_HOST,1)])
 
-#AC_CHECK_HEADERS([arpa/inet.h stdint.h netdb.h netinet/in.h sys/socket.h limits.h stddef.h])
 AC_CHECK_HEADERS([stdint.h limits.h stddef.h])
 AC_CHECK_HEADERS(zlib.h, , AC_MSG_ERROR(Zlib header (zlib.h) not found. You may need to install a zlib development package.))
 AC_CHECK_HEADERS(curl/curl.h, , AC_MSG_ERROR(curl header (curl.h) not found. You may need to install a curl development package.))
