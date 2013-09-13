@@ -261,16 +261,16 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
                          gu->skip_hostname_verification != 0);
     }
 
-    if (gu->proxy_port && strlen(gu->proxy_port)) {
-        say_if(gu->verbose, "Use proxy_port: %s\n", gu->proxy_port);
-        curl_easy_setopt(curl, CURLOPT_PROXY, gu->proxy_port);
-    }
-    if (gu->proxy_user_password && strlen(gu->proxy_user_password)) {
+   if (gu->proxy_user_password && strlen(gu->proxy_user_password)) {
         say_if(gu->verbose, "Use proxy_user_password: %s\n",
                gu->proxy_user_password);
         curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, gu->proxy_user_password);
     }
-}
+    if (gu->proxy_port && strlen(gu->proxy_port)) {
+        say_if(gu->verbose, "Use proxy_port: %s\n", gu->proxy_port);
+        curl_easy_setopt(curl, CURLOPT_PROXY, gu->proxy_port);
+    }
+ }
 
 void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
 {
