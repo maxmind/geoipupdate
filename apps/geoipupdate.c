@@ -103,9 +103,9 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
             gu->license_file = strdup(optarg);
             break;
         case 'h':
+        default:
             usage();
             exit(1);
-            break;
         case '?':
             if (optopt == 'f' || optopt == 'd')
                 fprintf(stderr, "Option -%c requires an argument.\n", optopt);
@@ -113,7 +113,6 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
                 fprintf(stderr, "Unknown option `-%c'.\n", optopt);
             else
                 fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
-        default:
             exit(1);
         }
     return 0;
