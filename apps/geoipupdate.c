@@ -287,6 +287,7 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
 {
     FILE *f = fopen(fname, "w");
     exit_unless(f != NULL, "Can't open %s\n", fname);
+    say_if(gu->verbose, "url: %s\n", url);
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
@@ -340,6 +341,7 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
 {
     in_mem_s *mem = in_mem_s_new();
 
+    say_if(gu->verbose, "url: %s\n", url);
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, mem_cb);
@@ -400,8 +402,6 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
                   gu->proto, gu->host, hex_digest, hex_digest2,
                   gu->license.user_id, product_id);
     exit_if(rc == -1, "Out of memory\n");
-    say_if(gu->verbose, "url: %s\n", url);
-
     rc = asprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
     exit_if(rc == -1, "Out of memory\n");
     get_to_disc(gu, url, geoip_gz_filename);
@@ -433,7 +433,6 @@ void update_country_database(geoipupdate_s * gu)
                   "%s://%s/app/update?license_key=%s&md5=%s",
                   gu->proto, gu->host, &gu->license.license_key[0], hex_digest);
     exit_if(rc == -1, "Out of memory\n");
-
     get_to_disc(gu, url, geoip_gz_filename);
     free(url);
 
