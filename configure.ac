@@ -35,8 +35,9 @@ AC_CHECK_HEADERS(curl/curl.h, , AC_MSG_ERROR(curl header (curl.h) not found. You
 
 AC_CHECK_FUNCS([ asprintf strcasecmp memset socket strchr strdup strstr strrchr memchr strspn])
 
-AC_CHECK_HEADER_STDBOOL
+AC_HEADER_STDBOOL
 
+# we *do not* want AC_FUNC_MALLOC and AC_FUNC_REALLOC
 #AC_FUNC_MALLOC
 #AC_FUNC_REALLOC
 AC_C_INLINE
