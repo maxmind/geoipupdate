@@ -11,6 +11,7 @@
 #include <stdarg.h>
 #include "md5.h"
 #include <zlib.h>
+#include <sys/stat.h>
 
 typedef struct {
     char *ptr;
@@ -125,12 +126,17 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
 
 int main(int argc, char *const argv[])
 {
+    struct stat st;
     curl_global_init(CURL_GLOBAL_DEFAULT);
     geoipupdate_s *gu = geoipupdate_s_new();
     if (gu) {
         if (geoipupdate_s_init(gu)) {
             parse_opts(gu, argc, argv);
             if (parse_license_file(gu)) {
+                exit_unless(stat(gu->database_dir, &st) == 0,
+                            "%s does not exisits\n", gu->database_dir);
+                exit_unless(S_ISDIR(st.st_mode), "%s is not a directory\n",
+                            gu->database_dir);
                 if (gu->license.user_id == NO_USER_ID)
                     update_country_database(gu);
                 else
