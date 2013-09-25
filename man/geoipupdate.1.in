@@ -1,16 +1,16 @@
-.TH GEOIPUPDATE 1 "5 Oct 2010"
+.TH GEOIPUPDATE 2 "25 Sep 2013"
 .UC 4
 .SH NAME
 geoipupdate \- a program for updating the MaxMind GeoIP databases
 .SH SYNOPSIS
-geoipupdate [\-v] [\-f licensefile]
+geoipupdate [\-Vvh] [\-f licensefile] [\-c configfile]
 .SH DESCRIPTION
 geoipupdate automatically updates the GeoIP database for GeoIP
 subscribers.  It connects to the MaxMind GeoIP Update server
 and checks for an updated database.  If it finds an updated
 database, then it downloads it, uncompresses it, and installs it.
 If you are running a firewall, it requires that the DNS and
-HTTP (80) ports be open.
+HTTP(S) ports be open.
 .PP
 For example
 .PP
@@ -19,6 +19,8 @@ For example
 Performs the update in verbose mode.
 .PP
 .SH OPTIONS
+.IP "\-V"
+Display version information
 .IP "\-v"
 Verbose mode, prints out the steps that geoipupdate takes.
 .IP "\-d"
@@ -44,6 +46,7 @@ E.g.
 .RS
 export http_proxy="http://proxy-hostname:port"
 .RE
+Or set the proxy in the GeoIP.conf file
 .SH RETURN CODES
 geoipupdate returns 0 on success, 1 on error.
 .SH FILES
@@ -56,13 +59,13 @@ Written by T.J. Mather
 .SH "REPORTING BUGS"
 Report bugs to <support@maxmind.com>
 .SH COPYRIGHT
-Copyright (C) 2011 MaxMind LLC
+Copyright (C) 2013 MaxMind, Inc.
 
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH "SEE ALSO"
-Visit <http://www.maxmind.com/app/products> to
+Visit <https://www.maxmind.com/en/geolocation_landing> to
 sign up for a GeoIP subscription.
 .PP
 geoiplookup(1), crontab(5)
