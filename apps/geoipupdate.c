@@ -37,6 +37,8 @@ void exit_unless(int expr, const char *fmt, ...)
     exit(1);
 }
 
+#define exit_if(expr, ...) exit_unless(!(expr), ##__VA_ARGS__)
+
 void say_if(int expr, const char *fmt, ...)
 {
     va_list ap;
@@ -64,14 +66,14 @@ void xfree(void *p)
 void *xmalloc(size_t size)
 {
     void *ptr = malloc(size);
-    exit_unless(!!ptr, "Out of memory\n");
+    exit_if(!ptr, "Out of memory\n");
     return ptr;
 }
 
 void *xrealloc(void *ptr, size_t size)
 {
     void *mem = realloc(ptr, size);
-    exit_unless(mem != NULL, "Out of memory\n");
+    exit_if(mem == NULL, "Out of memory\n");
     return mem;
 }
 
@@ -89,9 +91,9 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
 
     while ((c = getopt(argc, argv, "Vvhf:d:")) != -1)
         switch (c) {
-	case 'V':
-	    puts(PACKAGE_STRING);
-	    exit (0);
+        case 'V':
+            puts(PACKAGE_STRING);
+            exit(0);
         case 'v':
             gu->verbose = 1;
             break;
@@ -365,16 +367,19 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
     char *url, *geoip_filename, *geoip_gz_filename, *client_ipaddr;
     char hex_digest[33], hex_digest2[33];
 
-    asprintf(&url,
-             "%s://%s/app/update_getfilename?product_id=%s",
-             gu->proto, gu->host, product_id);
+    int rc = asprintf(&url,
+                      "%s://%s/app/update_getfilename?product_id=%s",
+                      gu->proto, gu->host, product_id);
+    exit_if(rc == -1, "Out of memory\n");
     in_mem_s *mem = get(gu, url);
     free(url);
-    asprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
+    rc = asprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
+    exit_if(rc == -1, "Out of memory\n");
     in_mem_s_delete(mem);
     md5hex(geoip_filename, hex_digest);
     say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
-    asprintf(&url, "%s://%s/app/update_getipaddr", gu->proto, gu->host);
+    rc = asprintf(&url, "%s://%s/app/update_getipaddr", gu->proto, gu->host);
+    exit_if(rc == -1, "Out of memory\n");
     mem = get(gu, url);
     free(url);
     client_ipaddr = strdup(mem->ptr);
@@ -384,13 +389,15 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
     free(client_ipaddr);
     say_if(gu->verbose, "md5hex_digest2: %s\n", hex_digest2);
 
-    asprintf(&url,
-             "%s://%s/app/update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%s",
-             gu->proto, gu->host, hex_digest, hex_digest2, gu->license.user_id,
-             product_id);
+    rc = asprintf(&url,
+                  "%s://%s/app/update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%s",
+                  gu->proto, gu->host, hex_digest, hex_digest2,
+                  gu->license.user_id, product_id);
+    exit_if(rc == -1, "Out of memory\n");
     say_if(gu->verbose, "url: %s\n", url);
 
-    asprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
+    rc = asprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
+    exit_if(rc == -1, "Out of memory\n");
     get_to_disc(gu, url, geoip_gz_filename);
     free(url);
     gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
@@ -409,17 +416,17 @@ void update_country_database(geoipupdate_s * gu)
 {
     char *geoip_filename, *geoip_gz_filename, *url;
     char hex_digest[33];
-    asprintf(&geoip_filename, "%s/GeoIP.dat", gu->database_dir);
-    exit_unless(geoip_filename != NULL, "Out of memory\n");
-    asprintf(&geoip_gz_filename, "%s/GeoIP.dat.gz", gu->database_dir);
-    exit_unless(geoip_gz_filename != NULL, "Out of memory\n");
+    int rc = asprintf(&geoip_filename, "%s/GeoIP.dat", gu->database_dir);
+    exit_if(rc == -1, "Out of memory\n");
+    rc = asprintf(&geoip_gz_filename, "%s/GeoIP.dat.gz", gu->database_dir);
+    exit_if(rc == -1, "Out of memory\n");
 
     md5hex(geoip_filename, hex_digest);
     say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
-    asprintf(&url,
-             "%s://%s/app/update?license_key=%s&md5=%s",
-             gu->proto, gu->host, &gu->license.license_key[0], hex_digest);
-    exit_unless(url != NULL, "Out of memory\n");
+    rc = asprintf(&url,
+                  "%s://%s/app/update?license_key=%s&md5=%s",
+                  gu->proto, gu->host, &gu->license.license_key[0], hex_digest);
+    exit_if(rc == -1, "Out of memory\n");
 
     get_to_disc(gu, url, geoip_gz_filename);
     free(url);
@@ -453,8 +460,8 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
         exit_unless(0, "%s\n", buffer);
     }
     char *file_path_test;
-    asprintf(&file_path_test, "%s.test", geoip_filename);
-    exit_unless(file_path_test != NULL, "Out of memory\n");
+    int rc = asprintf(&file_path_test, "%s.test", geoip_filename);
+    exit_if(rc == -1, "Out of memory\n");
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
     gz_fh = gzopen(gzipfile, "rb");
     exit_unless(gz_fh != NULL, "Can't open %s\n", gzipfile);
@@ -465,16 +472,14 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
         int amt = gzread(gz_fh, buffer, bsize);
         if (amt == 0)
             break;              // EOF
-        exit_unless(amt != -1, "Gzip read error while reading from %s\n",
-                    gzipfile);
+        exit_if(amt == -1, "Gzip read error while reading from %s\n", gzipfile);
         exit_unless(fwrite(buffer, 1, amt, fhw) == amt, "Gzip write error\n");
     }
     fclose(fhw);
     gzclose(gz_fh);
     free(buffer);
     int err = rename(file_path_test, geoip_filename);
-    exit_unless(!err, "Rename %s to %s failed\n", file_path_test,
-                geoip_filename);
+    exit_if(err, "Rename %s to %s failed\n", file_path_test, geoip_filename);
     unlink(gzipfile);
     free(file_path_test);
 }
