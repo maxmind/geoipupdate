@@ -78,7 +78,7 @@ void *xrealloc(void *ptr, size_t size)
 static void usage(void)
 {
     fprintf(stderr,
-            "Usage: geoipupdate [-hv] [-f license_file] [-d custom directory]\n");
+            "Usage: geoipupdate [-Vhv] [-f license_file] [-d custom directory]\n");
 }
 
 int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
@@ -87,8 +87,11 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "vhf:d:")) != -1)
+    while ((c = getopt(argc, argv, "Vvhf:d:")) != -1)
         switch (c) {
+	case 'V':
+	    puts(PACKAGE_STRING);
+	    exit (0);
         case 'v':
             gu->verbose = 1;
             break;

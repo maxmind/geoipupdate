@@ -1,12 +1,12 @@
 dnl AM_CONFIG_HEADER(config.h)
 
-AC_INIT([geoipupdate], [0.0.1],[support@maxmind.com],[geoipupdate])
+AC_INIT([geoipupdate], [2.0.1],[support@maxmind.com],[geoipupdate])
 AC_GNU_SOURCE
 AM_INIT_AUTOMAKE
 AUTOMAKE_OPTIONS = foreign
 AC_CONFIG_SRCDIR([apps/geoipupdate.c])
-GEOIP_VERSION_INFO=`echo $VERSION | awk -F. '{ printf "%d:%d:%d", $1+$2, $3, $2 }'`
-AC_SUBST(GEOIP_VERSION_INFO)
+GEOIPUPDATE_VERSION_INFO=`echo $VERSION | awk -F. '{ printf "%d:%d:%d", $1+$2, $3, $2 }'`
+AC_SUBST(GEOIPUPDATE_VERSION_INFO)
 AC_PREREQ
 
 AC_PROG_CC_C99
