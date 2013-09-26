@@ -394,6 +394,7 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
               gu->proto, gu->host, product_id);
     in_mem_s *mem = get(gu, url);
     free(url);
+    exit_if(mem->size == 0, "product_id %s not found\n", product_id);
     xasprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
     in_mem_s_delete(mem);
     md5hex(geoip_filename, hex_digest);
