@@ -4,7 +4,7 @@ EXTRA_DIST = geoipupdate.1.in GeoIP.conf.5
 
 
 edit = sed \
-	-e 's|DATADIR|$(pkgdatadir)|g' \
+	-e 's|DATADIR|$(datadir)/GeoIP|g' \
 	-e 's|CONF_DIR|$(sysconfdir)|g'
 
 GeoIP.conf.5: Makefile

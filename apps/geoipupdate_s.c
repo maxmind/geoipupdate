@@ -8,8 +8,8 @@ geoipupdate_s *geoipupdate_s_new(void)
     size_t size = sizeof(geoipupdate_s);
     geoipupdate_s *gu = xmalloc(size);
     memset(gu, 0, size);
-    gu->license_file = strdup("/usr/local/etc/GeoIP.conf");
-    gu->database_dir = strdup("/usr/local/share/GeoIP");
+    gu->license_file = strdup(SYSCONFDIR"/GeoIP.conf");
+    gu->database_dir = strdup(DATADIR);
     gu->proto = strdup("https");
     gu->host = strdup("updates.maxmind.com");
     gu->proxy_port = strdup("");

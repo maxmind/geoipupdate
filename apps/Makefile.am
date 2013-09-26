@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/src -DSYSCONFDIR=\"$(sysconfdir)\" -Wall
+AM_CPPFLAGS = -I$(top_srcdir)/src -DSYSCONFDIR=\"$(sysconfdir)\" -DDATADIR=\"$(datadir)/GeoIP\" -Wall
 
 bin_PROGRAMS = geoipupdate
 
