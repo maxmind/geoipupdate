@@ -3,7 +3,7 @@
 .SH NAME
 geoipupdate \- a program for updating the MaxMind GeoIP databases
 .SH SYNOPSIS
-geoipupdate [\-Vvh] [\-f licensefile] [\-c configfile]
+geoipupdate [\-Vvh] [\-f licensefile] [\-d traget_directory]
 .SH DESCRIPTION
 geoipupdate automatically updates the GeoIP database for GeoIP
 subscribers.  It connects to the MaxMind GeoIP Update server
