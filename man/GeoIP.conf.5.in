@@ -1,0 +1,32 @@
+.TH GEOIPUPDATE 2 "25 Sep 2013"
+.UC 4
+.SH NAME
+GeoIP.conf
+.SH SYNOPSIS
+.SH DESCRIPTION
+.XR geoipupdate 1
+optains the configuration from the following source file:
+.PQ PA CONF/GeoIP.conf
+
+.PP
+The configuration file might contain the following case-sensitive keywords.
+.CM DatabaseDirectory
+The directory to store the database files ( defaults to DATA )
+.CM Host
+The hostname of the update server ( defaults to updates.maxmind.com ) 
+.CM LicenseKey
+Your case-sensitive license key.
+.CM ProductIds
+List of product ids. Product Ids could be numbers or words.
+.CM Protocol
+The http protocol to use. Either http or https ( defaults to http )
+.CM ProxyUserPassword
+.CM ProxyPort
+.CM SkipPeerVerification
+Skip peer verification when used with https. It is either 0 or 1. Default is 0.
+.CM SkipHostnameVerification
+Skip the host name verification when used with https.
+This option is either 0 or 1. Default is 0.
+.CM UserId
+Your user id.
+
