@@ -67,6 +67,13 @@ void xfree(void *p)
         free(p);
 }
 
+void *xcalloc(size_t nmemb, size_t size)
+{
+    void *ptr = xcalloc(nmemb, size);
+    exit_if(!ptr, "Out of memory\n");
+    return ptr;
+}
+
 void *xmalloc(size_t size)
 {
     void *ptr = malloc(size);
@@ -326,7 +333,7 @@ static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp)
 static in_mem_s *in_mem_s_new(void)
 {
     in_mem_s *mem = xmalloc(sizeof(in_mem_s));
-    mem->ptr = xmalloc(1);
+    mem->ptr = xcalloc(1, 1);
     mem->size = 0;
     return mem;
 }
