@@ -69,7 +69,7 @@ void xfree(void *p)
 
 void *xcalloc(size_t nmemb, size_t size)
 {
-    void *ptr = xcalloc(nmemb, size);
+    void *ptr = calloc(nmemb, size);
     exit_if(!ptr, "Out of memory\n");
     return ptr;
 }
