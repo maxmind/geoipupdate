@@ -260,6 +260,11 @@ int md5hex(const char *fname, char *hex_digest)
         strcpy(hex_digest, zero_hex_digest);
         return 0;
     }
+
+    struct stat st;
+    exit_unless(stat(fname, &st) == 0
+                && S_ISREG(st.st_mode), "%s is not a file\n", fname);
+
     md5_init(&context);
     while ((len = fread(buffer, 1, bsize, fh)) > 0)
         md5_write(&context, buffer, len);
