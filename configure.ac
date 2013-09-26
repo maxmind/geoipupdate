@@ -26,7 +26,10 @@ AC_C_BIGENDIAN([AC_DEFINE(BIG_ENDIAN_HOST,1)],[AC_DEFINE(LITTLE_ENDIAN_HOST,1)])
 
 AC_CHECK_HEADERS([stdint.h limits.h stddef.h])
 AC_CHECK_HEADERS(zlib.h, , AC_MSG_ERROR(Zlib header (zlib.h) not found. You may need to install a zlib development package.))
-AC_CHECK_HEADERS(curl/curl.h, , AC_MSG_ERROR(curl header (curl.h) not found. You may need to install a curl development package.))
+AC_CHECK_HEADERS(curl/curl.h, , AC_MSG_ERROR(curl header (curl/curl.h) not found. You may need to install a curl development package.))
+
+AC_CHECK_LIB(z, compress,[],[AC_MSG_ERROR([libz not found.])])
+AC_CHECK_LIB(curl, curl_easy_setopt,[], [AC_MSG_ERROR([libcurl not found.])])
 
 #AC_CHECK_FUNC(gettimeofday, AC_DEFINE(HAVE_GETTIMEOFDAY))
 #AC_CHECK_FUNC(vasprintf, AC_DEFINE(HAVE_VASPRINTF))
