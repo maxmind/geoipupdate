@@ -1,7 +1,8 @@
 .TH GEOIPUPDATE 2 "25 Sep 2013"
 .UC 4
 .SH NAME
-geoipupdate \- a program for updating the MaxMind GeoIP databases
+.NM geoipupdate
+.ND a program for updating the MaxMind GeoIP databases
 .SH SYNOPSIS
 geoipupdate [\-Vvh] [\-f licensefile] [\-d traget_directory]
 .SH DESCRIPTION
