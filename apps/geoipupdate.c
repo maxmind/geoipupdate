@@ -327,7 +327,7 @@ static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp)
 
     in_mem_s *mem = (in_mem_s *) userp;
 
-    mem->ptr = xrealloc(mem->ptr, mem->size + realsize + 1);
+    mem->ptr = (char *)xrealloc(mem->ptr, mem->size + realsize + 1);
     memcpy(&(mem->ptr[mem->size]), contents, realsize);
     mem->size += realsize;
     mem->ptr[mem->size] = 0;
