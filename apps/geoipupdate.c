@@ -251,7 +251,7 @@ int md5hex(const char *fname, char *hex_digest)
 {
     int bsize = 1024;
     unsigned char buffer[bsize], digest[16];
-    const char zero_hex_digest[33] = "00000000000000000000000000000000\0";
+    const char zero_hex_digest[34] = "00000000000000000000000000000000\0";
     size_t len;
     MD5_CONTEXT context;
 
