@@ -168,7 +168,7 @@ int parse_license_file(geoipupdate_s * up)
 
     const char *sep = " \t\r\n";
     size_t bsize = 1024;
-    char *buffer = xmalloc(bsize);
+    char *buffer = (char *)xmalloc(bsize);
     ssize_t read_bytes;
     while ((read_bytes = getline(&buffer, &bsize, fh)) != -1) {
         size_t idx = strspn(buffer, sep);
@@ -337,8 +337,8 @@ static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp)
 
 static in_mem_s *in_mem_s_new(void)
 {
-    in_mem_s *mem = xmalloc(sizeof(in_mem_s));
-    mem->ptr = xcalloc(1, 1);
+    in_mem_s *mem = (in_mem_s *) xmalloc(sizeof(in_mem_s));
+    mem->ptr = (char *)xcalloc(1, 1);
     mem->size = 0;
     return mem;
 }
@@ -455,7 +455,7 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     FILE *fh = fopen(gzipfile, "rb");
     exit_unless(fh != NULL, "Can't open %s\n", gzipfile);
     size_t bsize = 8096;
-    char *buffer = xmalloc(bsize);
+    char *buffer = (char *)xmalloc(bsize);
     ssize_t read_bytes = getline(&buffer, &bsize, fh);
     fclose(fh);
     exit_unless(read_bytes >= 0, "Read error %s\n", gzipfile);
