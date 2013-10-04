@@ -484,7 +484,8 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
         if (amt == 0)
             break;              // EOF
         exit_if(amt == -1, "Gzip read error while reading from %s\n", gzipfile);
-        exit_unless(fwrite(buffer, 1, amt, fhw) == amt, "Gzip write error\n");
+        exit_unless(fwrite(buffer, 1, amt, fhw) == (size_t) amt,
+                    "Gzip write error\n");
     }
     fclose(fhw);
     gzclose(gz_fh);
