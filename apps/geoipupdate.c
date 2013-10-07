@@ -63,8 +63,7 @@ void say_if(int expr, const char *fmt, ...)
 
 void xfree(void *p)
 {
-    if (p)
-        free(p);
+    free(p);
 }
 
 void *xcalloc(size_t nmemb, size_t size)
@@ -238,8 +237,7 @@ int parse_license_file(geoipupdate_s * up)
         }
     }
 
-    if (buffer)
-        free(buffer);
+    free(buffer);
     fclose(fh);
     say_if(up->verbose,
            "Read in license key %s\nNumber of product ids %d\n",
