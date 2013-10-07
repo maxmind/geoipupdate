@@ -346,8 +346,7 @@ static in_mem_s *in_mem_s_new(void)
 static void in_mem_s_delete(in_mem_s * mem)
 {
     if (mem) {
-        if (mem->ptr)
-            free(mem->ptr);
+        free(mem->ptr);
         free(mem);
     }
 }
