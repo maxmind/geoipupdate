@@ -43,7 +43,7 @@ product_s *product_new(const char *product_id)
 
 void product_delete(product_s * p)
 {
-    if (p->product_id)
+    if (p)
         free(p->product_id);
     free(p);
 }
