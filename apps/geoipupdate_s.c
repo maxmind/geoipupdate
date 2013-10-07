@@ -20,23 +20,16 @@ geoipupdate_s *geoipupdate_s_new(void)
     return gu;
 }
 
-static void xfree(void *p)
-{
-    if (p) {
-        free(p);
-    }
-}
-
 void geoipupdate_s_delete(geoipupdate_s * gu)
 {
     if (gu) {
         product_delete_all(gu);
-        xfree(gu->license_file);
-        xfree(gu->database_dir);
-        xfree(gu->proto);
-        xfree(gu->proxy_port);
-        xfree(gu->proxy_user_password);
-        xfree(gu->host);
+        free(gu->license_file);
+        free(gu->database_dir);
+        free(gu->proto);
+        free(gu->proxy_port);
+        free(gu->proxy_user_password);
+        free(gu->host);
         free(gu);
     }
 }

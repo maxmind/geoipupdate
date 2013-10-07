@@ -61,11 +61,6 @@ void say_if(int expr, const char *fmt, ...)
 
 #define say(fmt, ...) say_if(1, fmt, ##__VA_ARGS__)
 
-void xfree(void *p)
-{
-    free(p);
-}
-
 void *xcalloc(size_t nmemb, size_t size)
 {
     void *ptr = calloc(nmemb, size);
@@ -108,13 +103,13 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
             gu->verbose = 1;
             break;
         case 'd':
-            xfree(gu->database_dir);
+            free(gu->database_dir);
             gu->database_dir = strdup(optarg);
             // The database directory in the config file is ignored if we use -d
             gu->do_not_overwrite_database_directory = 1;
             break;
         case 'f':
-            xfree(gu->license_file);
+            free(gu->license_file);
             gu->license_file = strdup(optarg);
             break;
         case 'h':
@@ -200,7 +195,7 @@ int parse_license_file(geoipupdate_s * up)
                 exit_unless(p != NULL && (!strcmp(p, "http")
                                           || !strcmp(p, "https")),
                             "Protocol must be http or https\n");
-                xfree(up->proto);
+                free(up->proto);
                 up->proto = strdup(p);
             } else if (!strcmp(p, "SkipHostnameVerification")) {
                 p = strtok_r(NULL, sep, &last);
@@ -211,27 +206,27 @@ int parse_license_file(geoipupdate_s * up)
             } else if (!strcmp(p, "Host")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL, "Host must be defined\n");
-                xfree(up->host);
+                free(up->host);
                 up->host = strdup(p);
             } else if (!strcmp(p, "DatabaseDirectory")) {
                 if (!up->do_not_overwrite_database_directory) {
                     p = strtok_r(NULL, sep, &last);
                     exit_unless(p != NULL,
                                 "DatabaseDirectory must be defined\n");
-                    xfree(up->database_dir);
+                    free(up->database_dir);
                     up->database_dir = strdup(p);
                 }
             } else if (!strcmp(p, "ProxyPort")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL,
                             "ProxyPort must be defined 1.2.3.4:12345\n");
-                xfree(up->proxy_port);
+                free(up->proxy_port);
                 up->proxy_port = strdup(p);
             } else if (!strcmp(p, "ProxyUserPassword")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL,
                             "ProxyUserPassword must be defined xyz:abc\n");
-                xfree(up->proxy_user_password);
+                free(up->proxy_user_password);
                 up->proxy_user_password = strdup(p);
             }
         }
