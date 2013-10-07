@@ -35,8 +35,6 @@ typedef struct {
 geoipupdate_s * geoipupdate_s_new(void);
 void geoipupdate_s_delete(geoipupdate_s * gu);
 void product_delete_all(geoipupdate_s * gu);
-int geoipupdate_s_init(geoipupdate_s * gu);
-void geoipupdate_s_cleanup(geoipupdate_s * gu);
 
 int product_count(geoipupdate_s * gu);
 void product_insert_once(geoipupdate_s * gu, const char *product_id);

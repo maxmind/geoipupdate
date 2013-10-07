@@ -134,19 +134,16 @@ int main(int argc, char *const argv[])
     curl_global_init(CURL_GLOBAL_DEFAULT);
     geoipupdate_s *gu = geoipupdate_s_new();
     if (gu) {
-        if (geoipupdate_s_init(gu)) {
-            parse_opts(gu, argc, argv);
-            if (parse_license_file(gu)) {
-                exit_unless(stat(gu->database_dir, &st) == 0,
-                            "%s does not exisits\n", gu->database_dir);
-                exit_unless(S_ISDIR(st.st_mode), "%s is not a directory\n",
-                            gu->database_dir);
-                if (gu->license.user_id == NO_USER_ID)
-                    update_country_database(gu);
-                else
-                    update_database_general_all(gu);
-            }
-            geoipupdate_s_cleanup(gu);
+        parse_opts(gu, argc, argv);
+        if (parse_license_file(gu)) {
+            exit_unless(stat(gu->database_dir, &st) == 0,
+                        "%s does not exisits\n", gu->database_dir);
+            exit_unless(S_ISDIR(st.st_mode), "%s is not a directory\n",
+                        gu->database_dir);
+            if (gu->license.user_id == NO_USER_ID)
+                update_country_database(gu);
+            else
+                update_database_general_all(gu);
         }
         geoipupdate_s_delete(gu);
     }

@@ -34,12 +34,3 @@ void geoipupdate_s_delete(geoipupdate_s * gu)
     }
 }
 
-// return false on error
-int geoipupdate_s_init(geoipupdate_s * gu)
-{
-    return 1;
-}
-
-void geoipupdate_s_cleanup(geoipupdate_s * gu)
-{
-}
