@@ -30,15 +30,16 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
 void exit_unless(int expr, const char *fmt, ...)
 {
     va_list ap;
-    if (expr)
+    if (expr) {
         return;
+    }
     va_start(ap, fmt);
     vfprintf(stderr, fmt, ap);
     va_end(ap);
     exit(1);
 }
 
-#define exit_if(expr, ...) exit_unless(!(expr), ##__VA_ARGS__)
+#define exit_if(expr, ...) exit_unless(!(expr), ## __VA_ARGS__)
 
 void xasprintf(char **ptr, const char *fmt, ...)
 {
@@ -52,14 +53,15 @@ void xasprintf(char **ptr, const char *fmt, ...)
 void say_if(int expr, const char *fmt, ...)
 {
     va_list ap;
-    if (!expr)
+    if (!expr) {
         return;
+    }
     va_start(ap, fmt);
     vfprintf(stdout, fmt, ap);
     va_end(ap);
 }
 
-#define say(fmt, ...) say_if(1, fmt, ##__VA_ARGS__)
+#define say(fmt, ...) say_if(1, fmt, ## __VA_ARGS__)
 
 void *xcalloc(size_t nmemb, size_t size)
 {
@@ -84,8 +86,9 @@ void *xrealloc(void *ptr, size_t size)
 
 static void usage(void)
 {
-    fprintf(stderr,
-            "Usage: geoipupdate [-Vhv] [-f license_file] [-d custom directory]\n");
+    fprintf(
+        stderr,
+        "Usage: geoipupdate [-Vhv] [-f license_file] [-d custom directory]\n");
 }
 
 int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
@@ -94,7 +97,7 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "Vvhf:d:")) != -1)
+    while ((c = getopt(argc, argv, "Vvhf:d:")) != -1) {
         switch (c) {
         case 'V':
             puts(PACKAGE_STRING);
@@ -117,14 +120,16 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
             usage();
             exit(1);
         case '?':
-            if (optopt == 'f' || optopt == 'd')
+            if (optopt == 'f' || optopt == 'd') {
                 fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-            else if (isprint(optopt))
+            } else if (isprint(optopt)) {
                 fprintf(stderr, "Unknown option `-%c'.\n", optopt);
-            else
+            } else{
                 fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+            }
             exit(1);
         }
+    }
     return 0;
 }
 
@@ -140,10 +145,11 @@ int main(int argc, char *const argv[])
                         "%s does not exisits\n", gu->database_dir);
             exit_unless(S_ISDIR(st.st_mode), "%s is not a directory\n",
                         gu->database_dir);
-            if (gu->license.user_id == NO_USER_ID)
+            if (gu->license.user_id == NO_USER_ID) {
                 update_country_database(gu);
-            else
+            } else{
                 update_database_general_all(gu);
+            }
         }
         geoipupdate_s_delete(gu);
     }
@@ -164,13 +170,15 @@ int parse_license_file(geoipupdate_s * up)
     while ((read_bytes = getline(&buffer, &bsize, fh)) != -1) {
         size_t idx = strspn(buffer, sep);
         char *strt = &buffer[idx];
-        if (*strt == '#')
+        if (*strt == '#') {
             continue;
+        }
         if (sscanf(strt, "UserId %d", &up->license.user_id) == 1) {
             say_if(up->verbose, "UserId %d\n", up->license.user_id);
             continue;
         }
-        if (sscanf(strt, "LicenseKey %12s", &up->license.license_key[0]) == 1) {
+        if (sscanf(strt, "LicenseKey %12s",
+                   &up->license.license_key[0]) == 1) {
             say_if(up->verbose, "LicenseKey %s\n", up->license.license_key);
             continue;
         }
@@ -256,13 +264,15 @@ int md5hex(const char *fname, char *hex_digest)
                 && S_ISREG(st.st_mode), "%s is not a file\n", fname);
 
     md5_init(&context);
-    while ((len = fread(buffer, 1, bsize, fh)) > 0)
+    while ((len = fread(buffer, 1, bsize, fh)) > 0) {
         md5_write(&context, buffer, len);
+    }
     md5_final(&context);
     memcpy(digest, context.buf, 16);
     fclose(fh);
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 16; i++) {
         snprintf(&hex_digest[2 * i], 3, "%02x", digest[i]);
+    }
     return 1;
 }
 
@@ -312,10 +322,11 @@ static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp)
 {
     size_t realsize = size * nmemb;
 
-    if (realsize == 0)
+    if (realsize == 0) {
         return realsize;
+    }
 
-    in_mem_s *mem = (in_mem_s *) userp;
+    in_mem_s *mem = (in_mem_s *)userp;
 
     mem->ptr = (char *)xrealloc(mem->ptr, mem->size + realsize + 1);
     memcpy(&(mem->ptr[mem->size]), contents, realsize);
@@ -327,7 +338,7 @@ static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp)
 
 static in_mem_s *in_mem_s_new(void)
 {
-    in_mem_s *mem = (in_mem_s *) xmalloc(sizeof(in_mem_s));
+    in_mem_s *mem = (in_mem_s *)xmalloc(sizeof(in_mem_s));
     mem->ptr = (char *)xcalloc(1, 1);
     mem->size = 0;
     return mem;
@@ -370,8 +381,9 @@ void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
     md5_write(&context, (unsigned char *)client_ipaddr, strlen(client_ipaddr));
     md5_final(&context);
     memcpy(digest, context.buf, 16);
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 16; i++) {
         snprintf(&new_digest_str[2 * i], 3, "%02x", digest[i]);
+    }
 }
 
 static void update_database_general(geoipupdate_s * gu, const char *product_id)
@@ -398,10 +410,11 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
     free(client_ipaddr);
     say_if(gu->verbose, "md5hex_digest2: %s\n", hex_digest2);
 
-    xasprintf(&url,
-              "%s://%s/app/update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%s",
-              gu->proto, gu->host, hex_digest, hex_digest2,
-              gu->license.user_id, product_id);
+    xasprintf(
+        &url,
+        "%s://%s/app/update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%s",
+        gu->proto, gu->host, hex_digest, hex_digest2,
+        gu->license.user_id, product_id);
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
     get_to_disc(gu, url, geoip_gz_filename);
     free(url);
@@ -412,7 +425,8 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
 
 static void update_database_general_all(geoipupdate_s * gu)
 {
-    for (product_s ** next = &gu->license.first; *next; next = &(*next)->next) {
+    for (product_s ** next = &gu->license.first; *next; next =
+             &(*next)->next) {
         update_database_general(gu, (*next)->product_id);
     }
 }
@@ -468,12 +482,13 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     FILE *fhw = fopen(file_path_test, "wb");
     exit_unless(fhw >= 0, "Can't open %s\n", file_path_test);
 
-    for (;;) {
+    for (;; ) {
         int amt = gzread(gz_fh, buffer, bsize);
-        if (amt == 0)
+        if (amt == 0) {
             break;              // EOF
+        }
         exit_if(amt == -1, "Gzip read error while reading from %s\n", gzipfile);
-        exit_unless(fwrite(buffer, 1, amt, fhw) == (size_t) amt,
+        exit_unless(fwrite(buffer, 1, amt, fhw) == (size_t)amt,
                     "Gzip write error\n");
     }
     fclose(fhw);
