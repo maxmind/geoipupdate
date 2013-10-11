@@ -3,7 +3,7 @@ dnl AM_CONFIG_HEADER(config.h)
 AC_INIT([geoipupdate], [2.0.1],[support@maxmind.com],[geoipupdate])
 AC_GNU_SOURCE
 AM_INIT_AUTOMAKE([foreign])
-AC_CONFIG_SRCDIR([apps/geoipupdate.c])
+AC_CONFIG_SRCDIR([bin/geoipupdate.c])
 GEOIPUPDATE_VERSION_INFO=`echo $VERSION | awk -F. '{ printf "%d:%d:%d", $1+$2, $3, $2 }'`
 AC_SUBST(GEOIPUPDATE_VERSION_INFO)
 AC_PREREQ
@@ -39,7 +39,7 @@ AC_C_RESTRICT
 
 AC_OUTPUT([
 Makefile
-apps/Makefile
+bin/Makefile
 conf/Makefile
 man/Makefile
 ])

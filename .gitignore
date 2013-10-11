@@ -32,8 +32,8 @@
 Icon
 Makefile
 Makefile.in
-apps/geoipupdate
 autoscan.log
+bin/geoipupdate
 config.guess
 config.log
 config.status
