@@ -31,18 +31,10 @@ AC_CHECK_HEADERS(curl/curl.h, , AC_MSG_ERROR(curl header (curl/curl.h) not found
 AC_CHECK_LIB(z, gzopen, [], [AC_MSG_ERROR([libz not found.])])
 AC_CHECK_LIB(curl, curl_easy_setopt, [], [AC_MSG_ERROR([libcurl not found.])])
 
-#AC_CHECK_FUNC(gettimeofday, AC_DEFINE(HAVE_GETTIMEOFDAY))
-#AC_CHECK_FUNC(vasprintf, AC_DEFINE(HAVE_VASPRINTF))
-#AC_CHECK_FUNC(vsnprintf, AC_DEFINE(HAVE_VSNPRINTF))
-#AC_CHECK_FUNC(vsprintf, AC_DEFINE(HAVE_VSPRINTF))
-
 AC_CHECK_FUNCS([ asprintf strcasecmp memset socket strchr strdup strstr strrchr memchr strspn])
 
 AC_HEADER_STDBOOL
 
-# we *do not* want AC_FUNC_MALLOC and AC_FUNC_REALLOC
-#AC_FUNC_MALLOC
-#AC_FUNC_REALLOC
 AC_C_INLINE
 AC_C_RESTRICT
 
