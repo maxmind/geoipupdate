@@ -88,7 +88,13 @@ static void usage(void)
 {
     fprintf(
         stderr,
-        "Usage: geoipupdate [-Vhv] [-f license_file] [-d custom directory]\n");
+        "Usage: geoipupdate [-Vhv] [-f license_file] [-d custom directory]\n\n"
+        "\t-d Is the location where to store the downloaded files\n"
+        "\t-f config_file - Describes the products, license, user_id, ..\n"
+        "\t-h Print this help text\n"
+        "\t-v Verbose output\n"
+        "\t-V Display the version and exit\n"
+        );
 }
 
 int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
