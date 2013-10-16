@@ -8,7 +8,7 @@ like systems.
 
 ## License
 
-This library is licensed under the GNU General Public License version 3.
+This library is licensed under the GNU General Public License version 2.
 
 ## Installing From Source File
 
