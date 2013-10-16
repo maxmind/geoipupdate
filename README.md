@@ -32,7 +32,7 @@ You can clone this repository and build it by running:
     $ ./bootstrap
     $ ./configure
     $ make
-    $ make install
+    $ sudo make install
 
 # Configuring
 
