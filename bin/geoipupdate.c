@@ -500,6 +500,7 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     fclose(fhw);
     gzclose(gz_fh);
     free(buffer);
+    say_if(gu->verbose, "Rename %s to %s\n", file_path_test, geoip_filename);
     int err = rename(file_path_test, geoip_filename);
     exit_if(err, "Rename %s to %s failed\n", file_path_test, geoip_filename);
     unlink(gzipfile);
