@@ -3,45 +3,58 @@
 .SH NAME
 GeoIP.conf
 .SH SYNOPSIS
-xxx
-.SH DESCRIPTION
+The configuration file for the
 .B geoipupdate
-optains the configuration from the following source file:
+program.
+.SH DESCRIPTION
+The configuration file consists of one setting per line. Lines starting with
+.B #
+are comments and will not be processed. All setting keywords are
+case sensitive.
+.PP
+The default configuration file is found at:
 CONF_DIR/GeoIP.conf
 .PP
-The configuration file might contain the following case-sensitive keywords:
+.SS Required settings:
+.TP
+.B UserId
+Your MaxMind user ID.
+.TP
+.B LicenseKey
+Your case-sensitive MaxMind license key.
+.TP
+.B ProductIds
+List of product IDs. Product IDs may consist of letters, digits, and dashes
+(e.g., "GeoIP2-City", "106").
+.PP
+.SS Optional settings:
+.PP
 .Bl -tag -width Ds
 .TP
 .B DatabaseDirectory
-The directory to store the database files ( defaults to DATADIR )
+The directory to store the database files. The default is DATADIR
 .TP
 .B Host
-The hostname of the update server ( defaults to updates.maxmind.com ) 
-.TP
-.B LicenseKey
-Your case-sensitive license key.
-.TP
-.B ProductIds
-List of product ids. Product Ids could be numbers or words.
+The host name of the server to use. The default is
+.BR updates.maxmind.com ".
 .TP
 .B Protocol
-The http protocol to use. Either http or https ( defaults to http )
-.TP
-.B ProxyUserPassword
+The protocol to use. Valid values are
+.BR https " and " http ". Defaults to " https ".
 .TP
 .B ProxyPort
+The proxy port number.
+.TP
+.B ProxyUserPassword
+The proxy user name and password, separated by a colon. For instance,
+.BR username:password ".
 .TP
 .B SkipPeerVerification
-Skip peer verification when used with https. It is either 0 or 1. Default is 0.
+Skip peer verification when using
+.BR https ". Valid values are " 0 " and " 1 " The default is " 0 ".
 .TP
 .B SkipHostnameVerification
-Skip the host name verification when used with https.
-This option is either 0 or 1. Default is 0.
-.TP
-.B UserId
-Your user id.
+Skip the host name verification when using
+.BR https ". This option is either " 0 " and " 1 ". The default is " 0 ".
 .PP
-Empty lines and lines starting with
-.B #
-are comments.
 
