@@ -21,7 +21,7 @@ ProductIds GeoIP2-Country, GeoIP2-City, 106, 132
 # The proxy host name or IP address. You may optionally specify a
 # port number, e.g., 127.0.0.1:8888. If no port number is specified, 1080
 # will be used.
-# ProxyPort 127.0.0.1:8888
+# Proxy 127.0.0.1:8888
 
 # The user name and password to use with your proxy server.
 # ProxyUserPassword username:password
