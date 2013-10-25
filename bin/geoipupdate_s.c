@@ -12,7 +12,7 @@ geoipupdate_s *geoipupdate_s_new(void)
     gu->database_dir = strdup(DATADIR);
     gu->proto = strdup("https");
     gu->host = strdup("updates.maxmind.com");
-    gu->proxy_port = strdup("");
+    gu->proxy = strdup("");
     gu->proxy_user_password = strdup("");
     gu->verbose = 0;
     gu->license.user_id = NO_USER_ID;
@@ -27,7 +27,7 @@ void geoipupdate_s_delete(geoipupdate_s * gu)
         free(gu->license_file);
         free(gu->database_dir);
         free(gu->proto);
-        free(gu->proxy_port);
+        free(gu->proxy);
         free(gu->proxy_user_password);
         free(gu->host);
         free(gu);

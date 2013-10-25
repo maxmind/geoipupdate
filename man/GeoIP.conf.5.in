@@ -1,13 +1,13 @@
 .TH GeoIP.conf 5 "25 Sep 2013"
 .UC 4
 .SH NAME
-GeoIP.conf
+GeoIP.conf - Configuration file for geoipupdate
 .SH SYNOPSIS
-The configuration file for the
-.B geoipupdate
-program.
+This file allows you to configure your
+.BR geoipupdate " program to download purchased GeoIP2 and GeoIP Legacy
+databases.
 .SH DESCRIPTION
-The configuration file consists of one setting per line. Lines starting with
+The file consists of one setting per line. Lines starting with
 .B #
 are comments and will not be processed. All setting keywords are
 case sensitive.
@@ -40,10 +40,12 @@ The host name of the server to use. The default is
 .TP
 .B Protocol
 The protocol to use. Valid values are
-.BR https " and " http ". Defaults to " https ".
+.BR https " and " http ". The default is " https ".
 .TP
-.B ProxyPort
-The proxy port number.
+.B Proxy
+The proxy host name or IP address. You may optionally specify a
+port number, e.g.,
+.BR 127.0.0.1:8888 ". If no port number is specified, 1080 will be used.
 .TP
 .B ProxyUserPassword
 The proxy user name and password, separated by a colon. For instance,
@@ -51,10 +53,16 @@ The proxy user name and password, separated by a colon. For instance,
 .TP
 .B SkipPeerVerification
 Skip peer verification when using
-.BR https ". Valid values are " 0 " and " 1 " The default is " 0 ".
+.BR https ". Valid values are " 0 " and " 1 ". The default is " 0 ".
 .TP
 .B SkipHostnameVerification
 Skip the host name verification when using
 .BR https ". This option is either " 0 " and " 1 ". The default is " 0 ".
+.SH FILES
 .PP
-
+.TP
+.B CONF_DIR/GeoIP.conf
+.RB Default " geoipupdate
+configuration file.
+.SH SEE ALSO
+.BR geoipupdate "(1)

@@ -6,10 +6,10 @@ geoipupdate - GeoIP2 and GeoIP Legacy Update Program
 geoipupdate [\-Vvh] [\-f license_file] [\-d target_directory]
 .SH DESCRIPTION
 
-.BR geoipupdate " provides automatic GeoIP2 and GeoIP Legacy updates to
-MaxMind customers. The program connects to the MaxMind GeoIP Update server and
-checks for an updated database. When an updated database is available, the
-program will download and install it for you.
+.BR geoipupdate " automatically updates GeoIP2 and GeoIP Legacy databases for
+MaxMind customers. The program connects to the MaxMind GeoIP Update server to
+check for new databases. If a new database is available, the program will
+download and install it.
 
 If you are using a firewall, you must have the DNS and HTTP(S) ports open.
 .SH OPTIONS
@@ -25,8 +25,10 @@ Install databases to a custom directory. By default
 Use an alternate configuration file. Defaults to
 .BR CONF_DIR/GeoIP.conf ".
 .SH USAGE
-Typically you should run geoipupdate weekly. One way to achieve this is to use
-cron. Below is a sample crontab that runs geoipupdate on each Wednesday at
+Typically you should run
+.BR geoipupdate " weekly. One way to achieve this is to use
+cron. Below is a sample crontab file that runs
+.BR geoipupdate " on each Wednesday at
 noon:
 
 .RS
@@ -40,15 +42,17 @@ MAILTO=your@email.com
 .RE
 
 To use with a proxy server, update your
-.BR GeoIP.conf " file or set the " http_proxy " environment variable.
+.BR GeoIP.conf " file as specified in the " GeoIP.conf " man page or set
+.RB the " http_proxy " environment
+variable.
 .SH RETURN CODES
-geoipupdate returns 0 on success and 1 on error.
+.BR geoipupdate " returns 0 on success and 1 on error.
 .SH FILES
 .PP
 .TP
 .B CONF_DIR/GeoIP.conf
-Configuration file for GeoIP Update
-.BR GeoIP.conf " man page.
+Configuration file for GeoIP Update. See the
+.BR GeoIP.conf "(5) man page for more information.
 .SH AUTHOR
 Written by T.J. Mather and Boris Zentner.
 .SH "REPORTING BUGS"
@@ -58,8 +62,8 @@ Copyright (C) 2013 MaxMind, Inc.
 
 This is free software; see the
 .BR LICENSE " file for copying conditions.
-There is NO warranty; not even for MERCHANTABILITY
-or FITNESS FOR A PARTICULAR PURPOSE.
+There is NO WARRANTY, express or implied, including, but not limited to, NO
+IMPLIED WARRANTY of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH MORE INFORMATION
 Visit <https://www.maxmind.com/en/geolocation_landing> to learn more about
 the GeoIP2 and GeoIP Legacy databases or to sign up for a subscription.

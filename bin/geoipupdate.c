@@ -221,12 +221,12 @@ int parse_license_file(geoipupdate_s * up)
                     free(up->database_dir);
                     up->database_dir = strdup(p);
                 }
-            } else if (!strcmp(p, "ProxyPort")) {
+            } else if (!strcmp(p, "Proxy")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL,
-                            "ProxyPort must be defined 1.2.3.4:12345\n");
-                free(up->proxy_port);
-                up->proxy_port = strdup(p);
+                            "Proxy must be defined 1.2.3.4:12345\n");
+                free(up->proxy);
+                up->proxy = strdup(p);
             } else if (!strcmp(p, "ProxyUserPassword")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_unless(p != NULL,
@@ -292,9 +292,9 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
                gu->proxy_user_password);
         curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, gu->proxy_user_password);
     }
-    if (gu->proxy_port && strlen(gu->proxy_port)) {
-        say_if(gu->verbose, "Use proxy_port: %s\n", gu->proxy_port);
-        curl_easy_setopt(curl, CURLOPT_PROXY, gu->proxy_port);
+    if (gu->proxy && strlen(gu->proxy)) {
+        say_if(gu->verbose, "Use proxy: %s\n", gu->proxy);
+        curl_easy_setopt(curl, CURLOPT_PROXY, gu->proxy);
     }
 }
 

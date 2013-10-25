@@ -1,40 +1,35 @@
-# If you purchase a subscription to the GeoIP database,
-# then you will obtain a license key which you can
-# use to automatically obtain updates.
-# for more details, please go to
-# http://www.maxmind.com/app/products
+# Please see http://dev.maxmind.com/geoip/geoipupdate/ for instructions
+# on setting up geoipupdate, including information on how to download a
+# pre-filled GeoIP.conf file.
 
-# see https://www.maxmind.com/app/license_key_login to obtain License Key,
-# UserId, and available ProductIds
-
-# Enter your license key here
+# Enter your user ID and license key below. These are available from
+# https://www.maxmind.com/en/my_license_key
+UserId YOUR_USER_ID_HERE
 LicenseKey YOUR_LICENSE_KEY_HERE
 
-# Enter your User ID here
-UserId YOUR_USER_ID_HERE
+# Enter the product IDs of the databases you would like to update.
+ProductIds GeoIP2-Country, GeoIP2-City, 106, 132
 
-# Enter the Product ID(s) of the database(s) you would like to update
-# By default 106 (MaxMind GeoIP Country) is listed below
-ProductIds 106
+# The remaining settings are OPTIONAL.
 
-
-# Enter the desired http protocol eiter http or https
-# Protocol https
-
-# Enter the update host defaults to updates.maxmind.com
+# The server to use. Defaults to "updates.maxmind.com".
 # Host updates.maxmind.com
 
-# 
-# SkipPeerVerification defaults to 0
-# SkipPeerVerification 0
+# The desired protocol either "https" (default) or "https".
+# Protocol https
 
-# SkipHostnameVerification defaults to 0
+# The proxy host name or IP address. You may optionally specify a
+# port number, e.g., 127.0.0.1:8888. If no port number is specified, 1080
+# will be used.
+# ProxyPort 127.0.0.1:8888
+
+# The user name and password to use with your proxy server.
+# ProxyUserPassword username:password
+
+# Whether to skip host name verification on HTTPS connections.
+# Defaults to "0".
 # SkipHostnameVerification 0
 
-# ProxyUserPassword
-
-# ProxyPort is the proxy host name or IP address.
-# Optional with a port number like 1.2.3.4:1234
-# It is also possible to specify to protocol as well as user passwd
-# ie: https://user:passwd@12.34.56.87:12345
-#ProxyPort 127.0.0.1:8888
+# Whether to skip peer verification on HTTPS connections.
+# Defaults to "0".
+# SkipPeerVerification 0
