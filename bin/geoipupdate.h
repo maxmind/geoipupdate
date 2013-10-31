@@ -26,7 +26,7 @@ typedef struct {
     char * database_dir;
     char * host;
     char * proto;
-    char * proxy;          // 1.2.3.4, 1.2.3.4:1234
+    char * proxy;               // 1.2.3.4, 1.2.3.4:1234
     char * proxy_user_password; // user:pwd
     int verbose;
 
