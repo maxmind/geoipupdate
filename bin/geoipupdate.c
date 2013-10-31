@@ -89,11 +89,11 @@ static void usage(void)
     fprintf(
         stderr,
         "Usage: geoipupdate [-Vhv] [-f license_file] [-d custom directory]\n\n"
-        "\t-d Is the location where to store the downloaded files\n"
-        "\t-f config_file - Describes the products, license, user_id, ..\n"
-        "\t-h Print this help text\n"
-        "\t-v Verbose output\n"
-        "\t-V Display the version and exit\n"
+        "  -d DIR   store downloaded files in DIR\n"
+        "  -f FILE  use configuration found in FILE (see GeoIP.conf(5) man page)\n"
+        "  -h       display this help text\n"
+        "  -v       use verbose output\n"
+        "  -V       display the version and exit\n"
         );
 }
 
