@@ -412,7 +412,7 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
     client_ipaddr = strdup(mem->ptr);
     in_mem_s_delete(mem);
 
-    say_if(gu->verbose, "Client ip address: %s\n", client_ipaddr);
+    say_if(gu->verbose, "Client IP address: %s\n", client_ipaddr);
     md5hex_license_ipaddr(gu, client_ipaddr, hex_digest2);
     free(client_ipaddr);
     say_if(gu->verbose, "md5hex_digest2: %s\n", hex_digest2);
