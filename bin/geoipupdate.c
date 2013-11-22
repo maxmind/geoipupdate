@@ -148,7 +148,7 @@ int main(int argc, char *const argv[])
         parse_opts(gu, argc, argv);
         if (parse_license_file(gu)) {
             exit_unless(stat(gu->database_dir, &st) == 0,
-                        "%s does not exisits\n", gu->database_dir);
+                        "%s does not exist\n", gu->database_dir);
             exit_unless(S_ISDIR(st.st_mode), "%s is not a directory\n",
                         gu->database_dir);
             if (gu->license.user_id == NO_USER_ID) {
