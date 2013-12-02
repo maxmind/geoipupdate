@@ -165,7 +165,7 @@ int main(int argc, char *const argv[])
 
 int parse_license_file(geoipupdate_s * up)
 {
-    FILE *fh = fopen(up->license_file, "r");
+    FILE *fh = fopen(up->license_file, "rb");
     exit_unless(!!fh, "Can't open license file %s\n", up->license_file);
     say_if(up->verbose, "Opened License file %s\n", up->license_file);
 
@@ -306,7 +306,7 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
 
 void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
 {
-    FILE *f = fopen(fname, "w");
+    FILE *f = fopen(fname, "wb");
     exit_unless(f != NULL, "Can't open %s\n", fname);
     say_if(gu->verbose, "url: %s\n", url);
     CURL *curl = curl_easy_init();
