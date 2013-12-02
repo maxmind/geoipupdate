@@ -165,6 +165,7 @@ int main(int argc, char *const argv[])
 
 int parse_license_file(geoipupdate_s * up)
 {
+    say_if(up->verbose, "%s\n", PACKAGE_STRING);
     FILE *fh = fopen(up->license_file, "rb");
     exit_unless(!!fh, "Can't open license file %s\n", up->license_file);
     say_if(up->verbose, "Opened License file %s\n", up->license_file);
