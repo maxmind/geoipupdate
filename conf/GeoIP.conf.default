@@ -8,7 +8,7 @@ UserId YOUR_USER_ID_HERE
 LicenseKey YOUR_LICENSE_KEY_HERE
 
 # Enter the product IDs of the databases you would like to update.
-# Multiply product IDs are separated by spaces.
+# Multiple product IDs are separated by spaces.
 ProductIds GeoIP2-Country GeoIP2-City 106 132
 
 # The remaining settings are OPTIONAL.
