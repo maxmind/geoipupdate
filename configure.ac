@@ -30,7 +30,7 @@ AC_CHECK_HEADERS(curl/curl.h, , AC_MSG_ERROR(curl header (curl/curl.h) not found
 AC_CHECK_LIB(z, gzopen, [], [AC_MSG_ERROR([libz not found.])])
 AC_CHECK_LIB(curl, curl_easy_setopt, [], [AC_MSG_ERROR([libcurl not found.])])
 
-AC_CHECK_FUNCS([ asprintf strcasecmp memset socket strchr strdup strstr strrchr memchr strspn])
+AC_CHECK_FUNCS([ getline fgets asprintf strcasecmp memset socket strchr strdup strstr strrchr memchr strspn])
 
 AC_HEADER_STDBOOL
 
