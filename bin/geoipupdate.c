@@ -162,7 +162,21 @@ int main(int argc, char *const argv[])
     curl_global_cleanup();
     return 0;
 }
-
+static ssize_t
+my_getline(char ** linep, size_t * linecapp,
+           FILE * stream)
+{
+#if defined HAVE_GETLINE
+    return getline(linep, linecapp, stream);
+#elif defined HAVE_FGETS
+    // Unbelivable, but OS X 10.6 Snow Leopard did not
+    // provide getline
+    char * p = fgets(*linep, *linecapp, stream);
+    return p == NULL ? -1 : strlen(p);
+#else
+#error Your OS is not supported
+#endif
+}
 int parse_license_file(geoipupdate_s * up)
 {
     say_if(up->verbose, "%s\n", PACKAGE_STRING);
@@ -174,7 +188,7 @@ int parse_license_file(geoipupdate_s * up)
     size_t bsize = 1024;
     char *buffer = (char *)xmalloc(bsize);
     ssize_t read_bytes;
-    while ((read_bytes = getline(&buffer, &bsize, fh)) != -1) {
+    while ((read_bytes = my_getline(&buffer, &bsize, fh)) != -1) {
         size_t idx = strspn(buffer, sep);
         char *strt = &buffer[idx];
         if (*strt == '#') {
@@ -467,7 +481,7 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     exit_unless(fh != NULL, "Can't open %s\n", gzipfile);
     size_t bsize = 8096;
     char *buffer = (char *)xmalloc(bsize);
-    ssize_t read_bytes = getline(&buffer, &bsize, fh);
+    ssize_t read_bytes = my_getline(&buffer, &bsize, fh);
     fclose(fh);
     exit_unless(read_bytes >= 0, "Read error %s\n", gzipfile);
     const char *no_new_upd = "No new updates available";
