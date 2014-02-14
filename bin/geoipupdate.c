@@ -254,6 +254,8 @@ int parse_license_file(geoipupdate_s * up)
                             "ProxyUserPassword must be defined xyz:abc\n");
                 free(up->proxy_user_password);
                 up->proxy_user_password = strdup(p);
+            } else {
+                say_if(up->verbose, "Skip unknown directive: %s\n", p);
             }
         }
     }
