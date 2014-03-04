@@ -22,7 +22,7 @@ typedef struct {
 } in_mem_s;
 
 int parse_license_file(geoipupdate_s * up);
-void update_country_database(geoipupdate_s * gu);
+int update_country_database(geoipupdate_s * gu);
 static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
 static void update_database_general_all(geoipupdate_s * gu);
 static void update_database_general(geoipupdate_s * gu, const char *product_id);
@@ -458,7 +458,7 @@ static void update_database_general_all(geoipupdate_s * gu)
     }
 }
 
-void update_country_database(geoipupdate_s * gu)
+int update_country_database(geoipupdate_s * gu)
 {
     char *geoip_filename, *geoip_gz_filename, *url;
     char hex_digest[33];
@@ -473,9 +473,10 @@ void update_country_database(geoipupdate_s * gu)
     get_to_disc(gu, url, geoip_gz_filename);
     free(url);
 
-    gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
+    int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
     free(geoip_gz_filename);
     free(geoip_filename);
+    return rc ? ERROR : OK;
 }
 
 static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
