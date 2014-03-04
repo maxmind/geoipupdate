@@ -518,9 +518,9 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     xasprintf(&file_path_test, "%s.test", geoip_filename);
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
     gz_fh = gzopen(gzipfile, "rb");
-    exit_unless(gz_fh != NULL, "Can't open %s\n", gzipfile);
+    exit_if(gz_fh == NULL, "Can't open %s\n", gzipfile);
     FILE *fhw = fopen(file_path_test, "wb");
-    exit_unless(fhw >= 0, "Can't open %s\n", file_path_test);
+    exit_if(fhw < 0, "Can't open %s\n", file_path_test);
 
     for (;; ) {
         int amt = gzread(gz_fh, buffer, bsize);
