@@ -145,6 +145,7 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
 int main(int argc, char *const argv[])
 {
     struct stat st;
+    int err = ERROR;
     curl_global_init(CURL_GLOBAL_DEFAULT);
     geoipupdate_s *gu = geoipupdate_s_new();
     if (gu) {
@@ -154,16 +155,14 @@ int main(int argc, char *const argv[])
                         "%s does not exist\n", gu->database_dir);
             exit_unless(S_ISDIR(st.st_mode), "%s is not a directory\n",
                         gu->database_dir);
-            if (gu->license.user_id == NO_USER_ID) {
-                update_country_database(gu);
-            } else{
-                update_database_general_all(gu);
-            }
+            err = (gu->license.user_id == NO_USER_ID)
+                  ? update_country_database(gu)
+                  : update_database_general_all(gu);
         }
         geoipupdate_s_delete(gu);
     }
     curl_global_cleanup();
-    return 0;
+    return err ? ERROR : OK;
 }
 static ssize_t
 my_getline(char ** linep, size_t * linecapp,
