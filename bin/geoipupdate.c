@@ -21,8 +21,8 @@ typedef struct {
     size_t size;
 } in_mem_s;
 
-int parse_license_file(geoipupdate_s * up);
-int update_country_database(geoipupdate_s * gu);
+static int parse_license_file(geoipupdate_s * up);
+static int update_country_database(geoipupdate_s * gu);
 static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
 static int update_database_general_all(geoipupdate_s * gu);
 static int update_database_general(geoipupdate_s * gu, const char *product_id);
@@ -179,7 +179,7 @@ my_getline(char ** linep, size_t * linecapp,
 #error Your OS is not supported
 #endif
 }
-int parse_license_file(geoipupdate_s * up)
+static int parse_license_file(geoipupdate_s * up)
 {
     say_if(up->verbose, "%s\n", PACKAGE_STRING);
     FILE *fh = fopen(up->license_file, "rb");
@@ -464,7 +464,7 @@ static int update_database_general_all(geoipupdate_s * gu)
     return err;
 }
 
-int update_country_database(geoipupdate_s * gu)
+static int update_country_database(geoipupdate_s * gu)
 {
     char *geoip_filename, *geoip_gz_filename, *url;
     char hex_digest[33];
