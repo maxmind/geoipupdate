@@ -501,7 +501,7 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
         say_if(gu->verbose, "%s\n", no_new_upd);
         unlink(gzipfile);
         free(buffer);
-        return;
+        return OK;
     }
     if (strncmp(buffer, "\x1f\x8b", 2)) {
         // error not a zip file
