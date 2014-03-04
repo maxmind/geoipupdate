@@ -13,6 +13,9 @@
 #include <zlib.h>
 #include <sys/stat.h>
 
+static const int ERROR = 1;
+static const int OK = 0;
+
 typedef struct {
     char *ptr;
     size_t size;
