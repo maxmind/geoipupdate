@@ -25,7 +25,7 @@ int parse_license_file(geoipupdate_s * up);
 int update_country_database(geoipupdate_s * gu);
 static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
 static void update_database_general_all(geoipupdate_s * gu);
-static void update_database_general(geoipupdate_s * gu, const char *product_id);
+static int update_database_general(geoipupdate_s * gu, const char *product_id);
 static in_mem_s *get(geoipupdate_s * gu, const char *url);
 static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
                               const char *geoip_filename);
@@ -412,7 +412,7 @@ void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
     }
 }
 
-static void update_database_general(geoipupdate_s * gu, const char *product_id)
+static int update_database_general(geoipupdate_s * gu, const char *product_id)
 {
     char *url, *geoip_filename, *geoip_gz_filename, *client_ipaddr;
     char hex_digest[33], hex_digest2[33];
@@ -421,7 +421,11 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
               gu->proto, gu->host, product_id);
     in_mem_s *mem = get(gu, url);
     free(url);
-    exit_if(mem->size == 0, "product_id %s not found\n", product_id);
+    if (mem->size == 0) {
+        fprintf(stderr, "product_id %s not found\n", product_id);
+        in_mem_s_delete(mem);
+        return ERROR;
+    }
     xasprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
     in_mem_s_delete(mem);
     md5hex(geoip_filename, hex_digest);
@@ -445,9 +449,10 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
     get_to_disc(gu, url, geoip_gz_filename);
     free(url);
-    gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
+    int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
     free(geoip_gz_filename);
     free(geoip_filename);
+    return rc;
 }
 
 static void update_database_general_all(geoipupdate_s * gu)
