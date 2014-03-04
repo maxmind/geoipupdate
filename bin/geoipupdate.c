@@ -27,8 +27,8 @@ static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
 static void update_database_general_all(geoipupdate_s * gu);
 static void update_database_general(geoipupdate_s * gu, const char *product_id);
 static in_mem_s *get(geoipupdate_s * gu, const char *url);
-static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                               const char *geoip_filename);
+static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
+                              const char *geoip_filename);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -478,8 +478,8 @@ void update_country_database(geoipupdate_s * gu)
     free(geoip_filename);
 }
 
-static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                               const char *geoip_filename)
+static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
+                              const char *geoip_filename)
 {
     gzFile gz_fh;
     FILE *fh = fopen(gzipfile, "rb");
@@ -499,7 +499,8 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     if (strncmp(buffer, "\x1f\x8b", 2)) {
         // error not a zip file
         unlink(gzipfile);
-        exit_unless(0, "%s\n", buffer);
+        fputs(buffer, stderr);
+        return ERROR;
     }
     char *file_path_test;
     xasprintf(&file_path_test, "%s.test", geoip_filename);
@@ -526,4 +527,5 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     exit_if(err, "Rename %s to %s failed\n", file_path_test, geoip_filename);
     unlink(gzipfile);
     free(file_path_test);
+    return OK;
 }
