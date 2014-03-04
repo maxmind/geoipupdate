@@ -495,7 +495,12 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     char *buffer = (char *)xmalloc(bsize);
     ssize_t read_bytes = my_getline(&buffer, &bsize, fh);
     fclose(fh);
-    exit_unless(read_bytes >= 0, "Read error %s\n", gzipfile);
+    if (read_bytes < 0) {
+        fprintf(stderr, "Read error %s\n", gzipfile);
+        unlink(gzipfile);
+        free(buffer);
+        return ERROR;
+    }
     const char *no_new_upd = "No new updates available";
     if (!strncmp(no_new_upd, buffer, strlen(no_new_upd))) {
         say_if(gu->verbose, "%s\n", no_new_upd);
