@@ -13,19 +13,22 @@
 #include <zlib.h>
 #include <sys/stat.h>
 
+static const int ERROR = 1;
+static const int OK = 0;
+
 typedef struct {
     char *ptr;
     size_t size;
 } in_mem_s;
 
-int parse_license_file(geoipupdate_s * up);
-void update_country_database(geoipupdate_s * gu);
+static int parse_license_file(geoipupdate_s * up);
+static int update_country_database(geoipupdate_s * gu);
 static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
-static void update_database_general_all(geoipupdate_s * gu);
-static void update_database_general(geoipupdate_s * gu, const char *product_id);
+static int update_database_general_all(geoipupdate_s * gu);
+static int update_database_general(geoipupdate_s * gu, const char *product_id);
 static in_mem_s *get(geoipupdate_s * gu, const char *url);
-static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                               const char *geoip_filename);
+static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
+                              const char *geoip_filename);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -142,6 +145,7 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
 int main(int argc, char *const argv[])
 {
     struct stat st;
+    int err = ERROR;
     curl_global_init(CURL_GLOBAL_DEFAULT);
     geoipupdate_s *gu = geoipupdate_s_new();
     if (gu) {
@@ -151,16 +155,14 @@ int main(int argc, char *const argv[])
                         "%s does not exist\n", gu->database_dir);
             exit_unless(S_ISDIR(st.st_mode), "%s is not a directory\n",
                         gu->database_dir);
-            if (gu->license.user_id == NO_USER_ID) {
-                update_country_database(gu);
-            } else{
-                update_database_general_all(gu);
-            }
+            err = (gu->license.user_id == NO_USER_ID)
+                  ? update_country_database(gu)
+                  : update_database_general_all(gu);
         }
         geoipupdate_s_delete(gu);
     }
     curl_global_cleanup();
-    return 0;
+    return err ? ERROR : OK;
 }
 static ssize_t
 my_getline(char ** linep, size_t * linecapp,
@@ -177,7 +179,7 @@ my_getline(char ** linep, size_t * linecapp,
 #error Your OS is not supported
 #endif
 }
-int parse_license_file(geoipupdate_s * up)
+static int parse_license_file(geoipupdate_s * up)
 {
     say_if(up->verbose, "%s\n", PACKAGE_STRING);
     FILE *fh = fopen(up->license_file, "rb");
@@ -409,7 +411,7 @@ void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
     }
 }
 
-static void update_database_general(geoipupdate_s * gu, const char *product_id)
+static int update_database_general(geoipupdate_s * gu, const char *product_id)
 {
     char *url, *geoip_filename, *geoip_gz_filename, *client_ipaddr;
     char hex_digest[33], hex_digest2[33];
@@ -418,7 +420,11 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
               gu->proto, gu->host, product_id);
     in_mem_s *mem = get(gu, url);
     free(url);
-    exit_if(mem->size == 0, "product_id %s not found\n", product_id);
+    if (mem->size == 0) {
+        fprintf(stderr, "product_id %s not found\n", product_id);
+        in_mem_s_delete(mem);
+        return ERROR;
+    }
     xasprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
     in_mem_s_delete(mem);
     md5hex(geoip_filename, hex_digest);
@@ -442,20 +448,23 @@ static void update_database_general(geoipupdate_s * gu, const char *product_id)
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
     get_to_disc(gu, url, geoip_gz_filename);
     free(url);
-    gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
+    int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
     free(geoip_gz_filename);
     free(geoip_filename);
+    return rc;
 }
 
-static void update_database_general_all(geoipupdate_s * gu)
+static int update_database_general_all(geoipupdate_s * gu)
 {
+    int err = 0;
     for (product_s ** next = &gu->license.first; *next; next =
              &(*next)->next) {
-        update_database_general(gu, (*next)->product_id);
+        err |= update_database_general(gu, (*next)->product_id);
     }
+    return err;
 }
 
-void update_country_database(geoipupdate_s * gu)
+static int update_country_database(geoipupdate_s * gu)
 {
     char *geoip_filename, *geoip_gz_filename, *url;
     char hex_digest[33];
@@ -470,13 +479,14 @@ void update_country_database(geoipupdate_s * gu)
     get_to_disc(gu, url, geoip_gz_filename);
     free(url);
 
-    gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
+    int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
     free(geoip_gz_filename);
     free(geoip_filename);
+    return rc ? ERROR : OK;
 }
 
-static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                               const char *geoip_filename)
+static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
+                              const char *geoip_filename)
 {
     gzFile gz_fh;
     FILE *fh = fopen(gzipfile, "rb");
@@ -485,26 +495,32 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     char *buffer = (char *)xmalloc(bsize);
     ssize_t read_bytes = my_getline(&buffer, &bsize, fh);
     fclose(fh);
-    exit_unless(read_bytes >= 0, "Read error %s\n", gzipfile);
+    if (read_bytes < 0) {
+        fprintf(stderr, "Read error %s\n", gzipfile);
+        unlink(gzipfile);
+        free(buffer);
+        return ERROR;
+    }
     const char *no_new_upd = "No new updates available";
     if (!strncmp(no_new_upd, buffer, strlen(no_new_upd))) {
         say_if(gu->verbose, "%s\n", no_new_upd);
         unlink(gzipfile);
         free(buffer);
-        return;
+        return OK;
     }
     if (strncmp(buffer, "\x1f\x8b", 2)) {
         // error not a zip file
         unlink(gzipfile);
-        exit_unless(0, "%s\n", buffer);
+        fputs(buffer, stderr);
+        return ERROR;
     }
     char *file_path_test;
     xasprintf(&file_path_test, "%s.test", geoip_filename);
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
     gz_fh = gzopen(gzipfile, "rb");
-    exit_unless(gz_fh != NULL, "Can't open %s\n", gzipfile);
+    exit_if(gz_fh == NULL, "Can't open %s\n", gzipfile);
     FILE *fhw = fopen(file_path_test, "wb");
-    exit_unless(fhw >= 0, "Can't open %s\n", file_path_test);
+    exit_if(fhw < 0, "Can't open %s\n", file_path_test);
 
     for (;; ) {
         int amt = gzread(gz_fh, buffer, bsize);
@@ -523,4 +539,5 @@ static void gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     exit_if(err, "Rename %s to %s failed\n", file_path_test, geoip_filename);
     unlink(gzipfile);
     free(file_path_test);
+    return OK;
 }
