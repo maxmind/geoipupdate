@@ -1,4 +1,4 @@
-.TH GEOIPUPDATE 2 "25 Sep 2013"
+.TH GEOIPUPDATE 1 "25 Sep 2013"
 .UC 4
 .SH NAME
 geoipupdate - GeoIP2 and GeoIP Legacy Update Program
