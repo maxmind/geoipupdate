@@ -7,4 +7,4 @@ SUBDIRS =   \
     conf    \
     man
 
-EXTRA_DIST = ChangeLog.md README.md README.OSX TODO bootstrap
+EXTRA_DIST = ChangeLog.md README.md bootstrap
