@@ -9,9 +9,9 @@ GeoIP Update Change Log
 * Previously if one database failed to be updated, `geoipupdate` would not
   attempt to download the remaining databases. It now continues to the next
   database when a download fails.
-* Support for Mac OS X 10.6, which is missing the `getline` function was
+* Support for Mac OS X 10.6, which is missing the `getline` function, was
   added.
-* Unknown directions in the configuration file will now be logged.
+* Unknown directives in the configuration file will now be logged.
 * The debugging output was improved and made more readable.
 * Several documentation errors and typos were fixed.
 
