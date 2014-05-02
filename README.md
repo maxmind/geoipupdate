@@ -46,4 +46,4 @@ https://github.com/maxmind/geoipupdate/issues
 
 # Copyright
 
-This software is Copyright (c) 2013 by MaxMind, Inc.
+This software is Copyright (c) 2014 by MaxMind, Inc.
