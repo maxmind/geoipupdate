@@ -1,6 +1,6 @@
 man_MANS = geoipupdate.1 GeoIP.conf.5
 
-EXTRA_DIST = geoipupdate.1.in GeoIP.conf.5
+EXTRA_DIST = geoipupdate.1.in GeoIP.conf.5.in
 
 
 edit = sed \
