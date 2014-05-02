@@ -1,6 +1,6 @@
 dnl AM_CONFIG_HEADER(config.h)
 
-AC_INIT([geoipupdate], [2.0.0],[support@maxmind.com],[geoipupdate])
+AC_INIT([geoipupdate], [2.0.1],[support@maxmind.com],[geoipupdate])
 AC_GNU_SOURCE
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([bin/geoipupdate.c])
