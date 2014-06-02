@@ -29,7 +29,6 @@ List of product IDs. Product IDs may consist of letters, digits, and dashes
 .PP
 .SS Optional settings:
 .PP
-.Bl -tag -width Ds
 .TP
 .B DatabaseDirectory
 The directory to store the database files. The default is DATADIR
