@@ -94,8 +94,8 @@ my ( $user_id, $license_key, @product_ids );
         next if /^\s*#/;    # skip comments
         /^\s*UserId\s+(\d+)/        and $user_id     = $1, next;
         /^\s*LicenseKey\s+(\S{12})/ and $license_key = $1, next;
-        /^\s*ProductIds\s+(\d+(?:[a-zA-Z]{2,3})?(?:\s+\d+(?:[a-zA-Z]{2,3})?)*)/
-            and @product_ids = split( /\s+/, $1 ), next;
+        /^\s*ProductIds(?>\s+)([A-Za-z\-_0-9 ]+)/
+            and push( @product_ids, split( /\s+/, $1 ) ), next;
 
     }
 }
