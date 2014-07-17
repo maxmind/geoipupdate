@@ -3,6 +3,7 @@
 # define GEOIPUPDATE_H (1)
 
 #include <stdlib.h>
+#include <curl/curl.h>
 
 typedef struct product_s {
     char *product_id;
@@ -29,7 +30,8 @@ typedef struct {
     char * proxy;               // 1.2.3.4, 1.2.3.4:1234
     char * proxy_user_password; // user:pwd
     int verbose;
-
+    CURL * curl;
+    
 } geoipupdate_s;
 
 geoipupdate_s * geoipupdate_s_new(void);
