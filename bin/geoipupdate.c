@@ -1,6 +1,5 @@
 
 #include "geoipupdate.h"
-#include <curl/curl.h>
 
 #include <unistd.h>
 #include <stdio.h>
@@ -328,7 +327,7 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
     FILE *f = fopen(fname, "wb");
     exit_unless(f != NULL, "Can't open %s\n", fname);
     say_if(gu->verbose, "url: %s\n", url);
-    CURL *curl = curl_easy_init();
+    CURL *curl = gu->curl;
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -339,7 +338,6 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
                 "curl_easy_perform() failed: %s\nConnect to %s\n",
                 curl_easy_strerror(res), url);
 
-    curl_easy_cleanup(curl);
     fclose(f);
 }
 
@@ -382,7 +380,7 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
     in_mem_s *mem = in_mem_s_new();
 
     say_if(gu->verbose, "url: %s\n", url);
-    CURL *curl = curl_easy_init();
+    CURL *curl = gu->curl;
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, mem_cb);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)mem);
@@ -391,7 +389,6 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
     exit_unless(res == CURLE_OK,
                 "curl_easy_perform() failed: %s\nConnect to %s\n",
                 curl_easy_strerror(res), url);
-    curl_easy_cleanup(curl);
     return mem;
 }
 

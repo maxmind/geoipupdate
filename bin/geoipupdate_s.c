@@ -17,6 +17,7 @@ geoipupdate_s *geoipupdate_s_new(void)
     gu->verbose = 0;
     gu->license.user_id = NO_USER_ID;
     gu->license.license_key[12] = 0;
+    gu->curl = curl_easy_init();
     return gu;
 }
 
@@ -30,6 +31,8 @@ void geoipupdate_s_delete(geoipupdate_s * gu)
         free(gu->proxy);
         free(gu->proxy_user_password);
         free(gu->host);
+        if (gu->curl != NULL)
+            curl_easy_cleanup(gu->curl);
         free(gu);
     }
 }
