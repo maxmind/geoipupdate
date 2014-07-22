@@ -1,6 +1,14 @@
 GeoIP Update Change Log
 =======================
 
+2.0.2 (2014-07-22)
+------------------
+
+* The client now uses a single TCP connection when possible. Previously the
+  public IP address of a host could change across requests, causing the
+  authentication to fail. Reported by Aman Gupta. GitHub issue #12 and #13.
+* ` geoipupdate-pureperl.pl` was updated to work with GeoIP2.
+
 2.0.1 (2014-05-02)
 ------------------
 
