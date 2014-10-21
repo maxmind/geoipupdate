@@ -529,7 +529,8 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
                     "Gzip write error\n");
     }
     fclose(fhw);
-    gzclose(gz_fh);
+    int rc = gzclose(gz_fh);
+    exit_if(rc != 0, "Gzip read error while closing from %s\n", gzipfile);
     free(buffer);
     say_if(gu->verbose, "Rename %s to %s\n", file_path_test, geoip_filename);
     int err = rename(file_path_test, geoip_filename);
