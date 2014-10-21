@@ -31,8 +31,9 @@ void geoipupdate_s_delete(geoipupdate_s * gu)
         free(gu->proxy);
         free(gu->proxy_user_password);
         free(gu->host);
-        if (gu->curl != NULL)
+        if (gu->curl != NULL) {
             curl_easy_cleanup(gu->curl);
+        }
         free(gu);
     }
 }

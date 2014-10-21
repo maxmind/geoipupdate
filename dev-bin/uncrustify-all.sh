@@ -5,21 +5,15 @@ uncrustify="uncrustify -c .uncrustify.cfg --replace --no-backup"
 # We indent each thing twice because uncrustify is not idempotent - in some
 # cases it will flip-flop between two indentation styles.
 for dir in bin; do
-    c_files=`find $dir -maxdepth 1 -name '*.c' | grep -v 'md5\|base64\|types'`
-    echo $c_files
+    c_files=`find $dir -maxdepth 1 -name '*.c'`
     if [ "$c_files" != "" ]; then
-        for file in $c_files; do
-            $uncrustify $file
-            $uncrustify $file
-        done
+        $uncrustify $dir/*.c;
+        $uncrustify $dir/*.c;
     fi
-    
-    h_files=`find $dir -maxdepth 1 -name '*.h' | grep -v 'md5\|base64\|types'`
-    echo $h_files;
+
+    h_files=`find $dir -maxdepth 1 -name '*.h'`
     if [ "$h_files" != "" ]; then
-        for file in $h_files; do
-            $uncrustify $file
-            $uncrustify $file
-        done
+        $uncrustify $dir/*.h;
+        $uncrustify $dir/*.h;
     fi
 done

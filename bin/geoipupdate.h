@@ -31,7 +31,7 @@ typedef struct {
     char * proxy_user_password; // user:pwd
     int verbose;
     CURL * curl;
-    
+
 } geoipupdate_s;
 
 geoipupdate_s * geoipupdate_s_new(void);

@@ -45,10 +45,10 @@
 #include <sys/types.h>
 
 #ifndef HAVE_BYTE_TYPEDEF
-#undef byte	    /* maybe there is a macro with this name */
+#undef byte         /* maybe there is a macro with this name */
 #ifndef __riscos__
 typedef unsigned char byte;
-#else 
+#else
 /* Norcroft treats char  = unsigned char  as legal assignment
                but char* = unsigned char* as illegal assignment
    and the same applies to the signed variants as well  */
@@ -64,15 +64,15 @@ typedef unsigned short ushort;
 #endif
 
 #ifndef HAVE_ULONG_TYPEDEF
-#undef ulong	    /* maybe there is a macro with this name */
+#undef ulong        /* maybe there is a macro with this name */
 typedef unsigned long ulong;
 #define HAVE_ULONG_TYPEDEF
 #endif
 
 #ifndef HAVE_U16_TYPEDEF
-#undef u16	    /* maybe there is a macro with this name */
+#undef u16          /* maybe there is a macro with this name */
 #if SIZEOF_UNSIGNED_INT == 2
-typedef unsigned int   u16;
+typedef unsigned int u16;
 #elif SIZEOF_UNSIGNED_SHORT == 2
 typedef unsigned short u16;
 #else
@@ -82,7 +82,7 @@ typedef unsigned short u16;
 #endif
 
 #ifndef HAVE_U32_TYPEDEF
-#undef u32	    /* maybe there is a macro with this name */
+#undef u32          /* maybe there is a macro with this name */
 #if SIZEOF_UNSIGNED_INT == 4
 typedef unsigned int u32;
 #elif SIZEOF_UNSIGNED_LONG == 4
@@ -99,7 +99,7 @@ typedef unsigned long u32;
  * Solaris and IRIX.
  */
 #ifndef HAVE_U64_TYPEDEF
-#undef u64	    /* maybe there is a macro with this name */
+#undef u64          /* maybe there is a macro with this name */
 #if SIZEOF_UINT64_T == 8
 typedef uint64_t u64;
 #define U64_C(c) (UINT64_C(c))
