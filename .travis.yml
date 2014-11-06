@@ -1,0 +1,19 @@
+language: c
+
+compiler:
+  - clang
+  - gcc
+
+before_script:
+  - ./bootstrap
+  - CFLAGS="-std=c99 -Wall -Wextra -Werror" ./configure
+
+script:
+  - make
+
+notifications:
+  email:
+    recipients:
+      - dev@maxmind.com
+    on_success: change
+    on_failure: always
