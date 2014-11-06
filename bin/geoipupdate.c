@@ -532,7 +532,7 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     gz_fh = gzopen(gzipfile, "rb");
     exit_if(gz_fh == NULL, "Can't open %s\n", gzipfile);
     FILE *fhw = fopen(file_path_test, "wb");
-    exit_if(fhw < 0, "Can't open %s\n", file_path_test);
+    exit_if(fhw == NULL, "Can't open %s\n", file_path_test);
 
     for (;; ) {
         int amt = gzread(gz_fh, buffer, bsize);
