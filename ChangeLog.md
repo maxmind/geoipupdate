@@ -1,6 +1,17 @@
 GeoIP Update Change Log
 =======================
 
+2.1.0 (2014-11-06)
+------------------
+
+* Previously `geoipupdate` did not check the status code of an HTTP response.
+  It will now check for an unexpected status code and exit with a warning if
+  such a status is received.
+* The client now checks the return value of gz_close to ensure that the gzip
+  stream was correctly decoded. GitHub PR #18.
+* The client now checks that the file was correctly opened. Previous versions
+  used an incorrect check.
+
 2.0.2 (2014-07-22)
 ------------------
 
