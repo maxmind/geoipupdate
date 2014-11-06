@@ -338,6 +338,13 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
                 "curl_easy_perform() failed: %s\nConnect to %s\n",
                 curl_easy_strerror(res), url);
 
+    long status = 0;
+    curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
+
+    exit_unless( status >= 200 && status < 300,
+                "Received an unexpected HTTP status code of %ld from %s",
+                status, url);
+
     fclose(f);
 }
 
@@ -389,6 +396,14 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
     exit_unless(res == CURLE_OK,
                 "curl_easy_perform() failed: %s\nConnect to %s\n",
                 curl_easy_strerror(res), url);
+
+    long status = 0;
+    curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
+
+    exit_unless( status >= 200 && status < 300,
+                "Received an unexpected HTTP status code of %ld from %s",
+                status, url);
+
     return mem;
 }
 
@@ -517,7 +532,7 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     gz_fh = gzopen(gzipfile, "rb");
     exit_if(gz_fh == NULL, "Can't open %s\n", gzipfile);
     FILE *fhw = fopen(file_path_test, "wb");
-    exit_if(fhw < 0, "Can't open %s\n", file_path_test);
+    exit_if(fhw == NULL, "Can't open %s\n", file_path_test);
 
     for (;; ) {
         int amt = gzread(gz_fh, buffer, bsize);
