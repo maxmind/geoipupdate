@@ -339,11 +339,11 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
                 curl_easy_strerror(res), url);
 
     long status = 0;
-    curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
     exit_unless( status >= 200 && status < 300,
-                "Received an unexpected HTTP status code of %ld from %s",
-                status, url);
+                 "Received an unexpected HTTP status code of %ld from %s",
+                 status, url);
 
     fclose(f);
 }
@@ -398,11 +398,11 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
                 curl_easy_strerror(res), url);
 
     long status = 0;
-    curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
     exit_unless( status >= 200 && status < 300,
-                "Received an unexpected HTTP status code of %ld from %s",
-                status, url);
+                 "Received an unexpected HTTP status code of %ld from %s",
+                 status, url);
 
     return mem;
 }
