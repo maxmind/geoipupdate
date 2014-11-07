@@ -1,0 +1,5 @@
+geoipupdate (2.1.0-0+maxmind-1) unstable; urgency=low
+
+  * Initial release of MaxMind package
+
+ -- Greg Oschwald <goschwald@maxmind.com>  Fri, 07 Nov 2014 14:16:41 -0800

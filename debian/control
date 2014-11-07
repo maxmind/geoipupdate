@@ -1,0 +1,20 @@
+Source: geoipupdate
+Section: net
+Priority: optional
+Maintainer: Greg Oschwald <goschwald@maxmind.com>
+Build-Depends: debhelper (>= 9),
+               autotools-dev,
+               libcurl4-openssl-dev
+Standards-Version: 3.9.5
+Homepage: https://github.com/maxmind/geoipupdate/releases
+Vcs-Git: git://github.com/maxmind/geoipupdate.git
+Vcs-Browser: https://github.com/maxmind/geoipupdate
+
+Package: geoipupdate
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: geoip-bin (<< 1.6.0)
+Description: Tool for updating GeoIP and GeoLite databases
+ The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP Legacy
+ binary databases. Currently the program only supports Linux and other Unix-
+ like systems.

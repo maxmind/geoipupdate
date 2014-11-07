@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
+
+export CFLAGS  = -std=c99 -Wall -Wextra -Werror -pedantic
+
+%:
+	dh $@  --with autotools-dev
+
+override_dh_installchangelogs:
+	dh_installchangelogs ChangeLog.md
+

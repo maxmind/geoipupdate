@@ -38,6 +38,7 @@ config.log
 config.status
 config.sub
 configure.scan
+debian/geoipupdate*
 libtool
 ltmain.sh
 man/GeoIP.conf.5
