@@ -52,6 +52,11 @@ directions on how to configure GeoIP Update.
 Please report bugs by filing an issue with our GitHub issue tracker at
 https://github.com/maxmind/geoipupdate/issues
 
+# License
+
+This software is licensed under the GNU General Public License (GPL), version
+2 or later.
+
 # Copyright
 
 This software is Copyright (c) 2014 by MaxMind, Inc.
