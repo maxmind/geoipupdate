@@ -3,7 +3,7 @@
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/default.mk
 
-export CFLAGS  = -std=c99 -Wall -Wextra -Werror -pedantic
+export DEB_CFLAGS_MAINT_APPEND = -std=c99 -Wall -Wextra -Werror -pedantic
 
 %:
 	dh $@  --with autotools-dev
