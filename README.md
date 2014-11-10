@@ -12,7 +12,13 @@ This library is licensed under the GNU General Public License version 2.
 
 ## Installing From Source File
 
-To install this code, run the following commands:
+To install this from the source package, you will need a C compiler, Make,
+and the curl library and headers. On Debian or Ubuntu, you can install these
+dependencies by running:
+
+    $ sudo apt-get install build-essentials libcurl4-openssl-dev
+
+Once you have the necessary dependencies, run the following commands:
 
     $ ./configure
     $ make
@@ -23,16 +29,18 @@ installed such as `--prefix`, etc. See `./configure --help` for details.
 
 ## Installing From GitHub
 
+To install from Git, you will need automake, autoconf, and libtool installed.
+
 Our public git repository is hosted on GitHub at
 https://github.com/maxmind/geoipupdate
 
-You can clone this repository and build it by running:
+You can clone this repository and bootstrap it by running:
 
     $ git clone https://github.com/maxmind/geoipupdate
+    $ cd geoipupdate
     $ ./bootstrap
-    $ ./configure
-    $ make
-    $ sudo make install
+
+Then follow the instructions above for "Installing From Source Files".
 
 # Configuring
 
