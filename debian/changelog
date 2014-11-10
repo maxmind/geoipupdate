@@ -1,4 +1,4 @@
-geoipupdate (2.1.0-0+maxmind1) unstable; urgency=low
+geoipupdate (2.1.0-0+maxmind1) trusty; urgency=low
 
   * Initial release of MaxMind package
 
