@@ -10,6 +10,18 @@ like systems.
 
 This library is licensed under the GNU General Public License version 2.
 
+## Installing on Ubuntu
+
+MaxMind provides a PPA for recent version of Ubuntu. To add the PPA to your
+sources, run:
+
+    $ sudo add-apt-repository ppa:maxmind/ppa
+
+Then install `geoipupdate` by running:
+
+    $ sudo aptitude update
+    $ sudo aptitude install geoipupdate
+
 ## Installing From Source File
 
 To install this from the source package, you will need a C compiler, Make,
