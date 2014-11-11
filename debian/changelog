@@ -1,3 +1,9 @@
+geoipupdate (2.1.0-0+maxmind2) trusty; urgency=low
+
+  * Add zlib1g-dev to build-depends and change CFLAGS.
+
+ -- Greg Oschwald <goschwald@maxmind.com>  Mon, 10 Nov 2014 15:53:32 -0800
+
 geoipupdate (2.1.0-0+maxmind1) trusty; urgency=low
 
   * Initial release of MaxMind package

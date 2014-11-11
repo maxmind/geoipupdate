@@ -4,7 +4,8 @@ Priority: optional
 Maintainer: Greg Oschwald <goschwald@maxmind.com>
 Build-Depends: debhelper (>= 9),
                autotools-dev,
-               libcurl4-openssl-dev
+               libcurl4-openssl-dev,
+               zlib1g-dev
 Standards-Version: 3.9.5
 Homepage: https://github.com/maxmind/geoipupdate/releases
 Vcs-Git: git://github.com/maxmind/geoipupdate.git
