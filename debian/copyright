@@ -4,7 +4,13 @@ Source: <https://github.com/maxmind/geoipupdate>
 
 Files: *
 Copyright: 2014 MaxMind, Inc.
-License: GPL-2+
+License: GPL-2.0+
+
+Files: bin/base64.c bin/base64.h bin/md5.c bin/md5.h
+Copyright: 1995-2012 Free Software Foundation, Inc.
+License: GPL-2.0+
+
+License: GPL-2.0+
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation; either version 2 of the License, or
