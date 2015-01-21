@@ -16,7 +16,7 @@ ProductIds GeoIP2-Country GeoIP2-City 106 132
 # The server to use. Defaults to "updates.maxmind.com".
 # Host updates.maxmind.com
 
-# The desired protocol either "https" (default) or "https".
+# The desired protocol either "https" (default) or "http".
 # Protocol https
 
 # The proxy host name or IP address. You may optionally specify a
