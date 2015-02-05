@@ -1,6 +1,17 @@
 GeoIP Update Change Log
 =======================
 
+2.2.0 (2015-XX-XX)
+------------------
+
+* `geoipupdate` now verifies the MD5 of the new database before deploying it.
+  If the database MD5 does not match the expected MD5, `geoipupdate` will
+  exit with an error.
+* The copy of `base64.c` and `base64.h` was switched to a version under GPL 2+
+  to prevent a license conflict.
+* The `LICENSE` file was added to the distribution.
+* Several issues in the documentation were fixed.
+
 2.1.0 (2014-11-06)
 ------------------
 
