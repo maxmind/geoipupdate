@@ -13,6 +13,9 @@ ProductIds GeoIP2-Country GeoIP2-City 106 132
 
 # The remaining settings are OPTIONAL.
 
+# The directory to store the database files. Defaults to /usr/local/share/GeoIP
+# DatabaseDirectory /usr/local/share/GeoIP
+
 # The server to use. Defaults to "updates.maxmind.com".
 # Host updates.maxmind.com
 
