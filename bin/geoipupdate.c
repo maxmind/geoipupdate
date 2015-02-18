@@ -348,6 +348,7 @@ void download_to_file(geoipupdate_s * gu, const char *url, const char *fname,
     say_if(gu->verbose, "url: %s\n", url);
     CURL *curl = gu->curl;
 
+    expected_file_md5[0] = '\0';
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, get_expected_file_md5);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, expected_file_md5);
 
@@ -366,7 +367,7 @@ void download_to_file(geoipupdate_s * gu, const char *url, const char *fname,
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
     exit_unless( status >= 200 && status < 300,
-                 "Received an unexpected HTTP status code of %ld from %s",
+                 "Received an unexpected HTTP status code of %ld from %s\n",
                  status, url);
 
     fclose(f);
@@ -558,6 +559,12 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
         fputs(buffer, stderr);
         return ERROR;
     }
+
+    // We do this here as we have to check that there is an update before
+    // we check for the header.
+    exit_unless( 32 == strnlen(expected_file_md5, 33),
+                 "Did not receive a valid expected database MD5 from server\n");
+
     char *file_path_test;
     xasprintf(&file_path_test, "%s.test", geoip_filename);
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
