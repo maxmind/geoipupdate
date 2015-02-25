@@ -22,12 +22,15 @@ typedef struct {
 
 static int parse_license_file(geoipupdate_s * up);
 static int update_country_database(geoipupdate_s * gu);
-static void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname);
+static void download_to_file(geoipupdate_s * gu, const char *url,
+                             const char *fname,
+                             char *expected_file_md5);
 static int update_database_general_all(geoipupdate_s * gu);
 static int update_database_general(geoipupdate_s * gu, const char *product_id);
 static in_mem_s *get(geoipupdate_s * gu, const char *url);
 static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                              const char *geoip_filename);
+                              const char *geoip_filename,
+                              const char *expected_file_md5);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -163,9 +166,8 @@ int main(int argc, char *const argv[])
     curl_global_cleanup();
     return err ? ERROR : OK;
 }
-static ssize_t
-my_getline(char ** linep, size_t * linecapp,
-           FILE * stream)
+
+static ssize_t my_getline(char ** linep, size_t * linecapp, FILE * stream)
 {
 #if defined HAVE_GETLINE
     return getline(linep, linecapp, stream);
@@ -178,6 +180,7 @@ my_getline(char ** linep, size_t * linecapp,
 #error Your OS is not supported
 #endif
 }
+
 static int parse_license_file(geoipupdate_s * up)
 {
     say_if(up->verbose, "%s\n", PACKAGE_STRING);
@@ -322,14 +325,36 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
     }
 }
 
-void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
+
+size_t get_expected_file_md5(char *buffer, size_t size, size_t nitems,
+                             char *md5)
+{
+    size_t total_size = size * nitems;
+    if (strncasecmp(buffer, "X-Database-MD5:", 15) == 0 && total_size > 48) {
+        char *start = buffer + 16;
+        char *value = start + strspn(start, " \t\r\n");
+        strncpy(md5, value, 32);
+        md5[32] = '\0';
+    }
+
+    return size * nitems;
+}
+
+void download_to_file(geoipupdate_s * gu, const char *url, const char *fname,
+                      char *expected_file_md5)
 {
     FILE *f = fopen(fname, "wb");
     exit_unless(f != NULL, "Can't open %s\n", fname);
     say_if(gu->verbose, "url: %s\n", url);
     CURL *curl = gu->curl;
+
+    expected_file_md5[0] = '\0';
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, get_expected_file_md5);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, expected_file_md5);
+
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)f);
+
     curl_easy_setopt(curl, CURLOPT_URL, url);
     common_req(curl, gu);
     CURLcode res = curl_easy_perform(curl);
@@ -342,7 +367,7 @@ void get_to_disc(geoipupdate_s * gu, const char *url, const char *fname)
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
     exit_unless( status >= 200 && status < 300,
-                 "Received an unexpected HTTP status code of %ld from %s",
+                 "Received an unexpected HTTP status code of %ld from %s\n",
                  status, url);
 
     fclose(f);
@@ -458,9 +483,12 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
         gu->proto, gu->host, hex_digest, hex_digest2,
         gu->license.user_id, product_id);
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
-    get_to_disc(gu, url, geoip_gz_filename);
+
+    char expected_file_md5[33];
+    download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
     free(url);
-    int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
+    int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename,
+                                expected_file_md5);
     free(geoip_gz_filename);
     free(geoip_filename);
     return rc;
@@ -488,17 +516,22 @@ static int update_country_database(geoipupdate_s * gu)
     xasprintf(&url,
               "%s://%s/app/update?license_key=%s&md5=%s",
               gu->proto, gu->host, &gu->license.license_key[0], hex_digest);
-    get_to_disc(gu, url, geoip_gz_filename);
+
+    char expected_file_md5[33];
+    download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
     free(url);
 
-    int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename);
+    int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename,
+                                expected_file_md5);
+
     free(geoip_gz_filename);
     free(geoip_filename);
     return rc ? ERROR : OK;
 }
 
 static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                              const char *geoip_filename)
+                              const char *geoip_filename,
+                              const char *expected_file_md5)
 {
     gzFile gz_fh;
     FILE *fh = fopen(gzipfile, "rb");
@@ -526,6 +559,12 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
         fputs(buffer, stderr);
         return ERROR;
     }
+
+    // We do this here as we have to check that there is an update before
+    // we check for the header.
+    exit_unless( 32 == strnlen(expected_file_md5, 33),
+                 "Did not receive a valid expected database MD5 from server\n");
+
     char *file_path_test;
     xasprintf(&file_path_test, "%s.test", geoip_filename);
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
@@ -547,6 +586,13 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     exit_if(gzclose(gz_fh) != Z_OK, "Gzip read error while closing from %s\n",
             gzipfile);
     free(buffer);
+
+    char actual_md5[33];
+    md5hex(file_path_test, actual_md5);
+    exit_if(strncasecmp(actual_md5, expected_file_md5, 32),
+            "MD5 of new database (%s) does not match expected MD5 (%s)",
+            actual_md5, expected_file_md5);
+
     say_if(gu->verbose, "Rename %s to %s\n", file_path_test, geoip_filename);
     int err = rename(file_path_test, geoip_filename);
     exit_if(err, "Rename %s to %s failed\n", file_path_test, geoip_filename);
