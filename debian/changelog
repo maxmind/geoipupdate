@@ -1,3 +1,9 @@
+geoipupdate (2.2.0-0+maxmind1~utopic) utopic; urgency=medium
+
+  * New release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Wed, 25 Feb 2015 15:07:16 -0800
+
 geoipupdate (2.1.0-0+maxmind2) trusty; urgency=low
 
   * Add zlib1g-dev to build-depends and change CFLAGS.
