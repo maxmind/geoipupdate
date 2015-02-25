@@ -1,7 +1,7 @@
 GeoIP Update Change Log
 =======================
 
-2.2.0 (2015-XX-XX)
+2.2.0 (2015-02-25)
 ------------------
 
 * `geoipupdate` now verifies the MD5 of the new database before deploying it.
