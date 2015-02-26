@@ -1,6 +1,13 @@
 GeoIP Update Change Log
 =======================
 
+2.2.1 (2015-02-25)
+------------------
+
+* Bump version number to correct PPA release issue. No other changes to the
+  source distribution.
+
+
 2.2.0 (2015-02-25)
 ------------------
 
