@@ -1,5 +1,3 @@
-dist_sysconf_DATA = GeoIP.conf.default
-
 DEFAULT_CONFIG_FILE = $(sysconfdir)/GeoIP.conf
 
 install-exec-hook:
