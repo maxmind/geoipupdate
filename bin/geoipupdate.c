@@ -12,6 +12,8 @@
 #include <zlib.h>
 #include <sys/stat.h>
 
+#define ZERO_MD5 ("00000000000000000000000000000000")
+
 static const int ERROR = 1;
 static const int OK = 0;
 
@@ -276,13 +278,13 @@ int md5hex(const char *fname, char *hex_digest)
 {
     int bsize = 1024;
     unsigned char buffer[bsize], digest[16];
-    const char zero_hex_digest[34] = "00000000000000000000000000000000\0";
+
     size_t len;
     MD5_CONTEXT context;
 
     FILE *fh = fopen(fname, "rb");
     if (fh == NULL) {
-        strcpy(hex_digest, zero_hex_digest);
+        strcpy(hex_digest, ZERO_MD5);
         return 0;
     }
 
