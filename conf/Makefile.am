@@ -1,6 +1,10 @@
 DEFAULT_CONFIG_FILE = $(sysconfdir)/GeoIP.conf
 
 install-exec-hook:
+	@if test -d "$(DESTDIR)$(sysconfdir)" ; then \
+		echo "$(MKDIR_P) $(DESTDIR)$(sysconfdir)" ; \
+		$(MKDIR_P) "$(DESTDIR)$(sysconfdir)" ; \
+	fi
 	@if test -f "$(DESTDIR)$(DEFAULT_CONFIG_FILE)" ; then \
 	        echo "$@ will not overwrite existing $(DESTDIR)$(DEFAULT_CONFIG_FILE)" ; \
 	else \
