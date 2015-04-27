@@ -28,7 +28,7 @@ To install this from the source package, you will need a C compiler, Make,
 and the curl library and headers. On Debian or Ubuntu, you can install these
 dependencies by running:
 
-    $ sudo apt-get install build-essentials libcurl4-openssl-dev
+    $ sudo apt-get install build-essential libcurl4-openssl-dev
 
 Once you have the necessary dependencies, run the following commands:
 
