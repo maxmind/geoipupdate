@@ -1,16 +1,18 @@
 
 #include "geoipupdate.h"
+#include "md5.h"
 
-#include <unistd.h>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <getopt.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <getopt.h>
-#include <ctype.h>
-#include <stdarg.h>
-#include "md5.h"
-#include <zlib.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <zlib.h>
 
 #define ZERO_MD5 ("00000000000000000000000000000000")
 
@@ -218,46 +220,46 @@ static int parse_license_file(geoipupdate_s * up)
                 }
             } else if (!strcmp(p, "SkipPeerVerification")) {
                 p = strtok_r(NULL, sep, &last);
-                exit_unless(p != NULL
-                            && (!strcmp(p, "0") || !strcmp(p, "1")),
-                            "SkipPeerVerification must be 0 or 1\n");
+                exit_if(NULL == p
+                        || (0 != strcmp(p, "0") && 0 != strcmp(p, "1")),
+                        "SkipPeerVerification must be 0 or 1\n");
                 up->skip_peer_verification = atoi(p);
             } else if (!strcmp(p, "Protocol")) {
                 p = strtok_r(NULL, sep, &last);
-                exit_unless(p != NULL && (!strcmp(p, "http")
-                                          || !strcmp(p, "https")),
-                            "Protocol must be http or https\n");
+                exit_if(NULL == p || (0 != strcmp(p, "http")
+                                      && 0 != strcmp(p, "https")),
+                        "Protocol must be http or https\n");
                 free(up->proto);
                 up->proto = strdup(p);
             } else if (!strcmp(p, "SkipHostnameVerification")) {
                 p = strtok_r(NULL, sep, &last);
-                exit_unless(p != NULL
-                            && (!strcmp(p, "0") || !strcmp(p, "1")),
-                            "SkipHostnameVerification must be 0 or 1\n");
+                exit_if(NULL == p ||
+                        (0 != strcmp(p, "0") && 0 != strcmp(p, "1")),
+                        "SkipHostnameVerification must be 0 or 1\n");
                 up->skip_hostname_verification = atoi(p);
             } else if (!strcmp(p, "Host")) {
                 p = strtok_r(NULL, sep, &last);
-                exit_unless(p != NULL, "Host must be defined\n");
+                exit_if(NULL == p, "Host must be defined\n");
                 free(up->host);
                 up->host = strdup(p);
             } else if (!strcmp(p, "DatabaseDirectory")) {
                 if (!up->do_not_overwrite_database_directory) {
                     p = strtok_r(NULL, sep, &last);
-                    exit_unless(p != NULL,
-                                "DatabaseDirectory must be defined\n");
+                    exit_if(NULL == p,
+                            "DatabaseDirectory must be defined\n");
                     free(up->database_dir);
                     up->database_dir = strdup(p);
                 }
             } else if (!strcmp(p, "Proxy")) {
                 p = strtok_r(NULL, sep, &last);
-                exit_unless(p != NULL,
-                            "Proxy must be defined 1.2.3.4:12345\n");
+                exit_if(NULL == p,
+                        "Proxy must be defined 1.2.3.4:12345\n");
                 free(up->proxy);
                 up->proxy = strdup(p);
             } else if (!strcmp(p, "ProxyUserPassword")) {
                 p = strtok_r(NULL, sep, &last);
-                exit_unless(p != NULL,
-                            "ProxyUserPassword must be defined xyz:abc\n");
+                exit_if(NULL == p,
+                        "ProxyUserPassword must be defined xyz:abc\n");
                 free(up->proxy_user_password);
                 up->proxy_user_password = strdup(p);
             } else {
@@ -267,7 +269,7 @@ static int parse_license_file(geoipupdate_s * up)
     }
 
     free(buffer);
-    fclose(fh);
+    exit_if(-1 == fclose(fh), "Error closing stream: %s", strerror(errno));
     say_if(up->verbose,
            "Read in license key %s\nNumber of product ids %d\n",
            up->license_file, product_count(up));
@@ -298,7 +300,7 @@ int md5hex(const char *fname, char *hex_digest)
     }
     md5_final(&context);
     memcpy(digest, context.buf, 16);
-    fclose(fh);
+    exit_if(-1 == fclose(fh), "Error closing stream: %s", strerror(errno));
     for (int i = 0; i < 16; i++) {
         snprintf(&hex_digest[2 * i], 3, "%02x", digest[i]);
     }
@@ -346,7 +348,7 @@ void download_to_file(geoipupdate_s * gu, const char *url, const char *fname,
                       char *expected_file_md5)
 {
     FILE *f = fopen(fname, "wb");
-    exit_unless(f != NULL, "Can't open %s\n", fname);
+    exit_if(NULL == f, "Can't open %s\n", fname);
     say_if(gu->verbose, "url: %s\n", url);
     CURL *curl = gu->curl;
 
@@ -368,11 +370,11 @@ void download_to_file(geoipupdate_s * gu, const char *url, const char *fname,
     long status = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
-    exit_unless( status >= 200 && status < 300,
-                 "Received an unexpected HTTP status code of %ld from %s\n",
-                 status, url);
+    exit_if( status < 200 || status >= 300,
+             "Received an unexpected HTTP status code of %ld from %s\n",
+             status, url);
 
-    fclose(f);
+    exit_if(-1 == fclose(f), "Error closing stream: %s", strerror(errno));
 }
 
 static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp)
@@ -427,9 +429,9 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
     long status = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
-    exit_unless( status >= 200 && status < 300,
-                 "Received an unexpected HTTP status code of %ld from %s",
-                 status, url);
+    exit_if( status < 200 || status >= 300,
+             "Received an unexpected HTTP status code of %ld from %s",
+             status, url);
 
     return mem;
 }
@@ -537,11 +539,11 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
 {
     gzFile gz_fh;
     FILE *fh = fopen(gzipfile, "rb");
-    exit_unless(fh != NULL, "Can't open %s\n", gzipfile);
+    exit_if(NULL == fh, "Can't open %s\n", gzipfile);
     size_t bsize = 8096;
     char *buffer = (char *)xmalloc(bsize);
     ssize_t read_bytes = my_getline(&buffer, &bsize, fh);
-    fclose(fh);
+    exit_if(-1 == fclose(fh), "Error closing stream: %s", strerror(errno));
     if (read_bytes < 0) {
         fprintf(stderr, "Read error %s\n", gzipfile);
         unlink(gzipfile);
@@ -584,7 +586,7 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
         exit_unless(fwrite(buffer, 1, amt, fhw) == (size_t)amt,
                     "Gzip write error\n");
     }
-    fclose(fhw);
+    exit_if(-1 == fclose(fhw), "Error closing stream: %s", strerror(errno));
     exit_if(gzclose(gz_fh) != Z_OK, "Gzip read error while closing from %s\n",
             gzipfile);
     free(buffer);
@@ -598,7 +600,18 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     say_if(gu->verbose, "Rename %s to %s\n", file_path_test, geoip_filename);
     int err = rename(file_path_test, geoip_filename);
     exit_if(err, "Rename %s to %s failed\n", file_path_test, geoip_filename);
-    unlink(gzipfile);
+
+    // fsync directory to ensure the rename is durable
+    int dirfd = open(gu->database_dir, O_DIRECTORY);
+    exit_if(-1 == dirfd, "Error opening database directory: %s",
+            strerror(errno));
+    exit_if(-1 == fsync(dirfd), "Error syncing database directory: %s",
+            strerror(errno));
+    exit_if(-1 == close(dirfd), "Error closing database directory: %s",
+            strerror(errno));
+    exit_if(-1 == unlink(gzipfile), "Error unlinking %s: %s", gzipfile,
+            strerror(errno));
+
     free(file_path_test);
     return OK;
 }
