@@ -1,12 +1,17 @@
 GeoIP Update Change Log
 =======================
 
+2.2.2 (2016-XX-XX)
+------------------
+
+* `geoipupdate` now calls `fsync` on the database directory after a `rename`
+  to make it durable in the event of a crash.
+
 2.2.1 (2015-02-25)
 ------------------
 
 * Bump version number to correct PPA release issue. No other changes to the
   source distribution.
-
 
 2.2.0 (2015-02-25)
 ------------------
