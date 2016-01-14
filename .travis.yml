@@ -1,19 +1,20 @@
+---
+sudo: false
 language: c
-
 compiler:
   - clang
   - gcc
-
 before_script:
   - ./bootstrap
   - CFLAGS="-std=c99 -Wall -Wextra -Werror" ./configure
-
 script:
   - make
-
 notifications:
   email:
+    on_failure: always
+    on_success: change
     recipients:
       - dev-ci@maxmind.com
-    on_success: change
-    on_failure: always
+  slack:
+    rooms:
+      secure: "E8Ka0sqeEhUzo/on3p3QRb67CzsfcYl7Rure2Zdi0L7fbePAXOkvMyrEPU6SUXguFRFgiexsQOPwXrESEi6sC+yJkm7VMoKJcFrPcXTu5y1SjGJRu+iyBqIpt3hzJBdU0bOzHzywf+096yobWP6ERf3Rx8jUoR92VhBajhePh9Q=\n"
