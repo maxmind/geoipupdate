@@ -1,7 +1,7 @@
 GeoIP Update Change Log
 =======================
 
-2.2.2 (2016-XX-XX)
+2.2.2 (2016-01-21)
 ------------------
 
 * `geoipupdate` now calls `fsync` on the database directory after a `rename`
