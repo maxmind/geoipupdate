@@ -1,3 +1,9 @@
+geoipupdate (2.2.2-0+maxmind1) wily; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Thu, 21 Jan 2016 11:21:05 -0800
+
 geoipupdate (2.2.1-0+maxmind1~utopic) utopic; urgency=medium
 
   * New release to fix PPA packages with missing binaries.
