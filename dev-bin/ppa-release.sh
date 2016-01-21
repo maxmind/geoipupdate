@@ -39,6 +39,16 @@ for dist in "${DISTS[@]}"; do
     rm -rf "$distdir"
 done
 
+read -e -p "Release to PPA? (y/n)" SHOULD_RELEASE
+
+if [ "$SHOULD_RELEASE" != "y" ]; then
+    echo "Aborting"
+    exit 1
+fi
+
+dput ppa:maxmind/ppa "$RESULTS"/*/*source.changes
+
+
 dch -v "$VERSION-0+maxmind1" -D "${DISTS[0]}" -u low "New upstream release."
 git add debian/changelog
 git commit -m "Update debian/changelog for $VERSION"
