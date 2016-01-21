@@ -1,5 +1,7 @@
 Current PPA process:
 
+Note: `dev-bin/ppa-release.sh` should do the following for you.
+
 1. Type `dch -i` and add the appropriate `debian/changelog` entry.
 2. Move tarball created above to a temp directory and
    name it `geoipupdate_1.?.?.orig.tar.gz`.
