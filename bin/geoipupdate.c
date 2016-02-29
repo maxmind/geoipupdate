@@ -311,6 +311,13 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
 {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, GEOIP_USERAGENT);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+
+    // CURLOPT_TCP_KEEPALIVE appeared in 7.25. It is a typedef enum, not a
+    // macro so we resort to version detection.
+#if LIBCURL_VERSION_NUM >= 0x071900
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1);
+#endif
+
     if (!strcasecmp(gu->proto, "https")) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER,
                          gu->skip_peer_verification != 0);
