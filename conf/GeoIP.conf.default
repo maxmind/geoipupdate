@@ -3,13 +3,18 @@
 # pre-filled GeoIP.conf file.
 
 # Enter your user ID and license key below. These are available from
-# https://www.maxmind.com/en/my_license_key
-UserId YOUR_USER_ID_HERE
-LicenseKey YOUR_LICENSE_KEY_HERE
+# https://www.maxmind.com/en/my_license_key. If you are only using free
+# GeoLite databases, you make leave the 0 values.
+UserId 0
+LicenseKey 000000000000
 
 # Enter the product IDs of the databases you would like to update.
 # Multiple product IDs are separated by spaces.
-ProductIds GeoIP2-Country GeoIP2-City 106 132
+ProductIds GeoLite2-Country GeoLite2-City
+
+# The following are for the GeoLite Legacy databases. To update them,
+# uncomment.
+# ProductIds 506 517 533 GeoLite-Legacy-IPv6-Country GeoLite-Legacy-IPv6-City
 
 # The remaining settings are OPTIONAL.
 
