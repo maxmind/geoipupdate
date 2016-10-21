@@ -3,8 +3,9 @@
 ## Description
 
 The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP Legacy
-binary databases. Currently the program only supports Linux and other Unix-
-like systems.
+binary databases. CSV databases are _not_ supported.
+
+Currently the program only supports Linux and other Unix-like systems.
 
 ## License
 
