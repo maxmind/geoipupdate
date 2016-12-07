@@ -5,7 +5,8 @@ GeoIP Update Change Log
 
 * `geoipupdate` now uses TCP keep-alive when compiled with cURL 7.25 or
   greater.
-
+* Previously, on an invalid gzip file, `geoipupdate` would output binary data
+  to stderr. It now displays an appropriate error message.
 
 2.2.2 (2016-01-21)
 ------------------

@@ -567,7 +567,7 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     if (strncmp(buffer, "\x1f\x8b", 2)) {
         // error not a zip file
         unlink(gzipfile);
-        fputs(buffer, stderr);
+        printf("%s is not a valid gzip file\n", gzipfile);
         return ERROR;
     }
 
