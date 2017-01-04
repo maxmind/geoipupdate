@@ -3,8 +3,9 @@
 ## Description
 
 The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP Legacy
-binary databases. Currently the program only supports Linux and other Unix-
-like systems.
+binary databases. CSV databases are _not_ supported.
+
+Currently the program only supports Linux and other Unix-like systems.
 
 ## License
 
@@ -71,4 +72,4 @@ This software is licensed under the GNU General Public License (GPL), version
 
 # Copyright
 
-This software is Copyright (c) 2014 by MaxMind, Inc.
+This software is Copyright (c) 2014 - 2017 by MaxMind, Inc.

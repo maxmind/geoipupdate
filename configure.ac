@@ -1,6 +1,6 @@
 dnl AM_CONFIG_HEADER(config.h)
 
-AC_INIT([geoipupdate], [2.2.2],[support@maxmind.com],[geoipupdate])
+AC_INIT([geoipupdate], [2.3.0],[support@maxmind.com],[geoipupdate])
 AC_GNU_SOURCE
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([bin/geoipupdate.c])
@@ -10,6 +10,7 @@ AC_PREREQ
 
 AC_PROG_CC_C99
 AC_PROG_LIBTOOL
+AC_PROG_MKDIR_P
 
 AC_CHECK_TYPE(byte,[AC_DEFINE(HAVE_BYTE_TYPEDEF)],[])
 AC_CHECK_TYPE(ushort,[AC_DEFINE(HAVE_USHORT_TYPEDEF)],[])
