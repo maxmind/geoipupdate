@@ -1,7 +1,8 @@
 GeoIP Update Change Log
 =======================
 
-2.2.3 (2016-XX-XX)
+2.3.0 (2017-01-04)
+------------------
 
 * `geoipupdate` now uses TCP keep-alive when compiled with cURL 7.25 or
   greater.
