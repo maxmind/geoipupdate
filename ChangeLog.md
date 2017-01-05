@@ -1,6 +1,13 @@
 GeoIP Update Change Log
 =======================
 
+2.3.1 (2017-01-05)
+------------------
+
+* 2.3.0 was missing `GeoIP.conf.default`. This was added to the dist.
+* The directory creation of `$(sysconfdir)` added in 2.3.0 incorrectly ran if
+  the directory already existed rather than if it did not exist.
+
 2.3.0 (2017-01-04)
 ------------------
 
@@ -8,6 +15,11 @@ GeoIP Update Change Log
   greater.
 * Previously, on an invalid gzip file, `geoipupdate` would output binary data
   to stderr. It now displays an appropriate error message.
+* Install README, ChangeLog, GeoIP.conf.default etc into docdir. PR by
+  Philip Prindeville. GitHub #33.
+* `$(sysconfdir)` is now created if it doesn't exist. PR by Philip
+  Prindeville. GitHub #33.
+* The sample config file is now usable. PR by Philip Prindeville. GitHub #33.
 
 2.2.2 (2016-01-21)
 ------------------
