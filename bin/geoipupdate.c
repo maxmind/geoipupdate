@@ -161,6 +161,13 @@ int main(int argc, char *const argv[])
                         "%s does not exist\n", gu->database_dir);
             exit_unless(S_ISDIR(st.st_mode), "%s is not a directory\n",
                         gu->database_dir);
+            // Note: access(2) checks only the real UID/GID. This is probably
+            // okay, but we could perform more complex checks using the stat
+            // struct. Alternatively, simply report more thoroughly when we
+            // open the file, and avoid potential race issues where permissions
+            // change between now and then.
+            exit_unless(access(gu->database_dir, W_OK) == 0,
+                        "%s is not writable\n", gu->database_dir);
             err = (gu->license.user_id == NO_USER_ID)
                   ? update_country_database(gu)
                   : update_database_general_all(gu);
@@ -355,7 +362,11 @@ void download_to_file(geoipupdate_s * gu, const char *url, const char *fname,
                       char *expected_file_md5)
 {
     FILE *f = fopen(fname, "wb");
-    exit_if(NULL == f, "Can't open %s\n", fname);
+    if (NULL == f) {
+        fprintf(stderr, "Can't open %s: %s\n", fname, strerror(errno));
+        exit(1);
+    }
+
     say_if(gu->verbose, "url: %s\n", url);
     CURL *curl = gu->curl;
 
