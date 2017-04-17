@@ -5,6 +5,9 @@ Unreleased
 
 * `geoipupdate` now checks that the database directory is writable. If it
   is not, it reports the problem and aborts.
+* `geoipupdate` now includes an option, `LockFile`, to specify a file to
+  lock at startup. If set, only one `geoipupdate` instance may run at a
+  time. No `LockFile` is set by default.
 
 2.3.1 (2017-01-05)
 ------------------

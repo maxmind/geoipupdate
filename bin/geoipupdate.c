@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <zlib.h>
 
@@ -25,6 +26,7 @@ typedef struct {
 } in_mem_s;
 
 static int parse_license_file(geoipupdate_s * up);
+static int maybe_acquire_run_lock(geoipupdate_s const * const);
 static int update_country_database(geoipupdate_s * gu);
 static void download_to_file(geoipupdate_s * gu, const char *url,
                              const char *fname,
@@ -168,6 +170,13 @@ int main(int argc, char *const argv[])
             // change between now and then.
             exit_unless(access(gu->database_dir, W_OK) == 0,
                         "%s is not writable\n", gu->database_dir);
+
+            if (maybe_acquire_run_lock(gu) != 0) {
+                geoipupdate_s_delete(gu);
+                curl_global_cleanup();
+                return ERROR;
+            }
+
             err = (gu->license.user_id == NO_USER_ID)
                   ? update_country_database(gu)
                   : update_database_general_all(gu);
@@ -269,6 +278,16 @@ static int parse_license_file(geoipupdate_s * up)
                         "ProxyUserPassword must be defined xyz:abc\n");
                 free(up->proxy_user_password);
                 up->proxy_user_password = strdup(p);
+            } else if (!strcmp(p, "LockFile")) {
+                p = strtok_r(NULL, sep, &last);
+                exit_if(NULL == p,
+                        "LockFile must be a file path\n");
+                // We could check the value looks like a path, but trying to use
+                // it will fail if it isn't.
+                free(up->lock_file);
+                up->lock_file = strdup(p);
+                exit_if(NULL == up->lock_file,
+                        "Out of memory allocating LockFile string\n");
             } else {
                 say_if(up->verbose, "Skip unknown directive: %s\n", p);
             }
@@ -281,6 +300,72 @@ static int parse_license_file(geoipupdate_s * up)
            "Read in license key %s\nNumber of product ids %d\n",
            up->license_file, product_count(up));
     return 1;
+}
+
+// If configured to do so, acquire a lock to ensure this is the only running
+// geoipupdate instance. This is to avoid race conditions where multiple
+// geoipupdate instances run at once, leading to failures.
+//
+// We only acquire a lock if the configuration says to by specifying a path to
+// a lock file.
+//
+// If we are not configured to acquire a lock, return zero. If we are, then
+// return zero if we acquire a lock, and non-zero if we fail. We don't wait to
+// acquire a lock or retry.
+//
+// Use fcntl(2) to acquire the lock. The primary rationale to use this over
+// something like open(2) with O_EXCL is that we don't need to perform clean up
+// to release the lock. In particular, if execution ends unexpectedly, such as
+// due to a crash, the lock will be automatically released. It also means we
+// don't need to worry about lock bookkeeping even in the normal case, since
+// the lock gets released automatically at program exit.
+//
+// This method does have the drawback that removing the lock file is not
+// possible due to the potential for race conditions. Consider the case where
+// another instance opens the lock file, then we remove the file and close the
+// file (releasing our lock), then that other instance acquires a lock. At the
+// same time, another instance runs and creates the file anew and also acquires
+// a lock.
+static int maybe_acquire_run_lock(geoipupdate_s const * const gu)
+{
+    int fd = -1;
+    struct flock fl;
+
+    memset(&fl, 0, sizeof(struct flock));
+
+    if (NULL == gu || NULL == gu->lock_file) {
+        fprintf(stderr, "maybe_acquire_run_lock: %s\n", strerror(EINVAL));
+        return 1;
+    }
+
+    if (strlen(gu->lock_file) == 0) {
+        say_if(gu->verbose, "Not acquiring run lock.\n");
+        return 0;
+    }
+
+    fd = open(gu->lock_file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+    if (-1 == fd) {
+        fprintf(stderr, "Unable to open lock file %s: %s\n", gu->lock_file,
+                strerror(errno));
+        return 1;
+    }
+
+    fl.l_type = F_WRLCK;
+
+    if (fcntl(fd, F_SETLK, &fl) == -1) {
+        if (EACCES == errno || EAGAIN == errno) {
+            fprintf(stderr, "geoipupdate is already running\n");
+            close(fd);
+            return 1;
+        }
+
+        fprintf(stderr, "Unable to acquire lock on %s: %s\n", gu->lock_file,
+                strerror(errno));
+        close(fd);
+        return 1;
+    }
+
+    return 0;
 }
 
 int md5hex(const char *fname, char *hex_digest)

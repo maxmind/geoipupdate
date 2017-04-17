@@ -14,6 +14,7 @@ geoipupdate_s *geoipupdate_s_new(void)
     gu->host = strdup("updates.maxmind.com");
     gu->proxy = strdup("");
     gu->proxy_user_password = strdup("");
+    gu->lock_file = strdup("");
     gu->verbose = 0;
     gu->license.user_id = NO_USER_ID;
     gu->license.license_key[12] = 0;
@@ -30,6 +31,7 @@ void geoipupdate_s_delete(geoipupdate_s * gu)
         free(gu->proto);
         free(gu->proxy);
         free(gu->proxy_user_password);
+        free(gu->lock_file);
         free(gu->host);
         if (gu->curl != NULL) {
             curl_easy_cleanup(gu->curl);
