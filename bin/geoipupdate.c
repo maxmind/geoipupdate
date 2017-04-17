@@ -50,8 +50,6 @@ void exit_unless(int expr, const char *fmt, ...)
     exit(1);
 }
 
-#define exit_if(expr, ...) exit_unless(!(expr), ## __VA_ARGS__)
-
 void xasprintf(char **ptr, const char *fmt, ...)
 {
     va_list ap;
@@ -125,12 +123,17 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
         case 'd':
             free(gu->database_dir);
             gu->database_dir = strdup(optarg);
+            exit_if(NULL == gu->database_dir,
+                    "Unable to allocate memory for database directory path.");
+
             // The database directory in the config file is ignored if we use -d
             gu->do_not_overwrite_database_directory = 1;
             break;
         case 'f':
             free(gu->license_file);
             gu->license_file = strdup(optarg);
+            exit_if(NULL == gu->license_file,
+                    "Unable to allocate memory for license file path.\n");
             break;
         case 'h':
         default:
@@ -247,6 +250,8 @@ static int parse_license_file(geoipupdate_s * up)
                         "Protocol must be http or https\n");
                 free(up->proto);
                 up->proto = strdup(p);
+                exit_if(NULL == up->proto,
+                        "Unable to allocate memory for request protocol.\n");
             } else if (!strcmp(p, "SkipHostnameVerification")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p ||
@@ -258,6 +263,8 @@ static int parse_license_file(geoipupdate_s * up)
                 exit_if(NULL == p, "Host must be defined\n");
                 free(up->host);
                 up->host = strdup(p);
+                exit_if(NULL == up->host,
+                        "Unable to allocate memory for update host.\n");
             } else if (!strcmp(p, "DatabaseDirectory")) {
                 if (!up->do_not_overwrite_database_directory) {
                     p = strtok_r(NULL, sep, &last);
@@ -265,6 +272,8 @@ static int parse_license_file(geoipupdate_s * up)
                             "DatabaseDirectory must be defined\n");
                     free(up->database_dir);
                     up->database_dir = strdup(p);
+                    exit_if(NULL == up->database_dir,
+                            "Unable to allocate memory for database directory path.\n");
                 }
             } else if (!strcmp(p, "Proxy")) {
                 p = strtok_r(NULL, sep, &last);
@@ -272,12 +281,16 @@ static int parse_license_file(geoipupdate_s * up)
                         "Proxy must be defined 1.2.3.4:12345\n");
                 free(up->proxy);
                 up->proxy = strdup(p);
+                exit_if(NULL == up->proxy,
+                        "Unable to allocate memory for proxy host.\n");
             } else if (!strcmp(p, "ProxyUserPassword")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p,
                         "ProxyUserPassword must be defined xyz:abc\n");
                 free(up->proxy_user_password);
                 up->proxy_user_password = strdup(p);
+                exit_if(NULL == up->proxy_user_password,
+                        "Unable to allocate memory for proxy credentials.\n");
             } else if (!strcmp(p, "LockFile")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p,
@@ -560,6 +573,7 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
     char *url, *geoip_filename, *geoip_gz_filename, *client_ipaddr;
     char hex_digest[33], hex_digest2[33];
 
+    // Get the filename.
     xasprintf(&url, "%s://%s/app/update_getfilename?product_id=%s",
               gu->proto, gu->host, product_id);
     in_mem_s *mem = get(gu, url);
@@ -571,19 +585,33 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
     }
     xasprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
     in_mem_s_delete(mem);
+
     md5hex(geoip_filename, hex_digest);
     say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
+
+    // Look up our IP.
     xasprintf(&url, "%s://%s/app/update_getipaddr", gu->proto, gu->host);
     mem = get(gu, url);
     free(url);
+
     client_ipaddr = strdup(mem->ptr);
+    if (NULL == client_ipaddr) {
+        fprintf(stderr, "Unable to allocate memory for client IP address.\n");
+        free(geoip_filename);
+        in_mem_s_delete(mem);
+        return ERROR;
+    }
+
     in_mem_s_delete(mem);
 
     say_if(gu->verbose, "Client IP address: %s\n", client_ipaddr);
+
+    // Make the challenge md5.
     md5hex_license_ipaddr(gu, client_ipaddr, hex_digest2);
     free(client_ipaddr);
     say_if(gu->verbose, "md5hex_digest2: %s\n", hex_digest2);
 
+    // Download.
     xasprintf(
         &url,
         "%s://%s/app/update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%s",

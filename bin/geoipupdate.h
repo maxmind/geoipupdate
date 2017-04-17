@@ -50,4 +50,7 @@ void *xmalloc(size_t size);
 
 # define NO_USER_ID (-1)
 # define GEOIP_USERAGENT "geoipupdate/" VERSION
+
+#define exit_if(expr, ...) exit_unless(!(expr), ## __VA_ARGS__)
+
 #endif
