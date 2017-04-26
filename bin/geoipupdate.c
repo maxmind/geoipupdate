@@ -26,7 +26,8 @@ typedef struct {
 } in_mem_s;
 
 static int parse_license_file(geoipupdate_s * up);
-static int maybe_acquire_run_lock(geoipupdate_s const * const);
+static char * join_path(char const * const, char const * const);
+static int acquire_run_lock(geoipupdate_s const * const);
 static int update_country_database(geoipupdate_s * gu);
 static void download_to_file(geoipupdate_s * gu, const char *url,
                              const char *fname,
@@ -174,7 +175,7 @@ int main(int argc, char *const argv[])
             exit_unless(access(gu->database_dir, W_OK) == 0,
                         "%s is not writable\n", gu->database_dir);
 
-            if (maybe_acquire_run_lock(gu) != 0) {
+            if (acquire_run_lock(gu) != 0) {
                 geoipupdate_s_delete(gu);
                 curl_global_cleanup();
                 return ERROR;
@@ -307,6 +308,15 @@ static int parse_license_file(geoipupdate_s * up)
         }
     }
 
+    // If we don't have a LockFile specified, then default to .geoipupdate.lock
+    // in the database directory. Do this here as the database directory may
+    // have been set either on the command line or in the configuration file.
+    if (strlen(up->lock_file) == 0) {
+        free(up->lock_file);
+        up->lock_file = join_path(up->database_dir, ".geoipupdate.lock");
+        exit_if(NULL == up->lock_file, "Unable to create path to lock file.");
+    }
+
     free(buffer);
     exit_if(-1 == fclose(fh), "Error closing stream: %s", strerror(errno));
     say_if(up->verbose,
@@ -315,16 +325,45 @@ static int parse_license_file(geoipupdate_s * up)
     return 1;
 }
 
-// If configured to do so, acquire a lock to ensure this is the only running
-// geoipupdate instance. This is to avoid race conditions where multiple
-// geoipupdate instances run at once, leading to failures.
+// Given a directory and a filename in that directory, combine the two to make a
+// path to the file.
 //
-// We only acquire a lock if the configuration says to by specifying a path to
-// a lock file.
+// TODO: This function assumes Unix style paths (/ separator).
 //
-// If we are not configured to acquire a lock, return zero. If we are, then
-// return zero if we acquire a lock, and non-zero if we fail. We don't wait to
-// acquire a lock or retry.
+// TODO: This function performs no validation on the given inputs beyond that
+// they are present.
+static char * join_path(char const * const dir, char const * const file)
+{
+    size_t sz = -1;
+    char * path = NULL;
+
+    if (NULL == dir || strlen(dir) == 0 || NULL == file || strlen(file) == 0) {
+        fprintf(stderr, "join_path: %s\n", strerror(EINVAL));
+        return NULL;
+    }
+
+    // dir '/' file '\0'
+    sz = strlen(dir) + 1 + strlen(file) + 1;
+
+    path = calloc(sz, sizeof(char));
+    if (NULL == path) {
+        fprintf(stderr, "join_path: %s\n", strerror(errno));
+        return NULL;
+    }
+
+    strcat(path, dir);
+    strcat(path, "/");
+    strcat(path, file);
+
+    return path;
+}
+
+// Acquire a lock to ensure this is the only running geoipupdate instance. This
+// is to avoid race conditions where multiple geoipupdate instances run at
+// once, leading to failures.
+//
+// Wait for a lock. If locking fails, return non-zero. If it succeeds, return
+// zero.
 //
 // Use fcntl(2) to acquire the lock. The primary rationale to use this over
 // something like open(2) with O_EXCL is that we don't need to perform clean up
@@ -339,21 +378,17 @@ static int parse_license_file(geoipupdate_s * up)
 // file (releasing our lock), then that other instance acquires a lock. At the
 // same time, another instance runs and creates the file anew and also acquires
 // a lock.
-static int maybe_acquire_run_lock(geoipupdate_s const * const gu)
+static int acquire_run_lock(geoipupdate_s const * const gu)
 {
     int fd = -1;
     struct flock fl;
+    int i = 0;
 
     memset(&fl, 0, sizeof(struct flock));
 
-    if (NULL == gu || NULL == gu->lock_file) {
+    if (NULL == gu || NULL == gu->lock_file || strlen(gu->lock_file) == 0) {
         fprintf(stderr, "maybe_acquire_run_lock: %s\n", strerror(EINVAL));
         return 1;
-    }
-
-    if (strlen(gu->lock_file) == 0) {
-        say_if(gu->verbose, "Not acquiring run lock.\n");
-        return 0;
     }
 
     fd = open(gu->lock_file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
@@ -365,20 +400,29 @@ static int maybe_acquire_run_lock(geoipupdate_s const * const gu)
 
     fl.l_type = F_WRLCK;
 
-    if (fcntl(fd, F_SETLK, &fl) == -1) {
-        if (EACCES == errno || EAGAIN == errno) {
-            fprintf(stderr, "geoipupdate is already running\n");
-            close(fd);
-            return 1;
+    // Try 3 times to acquire a lock. Arbitrary number.
+    for (i = 0; i < 3; i++) {
+        if (fcntl(fd, F_SETLKW, &fl) == 0) {
+            // Locked.
+            return 0;
         }
 
+        // Interrupted? Retry.
+        if (EINTR == errno) {
+            continue;
+        }
+
+        // Something else went wrong. Abort.
         fprintf(stderr, "Unable to acquire lock on %s: %s\n", gu->lock_file,
                 strerror(errno));
         close(fd);
         return 1;
     }
 
-    return 0;
+    fprintf(stderr, "Unable to acquire lock on %s: Gave up after %d attempts\n",
+            gu->lock_file, i);
+    close(fd);
+    return 1;
 }
 
 int md5hex(const char *fname, char *hex_digest)

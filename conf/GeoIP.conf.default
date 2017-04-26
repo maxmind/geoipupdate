@@ -43,7 +43,7 @@ ProductIds GeoLite2-Country GeoLite2-City
 # Defaults to "0".
 # SkipPeerVerification 0
 
-# The lock file to use. If specified, geoipupdate acquires a lock on the file
-# at startup. This ensures only one geoipupdate process can run at a time.
-# Defaults to "" which means no locking.
-# LockFile /var/lock/geoipupdate.lock
+# The lock file to use. This ensures only one geoipupdate process can run at a
+# time.
+# Defaults to ".geoipupdate.lock" under the DatabaseDirectory.
+# LockFile /usr/local/share/GeoIP/.geoipupdate.lock
