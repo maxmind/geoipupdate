@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <zlib.h>
 
@@ -25,6 +26,8 @@ typedef struct {
 } in_mem_s;
 
 static int parse_license_file(geoipupdate_s * up);
+static char * join_path(char const * const, char const * const);
+static int acquire_run_lock(geoipupdate_s const * const);
 static int update_country_database(geoipupdate_s * gu);
 static void download_to_file(geoipupdate_s * gu, const char *url,
                              const char *fname,
@@ -47,8 +50,6 @@ void exit_unless(int expr, const char *fmt, ...)
     va_end(ap);
     exit(1);
 }
-
-#define exit_if(expr, ...) exit_unless(!(expr), ## __VA_ARGS__)
 
 void xasprintf(char **ptr, const char *fmt, ...)
 {
@@ -123,12 +124,17 @@ int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
         case 'd':
             free(gu->database_dir);
             gu->database_dir = strdup(optarg);
+            exit_if(NULL == gu->database_dir,
+                    "Unable to allocate memory for database directory path.");
+
             // The database directory in the config file is ignored if we use -d
             gu->do_not_overwrite_database_directory = 1;
             break;
         case 'f':
             free(gu->license_file);
             gu->license_file = strdup(optarg);
+            exit_if(NULL == gu->license_file,
+                    "Unable to allocate memory for license file path.\n");
             break;
         case 'h':
         default:
@@ -168,6 +174,13 @@ int main(int argc, char *const argv[])
             // change between now and then.
             exit_unless(access(gu->database_dir, W_OK) == 0,
                         "%s is not writable\n", gu->database_dir);
+
+            if (acquire_run_lock(gu) != 0) {
+                geoipupdate_s_delete(gu);
+                curl_global_cleanup();
+                return ERROR;
+            }
+
             err = (gu->license.user_id == NO_USER_ID)
                   ? update_country_database(gu)
                   : update_database_general_all(gu);
@@ -238,6 +251,8 @@ static int parse_license_file(geoipupdate_s * up)
                         "Protocol must be http or https\n");
                 free(up->proto);
                 up->proto = strdup(p);
+                exit_if(NULL == up->proto,
+                        "Unable to allocate memory for request protocol.\n");
             } else if (!strcmp(p, "SkipHostnameVerification")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p ||
@@ -249,6 +264,8 @@ static int parse_license_file(geoipupdate_s * up)
                 exit_if(NULL == p, "Host must be defined\n");
                 free(up->host);
                 up->host = strdup(p);
+                exit_if(NULL == up->host,
+                        "Unable to allocate memory for update host.\n");
             } else if (!strcmp(p, "DatabaseDirectory")) {
                 if (!up->do_not_overwrite_database_directory) {
                     p = strtok_r(NULL, sep, &last);
@@ -256,6 +273,8 @@ static int parse_license_file(geoipupdate_s * up)
                             "DatabaseDirectory must be defined\n");
                     free(up->database_dir);
                     up->database_dir = strdup(p);
+                    exit_if(NULL == up->database_dir,
+                            "Unable to allocate memory for database directory path.\n");
                 }
             } else if (!strcmp(p, "Proxy")) {
                 p = strtok_r(NULL, sep, &last);
@@ -263,16 +282,39 @@ static int parse_license_file(geoipupdate_s * up)
                         "Proxy must be defined 1.2.3.4:12345\n");
                 free(up->proxy);
                 up->proxy = strdup(p);
+                exit_if(NULL == up->proxy,
+                        "Unable to allocate memory for proxy host.\n");
             } else if (!strcmp(p, "ProxyUserPassword")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p,
                         "ProxyUserPassword must be defined xyz:abc\n");
                 free(up->proxy_user_password);
                 up->proxy_user_password = strdup(p);
+                exit_if(NULL == up->proxy_user_password,
+                        "Unable to allocate memory for proxy credentials.\n");
+            } else if (!strcmp(p, "LockFile")) {
+                p = strtok_r(NULL, sep, &last);
+                exit_if(NULL == p,
+                        "LockFile must be a file path\n");
+                // We could check the value looks like a path, but trying to use
+                // it will fail if it isn't.
+                free(up->lock_file);
+                up->lock_file = strdup(p);
+                exit_if(NULL == up->lock_file,
+                        "Out of memory allocating LockFile string\n");
             } else {
                 say_if(up->verbose, "Skip unknown directive: %s\n", p);
             }
         }
+    }
+
+    // If we don't have a LockFile specified, then default to .geoipupdate.lock
+    // in the database directory. Do this here as the database directory may
+    // have been set either on the command line or in the configuration file.
+    if (strlen(up->lock_file) == 0) {
+        free(up->lock_file);
+        up->lock_file = join_path(up->database_dir, ".geoipupdate.lock");
+        exit_if(NULL == up->lock_file, "Unable to create path to lock file.");
     }
 
     free(buffer);
@@ -280,6 +322,106 @@ static int parse_license_file(geoipupdate_s * up)
     say_if(up->verbose,
            "Read in license key %s\nNumber of product ids %d\n",
            up->license_file, product_count(up));
+    return 1;
+}
+
+// Given a directory and a filename in that directory, combine the two to make a
+// path to the file.
+//
+// TODO: This function assumes Unix style paths (/ separator).
+//
+// TODO: This function performs no validation on the given inputs beyond that
+// they are present.
+static char * join_path(char const * const dir, char const * const file)
+{
+    size_t sz = -1;
+    char * path = NULL;
+
+    if (NULL == dir || strlen(dir) == 0 || NULL == file || strlen(file) == 0) {
+        fprintf(stderr, "join_path: %s\n", strerror(EINVAL));
+        return NULL;
+    }
+
+    // dir '/' file '\0'
+    sz = strlen(dir) + 1 + strlen(file) + 1;
+
+    path = calloc(sz, sizeof(char));
+    if (NULL == path) {
+        fprintf(stderr, "join_path: %s\n", strerror(errno));
+        return NULL;
+    }
+
+    strcat(path, dir);
+    strcat(path, "/");
+    strcat(path, file);
+
+    return path;
+}
+
+// Acquire a lock to ensure this is the only running geoipupdate instance. This
+// is to avoid race conditions where multiple geoipupdate instances run at
+// once, leading to failures.
+//
+// Wait for a lock. If locking fails, return non-zero. If it succeeds, return
+// zero.
+//
+// Use fcntl(2) to acquire the lock. The primary rationale to use this over
+// something like open(2) with O_EXCL is that we don't need to perform clean up
+// to release the lock. In particular, if execution ends unexpectedly, such as
+// due to a crash, the lock will be automatically released. It also means we
+// don't need to worry about lock bookkeeping even in the normal case, since
+// the lock gets released automatically at program exit.
+//
+// This method does have the drawback that removing the lock file is not
+// possible due to the potential for race conditions. Consider the case where
+// another instance opens the lock file, then we remove the file and close the
+// file (releasing our lock), then that other instance acquires a lock. At the
+// same time, another instance runs and creates the file anew and also acquires
+// a lock.
+static int acquire_run_lock(geoipupdate_s const * const gu)
+{
+    int fd = -1;
+    struct flock fl;
+    int i = 0;
+
+    memset(&fl, 0, sizeof(struct flock));
+
+    if (NULL == gu || NULL == gu->lock_file || strlen(gu->lock_file) == 0) {
+        fprintf(stderr, "maybe_acquire_run_lock: %s\n", strerror(EINVAL));
+        return 1;
+    }
+
+    fd = open(gu->lock_file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+    if (-1 == fd) {
+        fprintf(stderr, "Unable to open lock file %s: %s\n", gu->lock_file,
+                strerror(errno));
+        return 1;
+    }
+
+    fl.l_type = F_WRLCK;
+
+    // Try 3 times to acquire a lock. Arbitrary number.
+    for (i = 0; i < 3; i++) {
+        if (fcntl(fd, F_SETLKW, &fl) == 0) {
+            // Locked.
+            return 0;
+        }
+
+        // Interrupted? Retry.
+        if (EINTR == errno) {
+            continue;
+        }
+
+        // Something else went wrong. Abort.
+        fprintf(stderr, "Unable to acquire lock on %s: %s\n", gu->lock_file,
+                strerror(errno));
+        close(fd);
+        return 1;
+    }
+
+    fprintf(stderr, "Unable to acquire lock on %s: Gave up after %d attempts\n",
+            gu->lock_file, i);
+    close(fd);
     return 1;
 }
 
@@ -475,6 +617,7 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
     char *url, *geoip_filename, *geoip_gz_filename, *client_ipaddr;
     char hex_digest[33], hex_digest2[33];
 
+    // Get the filename.
     xasprintf(&url, "%s://%s/app/update_getfilename?product_id=%s",
               gu->proto, gu->host, product_id);
     in_mem_s *mem = get(gu, url);
@@ -486,19 +629,33 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
     }
     xasprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
     in_mem_s_delete(mem);
+
     md5hex(geoip_filename, hex_digest);
     say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
+
+    // Look up our IP.
     xasprintf(&url, "%s://%s/app/update_getipaddr", gu->proto, gu->host);
     mem = get(gu, url);
     free(url);
+
     client_ipaddr = strdup(mem->ptr);
+    if (NULL == client_ipaddr) {
+        fprintf(stderr, "Unable to allocate memory for client IP address.\n");
+        free(geoip_filename);
+        in_mem_s_delete(mem);
+        return ERROR;
+    }
+
     in_mem_s_delete(mem);
 
     say_if(gu->verbose, "Client IP address: %s\n", client_ipaddr);
+
+    // Make the challenge md5.
     md5hex_license_ipaddr(gu, client_ipaddr, hex_digest2);
     free(client_ipaddr);
     say_if(gu->verbose, "md5hex_digest2: %s\n", hex_digest2);
 
+    // Download.
     xasprintf(
         &url,
         "%s://%s/app/update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%s",
