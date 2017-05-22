@@ -9,6 +9,12 @@ Unreleased
   instance may run at a time. A new option, `LockFile`, exists to set the
   file to use as a lock. By default, `LockFile` is the file
   `.geoipupdate.lock` in the database directory.
+* `geoipupdate` now prints out additional information from the server when
+  a download request results in something other than HTTP status 2xx. This
+  provides more information when the API does not respond with a database
+  file. In conjunction with changes to the download service itself, errors
+  such as lacking a subscription no longer show up with the message "not a
+  valid gzip file".
 
 2.3.1 (2017-01-05)
 ------------------
@@ -70,7 +76,7 @@ Unreleased
 * The client now uses a single TCP connection when possible. Previously the
   public IP address of a host could change across requests, causing the
   authentication to fail. Reported by Aman Gupta. GitHub issue #12 and #13.
-* ` geoipupdate-pureperl.pl` was updated to work with GeoIP2.
+* `geoipupdate-pureperl.pl` was updated to work with GeoIP2.
 
 2.0.1 (2014-05-02)
 ------------------

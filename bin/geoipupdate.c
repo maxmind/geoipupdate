@@ -1,3 +1,4 @@
+#include "functions.h"
 #include "geoipupdate.h"
 #include "md5.h"
 
@@ -49,9 +50,9 @@ static void md5hex_license_ipaddr(geoipupdate_s *, const char *,
 static int update_database_general_all(geoipupdate_s *);
 static int update_database_general(geoipupdate_s *, const char *);
 static int update_country_database(geoipupdate_s *);
-static int gunzip_and_replace(geoipupdate_s *, const char *,
-        const char *,
-        const char *);
+static int gunzip_and_replace(geoipupdate_s const * const,
+        char const * const, char const * const,
+        char const * const);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -510,6 +511,14 @@ static size_t get_expected_file_md5(char *buffer, size_t size, size_t nitems,
     return size * nitems;
 }
 
+// Make an HTTP request and download the response body to a file.
+//
+// If the HTTP status is not 2xx, we have a error message in the body rather
+// than a file. Write it to stderr and exit.
+//
+// TODO(wstorey@maxmind.com): Return boolean/int whether we succeeded rather
+// than exiting. Beyond being cleaner and easier to test, it will allow us to
+// clean up after ourselves better.
 static void download_to_file(geoipupdate_s * gu, const char *url,
         const char *fname, char *expected_file_md5)
 {
@@ -540,11 +549,34 @@ static void download_to_file(geoipupdate_s * gu, const char *url,
     long status = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
-    exit_if( status < 200 || status >= 300,
-             "Received an unexpected HTTP status code of %ld from %s\n",
-             status, url);
+    if (fclose(f) == -1) {
+        fprintf(stderr, "Error closing file: %s: %s\n", fname, strerror(errno));
+        unlink(fname);
+        exit(1);
+    }
 
-    exit_if(-1 == fclose(f), "Error closing stream: %s", strerror(errno));
+    if (status < 200 || status >= 300) {
+        fprintf(stderr, "Received an unexpected HTTP status code of %ld from %s:\n",
+             status, url);
+        // The response should contain a message containing exactly why.
+        char * const message = slurp_file(fname);
+        if (message) {
+            fprintf(stderr, "%s\n", message);
+            free(message);
+        }
+        unlink(fname);
+        exit(1);
+    }
+
+    // We have HTTP 2xx.
+
+    // In this case, the server must have told us the current MD5 hash of the
+    // database we asked for.
+    if (strnlen(expected_file_md5, 33) != 32) {
+        fprintf(stderr, "Did not receive a valid expected database MD5 from server\n");
+        unlink(fname);
+        exit(1);
+    }
 }
 
 static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp)
@@ -628,8 +660,11 @@ static void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
 
 static int update_database_general(geoipupdate_s * gu, const char *product_id)
 {
-    char *url, *geoip_filename, *geoip_gz_filename, *client_ipaddr;
+    char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL,
+         *client_ipaddr = NULL;
     char hex_digest[33], hex_digest2[33];
+    memset(hex_digest, 0, 33);
+    memset(hex_digest2, 0, 33);
 
     // Get the filename.
     xasprintf(&url, "%s://%s/app/update_getfilename?product_id=%s",
@@ -644,6 +679,8 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
     xasprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
     in_mem_s_delete(mem);
 
+    // Calculate the MD5 hash of the database we currently have, if any. We get
+    // back a zero MD5 hash if we don't have it yet.
     md5hex(geoip_filename, hex_digest);
     say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
 
@@ -679,12 +716,27 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
 
     char expected_file_md5[33];
+    memset(expected_file_md5, 0, 33);
     download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
     free(url);
+
+    // Was there actually an update? We can tell because if not we will have
+    // the same MD5 reported back. Note in the past we would check the response
+    // body which does still say whether we have an update.
+    if (strcmp(hex_digest, expected_file_md5) == 0) {
+        say_if(gu->verbose, "No new updates available\n");
+        unlink(geoip_gz_filename);
+        free(geoip_filename);
+        free(geoip_gz_filename);
+        return OK;
+    }
+
     int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename,
                                 expected_file_md5);
+
     free(geoip_gz_filename);
     free(geoip_filename);
+
     return rc;
 }
 
@@ -700,77 +752,104 @@ static int update_database_general_all(geoipupdate_s * gu)
 
 static int update_country_database(geoipupdate_s * gu)
 {
-    char *geoip_filename, *geoip_gz_filename, *url;
+    char *geoip_filename = NULL, *geoip_gz_filename = NULL, *url = NULL;
     char hex_digest[33];
+    memset(hex_digest, 0, 33);
+
     xasprintf(&geoip_filename, "%s/GeoIP.dat", gu->database_dir);
     xasprintf(&geoip_gz_filename, "%s/GeoIP.dat.gz", gu->database_dir);
 
+    // Calculate the MD5 hash of the database we currently have, if any. We get
+    // back a zero MD5 hash if we don't have it yet.
     md5hex(geoip_filename, hex_digest);
     say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
+
     xasprintf(&url,
               "%s://%s/app/update?license_key=%s&md5=%s",
               gu->proto, gu->host, &gu->license.license_key[0], hex_digest);
 
     char expected_file_md5[33];
+    memset(expected_file_md5, 0, 33);
     download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
     free(url);
+
+    // Was there actually an update? We can tell because if not we will have
+    // the same MD5 reported back. Note in the past we would check the response
+    // body which does still say whether we have an update.
+    if (strcmp(hex_digest, expected_file_md5) == 0) {
+        say_if(gu->verbose, "No new updates available\n");
+        unlink(geoip_gz_filename);
+        free(geoip_filename);
+        free(geoip_gz_filename);
+        return OK;
+    }
 
     int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename,
                                 expected_file_md5);
 
     free(geoip_gz_filename);
     free(geoip_filename);
-    return rc ? ERROR : OK;
+
+    return rc;
 }
 
-static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                              const char *geoip_filename,
-                              const char *expected_file_md5)
+// Decompress the compressed database and move it into place in the database
+// directory.
+//
+// We are given the path to the compressed (gzip'd) new database, and the path
+// to where it should end up once decompressed. We are also given the MD5 hash
+// it should have once decompressed for verification purposes.
+//
+// We verify the file is actually a gzip file. If it isn't we abort with an
+// error, and remove the file.
+//
+// We also remove the gzip file once we successfully decompress and move the
+// new database into place.
+static int gunzip_and_replace(geoipupdate_s const * const gu,
+        char const * const gzipfile, char const * const geoip_filename,
+        char const * const expected_file_md5)
 {
-    gzFile gz_fh;
-    FILE *fh = fopen(gzipfile, "rb");
-    exit_if(NULL == fh, "Can't open %s\n", gzipfile);
-    size_t bsize = 8096;
-    char *buffer = (char *)xmalloc(bsize);
-    ssize_t read_bytes = my_getline(&buffer, &bsize, fh);
-    exit_if(-1 == fclose(fh), "Error closing stream: %s", strerror(errno));
-    if (read_bytes < 0) {
-        fprintf(stderr, "Read error %s\n", gzipfile);
-        unlink(gzipfile);
-        free(buffer);
-        return ERROR;
-    }
-    const char *no_new_upd = "No new updates available";
-    if (!strncmp(no_new_upd, buffer, strlen(no_new_upd))) {
-        say_if(gu->verbose, "%s\n", no_new_upd);
-        unlink(gzipfile);
-        free(buffer);
-        return OK;
-    }
-    if (strncmp(buffer, "\x1f\x8b", 2)) {
-        // error not a zip file
-        unlink(gzipfile);
-        printf("%s is not a valid gzip file\n", gzipfile);
+    if (NULL == gu || NULL == gu->database_dir ||
+            strlen(gu->database_dir) == 0 ||
+            NULL == gzipfile || strlen(gzipfile) == 0 ||
+            NULL == geoip_filename || strlen(geoip_filename) == 0 ||
+            NULL == expected_file_md5 || strlen(expected_file_md5) == 0) {
+        fprintf(stderr, "gunzip_and_replace: %s\n", strerror(EINVAL));
         return ERROR;
     }
 
-    // We do this here as we have to check that there is an update before
-    // we check for the header.
-    exit_unless( 32 == strnlen(expected_file_md5, 33),
-                 "Did not receive a valid expected database MD5 from server\n");
+    if (!is_valid_gzip_file(gzipfile)) {
+        // We should have already reported an error.
+        unlink(gzipfile);
+        return ERROR;
+    }
 
-    char *file_path_test;
+    // Decompress to the filename with the suffix ".test".
+    char *file_path_test = NULL;
     xasprintf(&file_path_test, "%s.test", geoip_filename);
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
-    gz_fh = gzopen(gzipfile, "rb");
+
+    gzFile gz_fh = gzopen(gzipfile, "rb");
     exit_if(gz_fh == NULL, "Can't open %s\n", gzipfile);
+
     FILE *fhw = fopen(file_path_test, "wb");
     exit_if(fhw == NULL, "Can't open %s\n", file_path_test);
 
-    for (;; ) {
+    size_t const bsize = 8192;
+    char * const buffer = calloc(bsize, sizeof(char));
+    if (!buffer) {
+        fprintf(stderr, "gunzip_and_replace: %s\n", strerror(errno));
+        free(file_path_test);
+        gzclose(gz_fh);
+        fclose(fhw);
+        return ERROR;
+    }
+
+    for (;;) {
         int amt = gzread(gz_fh, buffer, bsize);
         if (amt == 0) {
-            break;              // EOF
+            // EOF
+            break;
         }
         exit_if(amt == -1, "Gzip read error while reading from %s\n", gzipfile);
         exit_unless(fwrite(buffer, 1, amt, fhw) == (size_t)amt,
@@ -782,6 +861,7 @@ static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
     free(buffer);
 
     char actual_md5[33];
+    memset(actual_md5, 0, 33);
     md5hex(file_path_test, actual_md5);
     exit_if(strncasecmp(actual_md5, expected_file_md5, 32),
             "MD5 of new database (%s) does not match expected MD5 (%s)",
