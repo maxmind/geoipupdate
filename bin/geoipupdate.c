@@ -1,4 +1,3 @@
-
 #include "geoipupdate.h"
 #include "md5.h"
 
@@ -16,6 +15,7 @@
 #include <zlib.h>
 
 #define ZERO_MD5 ("00000000000000000000000000000000")
+#define say(fmt, ...) say_if(1, fmt, ## __VA_ARGS__)
 
 static const int ERROR = 1;
 static const int OK = 0;
@@ -25,19 +25,33 @@ typedef struct {
     size_t size;
 } in_mem_s;
 
-static int parse_license_file(geoipupdate_s * up);
+static void xasprintf(char **, const char *, ...);
+static void *xcalloc(size_t, size_t);
+static void *xrealloc(void *, size_t);
+static void usage(void);
+static int parse_opts(geoipupdate_s *, int, char *const []);
+static ssize_t my_getline(char **, size_t *, FILE *);
+static int parse_license_file(geoipupdate_s *);
 static char * join_path(char const * const, char const * const);
 static int acquire_run_lock(geoipupdate_s const * const);
-static int update_country_database(geoipupdate_s * gu);
-static void download_to_file(geoipupdate_s * gu, const char *url,
-                             const char *fname,
-                             char *expected_file_md5);
-static int update_database_general_all(geoipupdate_s * gu);
-static int update_database_general(geoipupdate_s * gu, const char *product_id);
-static in_mem_s *get(geoipupdate_s * gu, const char *url);
-static int gunzip_and_replace(geoipupdate_s * gu, const char *gzipfile,
-                              const char *geoip_filename,
-                              const char *expected_file_md5);
+static int md5hex(const char *, char *);
+static void common_req(CURL *, geoipupdate_s *);
+static size_t get_expected_file_md5(char *, size_t, size_t,
+                             char *);
+static void download_to_file(geoipupdate_s *, const char *,
+        const char *, char *);
+static size_t mem_cb(void *, size_t, size_t, void *);
+static in_mem_s *in_mem_s_new(void);
+static void in_mem_s_delete(in_mem_s *);
+static in_mem_s *get(geoipupdate_s *, const char *);
+static void md5hex_license_ipaddr(geoipupdate_s *, const char *,
+        char *);
+static int update_database_general_all(geoipupdate_s *);
+static int update_database_general(geoipupdate_s *, const char *);
+static int update_country_database(geoipupdate_s *);
+static int gunzip_and_replace(geoipupdate_s *, const char *,
+        const char *,
+        const char *);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -51,7 +65,7 @@ void exit_unless(int expr, const char *fmt, ...)
     exit(1);
 }
 
-void xasprintf(char **ptr, const char *fmt, ...)
+static void xasprintf(char **ptr, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -71,9 +85,7 @@ void say_if(int expr, const char *fmt, ...)
     va_end(ap);
 }
 
-#define say(fmt, ...) say_if(1, fmt, ## __VA_ARGS__)
-
-void *xcalloc(size_t nmemb, size_t size)
+static void *xcalloc(size_t nmemb, size_t size)
 {
     void *ptr = calloc(nmemb, size);
     exit_if(!ptr, "Out of memory\n");
@@ -87,7 +99,7 @@ void *xmalloc(size_t size)
     return ptr;
 }
 
-void *xrealloc(void *ptr, size_t size)
+static void *xrealloc(void *ptr, size_t size)
 {
     void *mem = realloc(ptr, size);
     exit_if(mem == NULL, "Out of memory\n");
@@ -107,7 +119,7 @@ static void usage(void)
         );
 }
 
-int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
+static int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
 {
     int c;
 
@@ -196,8 +208,7 @@ static ssize_t my_getline(char ** linep, size_t * linecapp, FILE * stream)
 #if defined HAVE_GETLINE
     return getline(linep, linecapp, stream);
 #elif defined HAVE_FGETS
-    // Unbelivable, but OS X 10.6 Snow Leopard did not
-    // provide getline
+    // Unbelievable, but OS X 10.6 Snow Leopard did not provide getline
     char * p = fgets(*linep, *linecapp, stream);
     return p == NULL ? -1 : strlen(p);
 #else
@@ -425,7 +436,7 @@ static int acquire_run_lock(geoipupdate_s const * const gu)
     return 1;
 }
 
-int md5hex(const char *fname, char *hex_digest)
+static int md5hex(const char *fname, char *hex_digest)
 {
     int bsize = 1024;
     unsigned char buffer[bsize], digest[16];
@@ -485,8 +496,7 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
     }
 }
 
-
-size_t get_expected_file_md5(char *buffer, size_t size, size_t nitems,
+static size_t get_expected_file_md5(char *buffer, size_t size, size_t nitems,
                              char *md5)
 {
     size_t total_size = size * nitems;
@@ -500,8 +510,8 @@ size_t get_expected_file_md5(char *buffer, size_t size, size_t nitems,
     return size * nitems;
 }
 
-void download_to_file(geoipupdate_s * gu, const char *url, const char *fname,
-                      char *expected_file_md5)
+static void download_to_file(geoipupdate_s * gu, const char *url,
+        const char *fname, char *expected_file_md5)
 {
     FILE *f = fopen(fname, "wb");
     if (NULL == f) {
@@ -596,8 +606,12 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
     return mem;
 }
 
-void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
-                           char *new_digest_str)
+// Generate an MD5 hash of the concatenation of license key with IP address.
+//
+// This hash is suitable for the challenge parameter for downloading from the
+// /update_secure endpoint.
+static void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
+        char *new_digest_str)
 {
     unsigned char digest[16];
     MD5_CONTEXT context;
@@ -650,10 +664,11 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
 
     say_if(gu->verbose, "Client IP address: %s\n", client_ipaddr);
 
-    // Make the challenge md5.
+    // Make the challenge MD5 hash.
     md5hex_license_ipaddr(gu, client_ipaddr, hex_digest2);
+
     free(client_ipaddr);
-    say_if(gu->verbose, "md5hex_digest2: %s\n", hex_digest2);
+    say_if(gu->verbose, "md5hex_digest2 (challenge): %s\n", hex_digest2);
 
     // Download.
     xasprintf(
