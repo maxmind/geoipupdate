@@ -390,7 +390,8 @@ static void write_file(char const * const path, void const * const contents,
 
     if (sz > 0) {
         ssize_t const write_sz = write(fd, contents, sz);
-        assert(write_sz == sz);
+        assert(write_sz != -1);
+        assert((size_t)write_sz == sz);
     }
 
     assert(close(fd) == 0);
