@@ -1,12 +1,20 @@
 ---
 sudo: false
 language: c
-compiler:
-  - clang
-  - gcc
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+    - os: osx
+      compiler: gcc
+    - os: linux
+      compiler: clang
+    - os: osx
+      compiler: clang
+env: CFLAGS="-std=c99 -Wall -Wextra -Werror"
 before_script:
   - ./bootstrap
-  - CFLAGS="-std=c99 -Wall -Wextra -Werror" ./configure
+  - ./configure
 script:
   - make
 notifications:
