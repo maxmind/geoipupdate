@@ -38,21 +38,21 @@ static int acquire_run_lock(geoipupdate_s const * const);
 static int md5hex(const char *, char *);
 static void common_req(CURL *, geoipupdate_s *);
 static size_t get_expected_file_md5(char *, size_t, size_t,
-                             char *);
+                                    char *);
 static void download_to_file(geoipupdate_s *, const char *,
-        const char *, char *);
+                             const char *, char *);
 static size_t mem_cb(void *, size_t, size_t, void *);
 static in_mem_s *in_mem_s_new(void);
 static void in_mem_s_delete(in_mem_s *);
 static in_mem_s *get(geoipupdate_s *, const char *);
 static void md5hex_license_ipaddr(geoipupdate_s *, const char *,
-        char *);
+                                  char *);
 static int update_database_general_all(geoipupdate_s *);
 static int update_database_general(geoipupdate_s *, const char *);
 static int update_country_database(geoipupdate_s *);
 static int gunzip_and_replace(geoipupdate_s const * const,
-        char const * const, char const * const,
-        char const * const);
+                              char const * const, char const * const,
+                              char const * const);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -285,8 +285,9 @@ static int parse_license_file(geoipupdate_s * up)
                             "DatabaseDirectory must be defined\n");
                     free(up->database_dir);
                     up->database_dir = strdup(p);
-                    exit_if(NULL == up->database_dir,
-                            "Unable to allocate memory for database directory path.\n");
+                    exit_if(
+                        NULL == up->database_dir,
+                        "Unable to allocate memory for database directory path.\n");
                 }
             } else if (!strcmp(p, "Proxy")) {
                 p = strtok_r(NULL, sep, &last);
@@ -498,7 +499,7 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
 }
 
 static size_t get_expected_file_md5(char *buffer, size_t size, size_t nitems,
-                             char *md5)
+                                    char *md5)
 {
     size_t total_size = size * nitems;
     if (strncasecmp(buffer, "X-Database-MD5:", 15) == 0 && total_size > 48) {
@@ -520,7 +521,7 @@ static size_t get_expected_file_md5(char *buffer, size_t size, size_t nitems,
 // than exiting. Beyond being cleaner and easier to test, it will allow us to
 // clean up after ourselves better.
 static void download_to_file(geoipupdate_s * gu, const char *url,
-        const char *fname, char *expected_file_md5)
+                             const char *fname, char *expected_file_md5)
 {
     FILE *f = fopen(fname, "wb");
     if (NULL == f) {
@@ -556,8 +557,10 @@ static void download_to_file(geoipupdate_s * gu, const char *url,
     }
 
     if (status < 200 || status >= 300) {
-        fprintf(stderr, "Received an unexpected HTTP status code of %ld from %s:\n",
-             status, url);
+        fprintf(stderr,
+                "Received an unexpected HTTP status code of %ld from %s:\n",
+                status,
+                url);
         // The response should contain a message containing exactly why.
         char * const message = slurp_file(fname);
         if (message) {
@@ -573,7 +576,8 @@ static void download_to_file(geoipupdate_s * gu, const char *url,
     // In this case, the server must have told us the current MD5 hash of the
     // database we asked for.
     if (strnlen(expected_file_md5, 33) != 32) {
-        fprintf(stderr, "Did not receive a valid expected database MD5 from server\n");
+        fprintf(stderr,
+                "Did not receive a valid expected database MD5 from server\n");
         unlink(fname);
         exit(1);
     }
@@ -643,7 +647,7 @@ static in_mem_s *get(geoipupdate_s * gu, const char *url)
 // This hash is suitable for the challenge parameter for downloading from the
 // /update_secure endpoint.
 static void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
-        char *new_digest_str)
+                                  char *new_digest_str)
 {
     unsigned char digest[16];
     MD5_CONTEXT context;
@@ -661,7 +665,7 @@ static void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
 static int update_database_general(geoipupdate_s * gu, const char *product_id)
 {
     char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL,
-         *client_ipaddr = NULL;
+    *client_ipaddr = NULL;
     char hex_digest[33], hex_digest2[33];
     memset(hex_digest, 0, 33);
     memset(hex_digest2, 0, 33);
@@ -806,14 +810,15 @@ static int update_country_database(geoipupdate_s * gu)
 // We also remove the gzip file once we successfully decompress and move the
 // new database into place.
 static int gunzip_and_replace(geoipupdate_s const * const gu,
-        char const * const gzipfile, char const * const geoip_filename,
-        char const * const expected_file_md5)
+                              char const * const gzipfile,
+                              char const * const geoip_filename,
+                              char const * const expected_file_md5)
 {
     if (NULL == gu || NULL == gu->database_dir ||
-            strlen(gu->database_dir) == 0 ||
-            NULL == gzipfile || strlen(gzipfile) == 0 ||
-            NULL == geoip_filename || strlen(geoip_filename) == 0 ||
-            NULL == expected_file_md5 || strlen(expected_file_md5) == 0) {
+        strlen(gu->database_dir) == 0 ||
+        NULL == gzipfile || strlen(gzipfile) == 0 ||
+        NULL == geoip_filename || strlen(geoip_filename) == 0 ||
+        NULL == expected_file_md5 || strlen(expected_file_md5) == 0) {
         fprintf(stderr, "gunzip_and_replace: %s\n", strerror(EINVAL));
         return ERROR;
     }
@@ -845,7 +850,7 @@ static int gunzip_and_replace(geoipupdate_s const * const gu,
         return ERROR;
     }
 
-    for (;;) {
+    for (;; ) {
         int amt = gzread(gz_fh, buffer, bsize);
         if (amt == 0) {
             // EOF

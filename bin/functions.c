@@ -14,7 +14,7 @@
 #include <unistd.h>
 
 static ssize_t read_file(char const * const, void * const,
-        size_t const);
+                         size_t const);
 
 // Check whether the file looks like a valid gzip file.
 //
@@ -43,7 +43,7 @@ bool is_valid_gzip_file(char const * const file)
         return false;
     }
 
-    if ((size_t const) sz != bufsz) {
+    if ((size_t const)sz != bufsz) {
         fprintf(stderr, "%s is not a valid gzip file (due to file size)\n",
                 file);
         free(buf);
@@ -87,7 +87,7 @@ char * slurp_file(char const * const file)
         return NULL;
     }
 
-    ssize_t const read_sz = read_file(file, buf, sz-1);
+    ssize_t const read_sz = read_file(file, buf, sz - 1);
     if (-1 == read_sz) {
         // We should have reported an error.
         free(buf);
@@ -103,11 +103,11 @@ char * slurp_file(char const * const file)
 //
 // The buffer may or may not contain a string. It may be binary data.
 static ssize_t read_file(char const * const file, void * const buf,
-        size_t const bufsz)
+                         size_t const bufsz)
 {
     if (NULL == file || strlen(file) == 0 ||
-            NULL == buf ||
-            bufsz == 0) {
+        NULL == buf ||
+        bufsz == 0) {
         fprintf(stderr, "read_file: %s\n", strerror(EINVAL));
         return -1;
     }
@@ -134,14 +134,16 @@ static ssize_t read_file(char const * const file, void * const buf,
         }
 
         if (retries_remaining == 0) {
-            fprintf(stderr, "read_file: Interrupted when reading from %s too many times\n",
-                    file);
+            fprintf(
+                stderr,
+                "read_file: Interrupted when reading from %s too many times\n",
+                file);
             close(fd);
             return -1;
         }
 
-        ssize_t const read_bytes = read(fd, buf+total_read_bytes,
-                bytes_left_to_read);
+        ssize_t const read_bytes = read(fd, buf + total_read_bytes,
+                                        bytes_left_to_read);
         if (read_bytes < 0) {
             if (EINTR == errno) {
                 retries_remaining--;
@@ -159,7 +161,8 @@ static ssize_t read_file(char const * const file, void * const buf,
         }
 
         if (total_read_bytes > SSIZE_MAX - read_bytes) {
-            fprintf(stderr, "read_file: Overflow when counting number of read bytes\n");
+            fprintf(stderr,
+                    "read_file: Overflow when counting number of read bytes\n");
             close(fd);
             return -1;
         }
@@ -185,7 +188,7 @@ static void test_slurp_file(void);
 static void test_read_file(void);
 static char * get_temporary_filename(void);
 static void write_file(char const * const, void const * const,
-        size_t const);
+                       size_t const);
 
 int main(void)
 {
@@ -377,7 +380,7 @@ static char * get_temporary_filename(void)
 }
 
 static void write_file(char const * const path, void const * const contents,
-        size_t const sz)
+                       size_t const sz)
 {
     assert(NULL != path);
     assert(strlen(path) != 0);
