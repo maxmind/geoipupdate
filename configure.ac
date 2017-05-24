@@ -35,7 +35,6 @@ AC_CHECK_FUNCS([ getline fgets asprintf strcasecmp memset socket strchr strdup s
 
 AC_HEADER_STDBOOL
 
-AC_C_INLINE
 AC_C_RESTRICT
 
 AC_OUTPUT([
