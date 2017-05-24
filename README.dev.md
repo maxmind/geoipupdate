@@ -1,4 +1,4 @@
-Current PPA process:
+# Current PPA process
 
 Note: `dev-bin/ppa-release.sh` should do the following for you.
 
@@ -20,3 +20,7 @@ Note: `dev-bin/ppa-release.sh` should do the following for you.
 9. Repeat 4-8 for remaining distributions.
 
 This dist is _not_ yet buildable with gbp. You must build from the tarball.
+
+
+# Style
+Please run `dev-bin/uncrustify-all.sh` on any changes you make.
