@@ -350,7 +350,7 @@ static char * join_path(char const * const dir, char const * const file)
     size_t sz = -1;
     char * path = NULL;
 
-    if (NULL == dir || strlen(dir) == 0 || NULL == file || strlen(file) == 0) {
+    if (dir == NULL || strlen(dir) == 0 || file == NULL || strlen(file) == 0) {
         fprintf(stderr, "join_path: %s\n", strerror(EINVAL));
         return NULL;
     }
@@ -359,7 +359,7 @@ static char * join_path(char const * const dir, char const * const file)
     sz = strlen(dir) + 1 + strlen(file) + 1;
 
     path = calloc(sz, sizeof(char));
-    if (NULL == path) {
+    if (path == NULL) {
         fprintf(stderr, "join_path: %s\n", strerror(errno));
         return NULL;
     }
@@ -399,13 +399,13 @@ static int acquire_run_lock(geoipupdate_s const * const gu)
 
     memset(&fl, 0, sizeof(struct flock));
 
-    if (NULL == gu || NULL == gu->lock_file || strlen(gu->lock_file) == 0) {
+    if (gu == NULL || gu->lock_file == NULL || strlen(gu->lock_file) == 0) {
         fprintf(stderr, "maybe_acquire_run_lock: %s\n", strerror(EINVAL));
         return 1;
     }
 
     fd = open(gu->lock_file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-    if (-1 == fd) {
+    if (fd == -1) {
         fprintf(stderr, "Unable to open lock file %s: %s\n", gu->lock_file,
                 strerror(errno));
         return 1;
@@ -421,7 +421,7 @@ static int acquire_run_lock(geoipupdate_s const * const gu)
         }
 
         // Interrupted? Retry.
-        if (EINTR == errno) {
+        if (errno == EINTR) {
             continue;
         }
 
@@ -524,7 +524,7 @@ static void download_to_file(geoipupdate_s * gu, const char *url,
                              const char *fname, char *expected_file_md5)
 {
     FILE *f = fopen(fname, "wb");
-    if (NULL == f) {
+    if (f == NULL) {
         fprintf(stderr, "Can't open %s: %s\n", fname, strerror(errno));
         exit(1);
     }
@@ -809,11 +809,11 @@ static int gunzip_and_replace(geoipupdate_s const * const gu,
                               char const * const geoip_filename,
                               char const * const expected_file_md5)
 {
-    if (NULL == gu || NULL == gu->database_dir ||
-        strlen(gu->database_dir) == 0 ||
-        NULL == gzipfile || strlen(gzipfile) == 0 ||
-        NULL == geoip_filename || strlen(geoip_filename) == 0 ||
-        NULL == expected_file_md5 || strlen(expected_file_md5) == 0) {
+    if (gu == NULL ||
+        gu->database_dir == NULL || strlen(gu->database_dir) == 0 ||
+        gzipfile == NULL || strlen(gzipfile) == 0 ||
+        geoip_filename == NULL || strlen(geoip_filename) == 0 ||
+        expected_file_md5 == NULL || strlen(expected_file_md5) == 0) {
         fprintf(stderr, "gunzip_and_replace: %s\n", strerror(EINVAL));
         return ERROR;
     }

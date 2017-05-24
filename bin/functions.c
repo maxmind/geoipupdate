@@ -23,7 +23,7 @@ static ssize_t read_file(char const * const, void * const,
 // Return true if it is.
 bool is_valid_gzip_file(char const * const file)
 {
-    if (NULL == file || strlen(file) == 0) {
+    if (file == NULL || strlen(file) == 0) {
         fprintf(stderr, "is_valid_gzip_file: %s\n", strerror(EINVAL));
         return false;
     }
@@ -31,13 +31,13 @@ bool is_valid_gzip_file(char const * const file)
     size_t const bufsz = 2;
 
     uint8_t * const buf = calloc(bufsz, sizeof(uint8_t));
-    if (NULL == buf) {
+    if (buf == NULL) {
         fprintf(stderr, "is_valid_gzip_file: %s\n", strerror(errno));
         return false;
     }
 
     ssize_t const sz = read_file(file, buf, bufsz);
-    if (-1 == sz) {
+    if (sz == -1) {
         // We should have already reported an error.
         free(buf);
         return false;
@@ -50,7 +50,7 @@ bool is_valid_gzip_file(char const * const file)
         return false;
     }
 
-    if (0x1f != buf[0] || 0x8b != buf[1]) {
+    if (buf[0] != 0x1f || buf[1] != 0x8b) {
         fprintf(stderr, "%s is not a valid gzip file\n", file);
         free(buf);
         return false;
@@ -74,7 +74,7 @@ bool is_valid_gzip_file(char const * const file)
 // The caller is responsible for the returned memory.
 char * slurp_file(char const * const file)
 {
-    if (NULL == file || strlen(file) == 0) {
+    if (file == NULL || strlen(file) == 0) {
         fprintf(stderr, "slurp_file: %s\n", strerror(EINVAL));
         return NULL;
     }
@@ -82,13 +82,13 @@ char * slurp_file(char const * const file)
     size_t sz = 8193;
 
     char * const buf = calloc(sz, sizeof(char));
-    if (NULL == buf) {
+    if (buf == NULL) {
         fprintf(stderr, "slurp_file: %s\n", strerror(errno));
         return NULL;
     }
 
     ssize_t const read_sz = read_file(file, buf, sz - 1);
-    if (-1 == read_sz) {
+    if (read_sz == -1) {
         // We should have reported an error.
         free(buf);
         return NULL;
@@ -105,9 +105,7 @@ char * slurp_file(char const * const file)
 static ssize_t read_file(char const * const file, void * const buf,
                          size_t const bufsz)
 {
-    if (NULL == file || strlen(file) == 0 ||
-        NULL == buf ||
-        bufsz == 0) {
+    if (file == NULL || strlen(file) == 0 || buf == NULL || bufsz == 0) {
         fprintf(stderr, "read_file: %s\n", strerror(EINVAL));
         return -1;
     }
@@ -118,7 +116,7 @@ static ssize_t read_file(char const * const file, void * const buf,
     // instead.
 
     int const fd = open(file, O_RDONLY);
-    if (-1 == fd) {
+    if (fd == -1) {
         fprintf(stderr, "read_file: Can't open file: %s: %s\n",
                 file, strerror(errno));
         return -1;
@@ -266,13 +264,13 @@ static void test_slurp_file(void)
     // Test: File does not exist.
 
     char * const contents_0 = slurp_file(filename);
-    assert(NULL == contents_0);
+    assert(contents_0 == NULL);
 
     // Test: File is zero size.
 
     write_file(filename, "", 0);
     char * const contents_1 = slurp_file(filename);
-    assert(NULL != contents_1);
+    assert(contents_1 != NULL);
     assert(strlen(contents_1) == 0);
     free(contents_1);
 
@@ -280,7 +278,7 @@ static void test_slurp_file(void)
 
     write_file(filename, "hello", strlen("hello"));
     char * const contents_2 = slurp_file(filename);
-    assert(NULL != contents_2);
+    assert(contents_2 != NULL);
     assert(strcmp(contents_2, "hello") == 0);
     free(contents_2);
 
@@ -295,7 +293,7 @@ static void test_slurp_file(void)
     memset(expected, 'a', 8192);
 
     char * const contents_3 = slurp_file(filename);
-    assert(NULL != contents_3);
+    assert(contents_3 != NULL);
     assert(strcmp(contents_3, expected) == 0);
     free(contents_3);
 
@@ -318,40 +316,40 @@ static void test_read_file(void)
 
     memset(buf, 0, bufsz);
     ssize_t const sz_0 = read_file(filename, buf, 2);
-    assert(-1 == sz_0);
+    assert(sz_0 == -1);
 
     // Test: The file is zero size.
 
     memset(buf, 0, bufsz);
     write_file(filename, "", 0);
     ssize_t const sz_1 = read_file(filename, buf, 2);
-    assert(0 == sz_1);
+    assert(sz_1 == 0);
 
     // Test: The file is larger than we need.
 
     memset(buf, 0, bufsz);
     write_file(filename, "hello", strlen("hello"));
     ssize_t const sz_2 = read_file(filename, buf, 2);
-    assert(2 == sz_2);
-    assert('h' == buf[0]);
-    assert('e' == buf[1]);
+    assert(sz_2 == 2);
+    assert(buf[0] == 'h');
+    assert(buf[1] == 'e');
 
     // Test: The file is exactly the size we need.
 
     memset(buf, 0, bufsz);
     write_file(filename, "hi", strlen("hi"));
     ssize_t const sz_3 = read_file(filename, buf, 2);
-    assert(2 == sz_3);
-    assert('h' == buf[0]);
-    assert('i' == buf[1]);
+    assert(sz_3 == 2);
+    assert(buf[0] == 'h');
+    assert(buf[1] == 'i');
 
     // Test: The file has data, but not as much as we ask for.
 
     memset(buf, 0, bufsz);
     write_file(filename, "a", strlen("a"));
     ssize_t sz_4 = read_file(filename, buf, 2);
-    assert(1 == sz_4);
-    assert('a' == buf[0]);
+    assert(sz_4 == 1);
+    assert(buf[0] == 'a');
 
     // Clean up.
     assert(unlink(filename) == 0);
@@ -368,7 +366,7 @@ static char * get_temporary_filename(void)
 
     strcat(filename, "/tmp/test-file-XXXXXX");
     int const fd = mkstemp(filename);
-    assert(-1 != fd);
+    assert(fd != -1);
 
     assert(close(fd) == 0);
     assert(unlink(filename) == 0);
@@ -379,13 +377,13 @@ static char * get_temporary_filename(void)
 static void write_file(char const * const path, void const * const contents,
                        size_t const sz)
 {
-    assert(NULL != path);
+    assert(path != NULL);
     assert(strlen(path) != 0);
-    assert(NULL != contents);
+    assert(contents != NULL);
     // Permit contents to be 0 length.
 
     int const fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-    if (-1 == fd) {
+    if (fd == -1) {
         fprintf(stderr, "open() failed: %s: %s\n", path, strerror(errno));
         assert(0 == 1);
     }
