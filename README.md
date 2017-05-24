@@ -7,10 +7,6 @@ binary databases. CSV databases are _not_ supported.
 
 Currently the program only supports Linux and other Unix-like systems.
 
-## License
-
-This library is licensed under the GNU General Public License version 2.
-
 ## Installing on Ubuntu
 
 MaxMind provides a PPA for recent version of Ubuntu. To add the PPA to your
