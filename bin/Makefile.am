@@ -1,4 +1,5 @@
-AM_CPPFLAGS = -I$(top_srcdir)/src -DSYSCONFDIR=\"$(sysconfdir)\" -DDATADIR=\"$(datadir)/GeoIP\" -Wall
+AM_CPPFLAGS = -I$(top_srcdir)/src -DSYSCONFDIR=\"$(sysconfdir)\" -DDATADIR=\"$(datadir)/GeoIP\" \
+			  -std=c99 -Wall -Wextra -Werror
 
 bin_PROGRAMS = geoipupdate
 
@@ -20,4 +21,4 @@ TESTS = functions_test
 check_PROGRAMS = functions_test
 
 functions_test_SOURCES = functions.c
-functions_test_CPPFLAGS = -Wall -DTEST_FUNCTIONS
+functions_test_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_FUNCTIONS
