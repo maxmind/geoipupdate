@@ -205,8 +205,7 @@ static void test_is_valid_gzip_file(void)
     assert(filename != NULL);
 
     // A buffer to work with.
-    uint8_t buf[4];
-    memset(buf, 0, 4);
+    uint8_t buf[4] = { 0 };
 
     // Test: File does not exist.
 
@@ -287,14 +286,12 @@ static void test_slurp_file(void)
 
     // Test: File is oversize.
 
-    char contents[8194];
-    memset(contents, 0, 8194);
+    char contents[8194] = { 0 };
     memset(contents, 'a', 8193);
 
     write_file(filename, contents, strlen(contents));
 
-    char expected[8193];
-    memset(expected, 0, 8193);
+    char expected[8193] = { 0 };
     memset(expected, 'a', 8192);
 
     char * const contents_3 = slurp_file(filename);

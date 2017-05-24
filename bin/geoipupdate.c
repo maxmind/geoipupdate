@@ -666,9 +666,7 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
 {
     char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL,
     *client_ipaddr = NULL;
-    char hex_digest[33], hex_digest2[33];
-    memset(hex_digest, 0, 33);
-    memset(hex_digest2, 0, 33);
+    char hex_digest[33] = { 0 }, hex_digest2[33] = { 0 };
 
     // Get the filename.
     xasprintf(&url, "%s://%s/app/update_getfilename?product_id=%s",
@@ -719,8 +717,7 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
         gu->license.user_id, product_id);
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
 
-    char expected_file_md5[33];
-    memset(expected_file_md5, 0, 33);
+    char expected_file_md5[33] = { 0 };
     download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
     free(url);
 
@@ -757,8 +754,7 @@ static int update_database_general_all(geoipupdate_s * gu)
 static int update_country_database(geoipupdate_s * gu)
 {
     char *geoip_filename = NULL, *geoip_gz_filename = NULL, *url = NULL;
-    char hex_digest[33];
-    memset(hex_digest, 0, 33);
+    char hex_digest[33] = { 0 };
 
     xasprintf(&geoip_filename, "%s/GeoIP.dat", gu->database_dir);
     xasprintf(&geoip_gz_filename, "%s/GeoIP.dat.gz", gu->database_dir);
@@ -772,8 +768,7 @@ static int update_country_database(geoipupdate_s * gu)
               "%s://%s/app/update?license_key=%s&md5=%s",
               gu->proto, gu->host, &gu->license.license_key[0], hex_digest);
 
-    char expected_file_md5[33];
-    memset(expected_file_md5, 0, 33);
+    char expected_file_md5[33] = { 0 };
     download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
     free(url);
 
@@ -865,8 +860,7 @@ static int gunzip_and_replace(geoipupdate_s const * const gu,
             gzipfile);
     free(buffer);
 
-    char actual_md5[33];
-    memset(actual_md5, 0, 33);
+    char actual_md5[33] = { 0 };
     md5hex(file_path_test, actual_md5);
     exit_if(strncasecmp(actual_md5, expected_file_md5, 32),
             "MD5 of new database (%s) does not match expected MD5 (%s)",
