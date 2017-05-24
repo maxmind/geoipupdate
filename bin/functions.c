@@ -143,7 +143,7 @@ static ssize_t read_file(char const * const file, void * const buf,
         ssize_t const read_bytes = read(fd, buf + total_read_bytes,
                                         bytes_left_to_read);
         if (read_bytes < 0) {
-            if (EINTR == errno) {
+            if (errno == EINTR) {
                 retries_remaining--;
                 continue;
             }
