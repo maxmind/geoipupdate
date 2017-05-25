@@ -42,3 +42,8 @@ ProductIds GeoLite2-Country GeoLite2-City
 # Whether to skip peer verification on HTTPS connections.
 # Defaults to "0".
 # SkipPeerVerification 0
+
+# The lock file to use. This ensures only one geoipupdate process can run at a
+# time.
+# Defaults to ".geoipupdate.lock" under the DatabaseDirectory.
+# LockFile /usr/local/share/GeoIP/.geoipupdate.lock

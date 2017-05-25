@@ -1,46 +1,70 @@
 #!/bin/bash
 
-set -e
+set -eu -o pipefail
 
-VERSION=$(perl -MFile::Slurp::Tiny=read_file -MDateTime <<EOF
-use v5.16;
-my \$log = read_file(q{ChangeLog.md});
-\$log =~ /\n(\d+\.\d+\.\d+) \((\d{4}-\d{2}-\d{2})\)\n/;
-die 'Release time is not today!' unless DateTime->now->ymd eq \$2;
-say \$1;
-EOF
-)
+changelog=$(cat ChangeLog.md)
 
-TAG="v$VERSION"
+regex='
+([0-9]+\.[0-9]+\.[0-9]+) \(([0-9]{4}-[0-9]{2}-[0-9]{2})\)
+-*
 
-git pull
+((.|
+)*)
+'
+
+if [[ ! $changelog =~ $regex ]]; then
+      echo "Could not find date line in change log!"
+      exit 1
+fi
+
+version="${BASH_REMATCH[1]}"
+date="${BASH_REMATCH[2]}"
+notes="$(echo "${BASH_REMATCH[3]}" | sed -n -e '/^[0-9]\+\.[0-9]\+\.[0-9]\+/,$!p')"
+dist="geoipupdate-$version.tar.gz"
+
+if [[ "$date" !=  $(date +"%Y-%m-%d") ]]; then
+    echo "$date is not today!"
+    exit 1
+fi
+
+tag="v$version"
 
 if [ -n "$(git status --porcelain)" ]; then
     echo ". is not clean." >&2
     exit 1
 fi
 
-export VERSION
-perl -pi -e "s/(?<=^AC_INIT\(\[geoipupdate\], \[).+?(?=\])/$VERSION/g" configure.ac
+git pull
+
+perl -pi -e "s/(?<=^AC_INIT\(\[geoipupdate\], \[).+?(?=\])/$version/g" configure.ac
 
 ./bootstrap
 ./configure
 make clean
 make dist
 
+echo "Diff:"
+
 git diff
 
-read -e -p "Push to origin? " SHOULD_PUSH
+echo "Release notes:"
+echo "$notes"
+
+read -e -r -p "Push to origin? " SHOULD_PUSH
 
 if [ "$SHOULD_PUSH" != "y" ]; then
     echo "Aborting"
     exit 1
 fi
 
-git commit -m "Update version number for $TAG" -a
+git commit -m "Bump version to $version" -a
 
-git tag -a "$TAG"
 git push
-git push --tags
+
+message="$version
+
+$notes"
+
+hub release create -a "$dist" -m "$message" "$tag"
 
 echo "Release to PPA and Homebrew"

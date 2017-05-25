@@ -29,6 +29,7 @@ typedef struct {
     char * proto;
     char * proxy;               // 1.2.3.4, 1.2.3.4:1234
     char * proxy_user_password; // user:pwd
+    char * lock_file;           // Path to a global runtime lock file.
     int verbose;
     CURL * curl;
 
@@ -49,4 +50,7 @@ void *xmalloc(size_t size);
 
 # define NO_USER_ID (-1)
 # define GEOIP_USERAGENT "geoipupdate/" VERSION
+
+#define exit_if(expr, ...) exit_unless(!(expr), ## __VA_ARGS__)
+
 #endif

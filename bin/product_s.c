@@ -39,6 +39,8 @@ product_s *product_new(const char *product_id)
 {
     product_s *p = xmalloc(sizeof(product_s));
     p->product_id = strdup(product_id);
+    exit_if(NULL == p->product_id,
+            "Unable to allocate memory for product ID.\n");
     p->next = NULL;
     return p;
 }
