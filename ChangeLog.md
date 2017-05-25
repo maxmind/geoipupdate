@@ -15,6 +15,8 @@ Unreleased
   file. In conjunction with changes to the download service itself, errors
   such as lacking a subscription no longer show up with the message "not a
   valid gzip file".
+* ${datarootdir}/GeoIP is now created on `make install`. Reported by Antonios
+  Karagiannis. GitHub #29.
 * Previously, a variable named `ERROR` was used. This caused issues building
   on Windows. Reported by Gisle Vanem. GitHub #36.
 
