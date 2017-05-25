@@ -2,8 +2,9 @@
 
 set -e
 set -x
+set -u
 
-DISTS=( yakkety xenial trusty precise )
+DISTS=( zesty xenial trusty precise )
 
 VERSION=$(perl -MFile::Slurp::Tiny=read_file -MDateTime <<EOF
 use v5.16;
