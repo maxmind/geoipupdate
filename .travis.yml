@@ -1,12 +1,16 @@
 ---
 sudo: false
 language: c
+os:
+  - linux
+  - osx
 compiler:
-  - clang
   - gcc
+  - clang
+env: CFLAGS="-std=c99 -Wall -Wextra -Werror"
 before_script:
   - ./bootstrap
-  - CFLAGS="-std=c99 -Wall -Wextra -Werror" ./configure
+  - ./configure
 script:
   - make
 notifications:
