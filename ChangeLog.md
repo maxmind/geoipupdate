@@ -1,7 +1,8 @@
 GeoIP Update Change Log
 =======================
 
-Unreleased
+2.4.0 (2017-05-25)
+------------------
 
 * `geoipupdate` now checks that the database directory is writable. If it
   is not, it reports the problem and aborts.
