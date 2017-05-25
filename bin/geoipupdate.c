@@ -18,8 +18,10 @@
 #define ZERO_MD5 ("00000000000000000000000000000000")
 #define say(fmt, ...) say_if(1, fmt, ## __VA_ARGS__)
 
-static const int ERROR = 1;
-static const int OK = 0;
+enum gu_status {
+    GU_OK = 0,
+    GU_ERROR = 1,
+};
 
 typedef struct {
     char *ptr;
@@ -164,13 +166,13 @@ static int parse_opts(geoipupdate_s * gu, int argc, char *const argv[])
             exit(1);
         }
     }
-    return 0;
+    return GU_OK;
 }
 
 int main(int argc, char *const argv[])
 {
     struct stat st;
-    int err = ERROR;
+    int err = GU_ERROR;
     curl_global_init(CURL_GLOBAL_DEFAULT);
     geoipupdate_s *gu = geoipupdate_s_new();
     if (gu) {
@@ -191,7 +193,7 @@ int main(int argc, char *const argv[])
             if (acquire_run_lock(gu) != 0) {
                 geoipupdate_s_delete(gu);
                 curl_global_cleanup();
-                return ERROR;
+                return GU_ERROR;
             }
 
             err = (gu->license.user_id == NO_USER_ID)
@@ -201,7 +203,7 @@ int main(int argc, char *const argv[])
         geoipupdate_s_delete(gu);
     }
     curl_global_cleanup();
-    return err ? ERROR : OK;
+    return err ? GU_ERROR : GU_OK;
 }
 
 static ssize_t my_getline(char ** linep, size_t * linecapp, FILE * stream)
@@ -676,7 +678,7 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
     if (mem->size == 0) {
         fprintf(stderr, "product_id %s not found\n", product_id);
         in_mem_s_delete(mem);
-        return ERROR;
+        return GU_ERROR;
     }
     xasprintf(&geoip_filename, "%s/%s", gu->database_dir, mem->ptr);
     in_mem_s_delete(mem);
@@ -696,7 +698,7 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
         fprintf(stderr, "Unable to allocate memory for client IP address.\n");
         free(geoip_filename);
         in_mem_s_delete(mem);
-        return ERROR;
+        return GU_ERROR;
     }
 
     in_mem_s_delete(mem);
@@ -729,7 +731,7 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
         unlink(geoip_gz_filename);
         free(geoip_filename);
         free(geoip_gz_filename);
-        return OK;
+        return GU_OK;
     }
 
     int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename,
@@ -780,7 +782,7 @@ static int update_country_database(geoipupdate_s * gu)
         unlink(geoip_gz_filename);
         free(geoip_filename);
         free(geoip_gz_filename);
-        return OK;
+        return GU_OK;
     }
 
     int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename,
@@ -815,13 +817,13 @@ static int gunzip_and_replace(geoipupdate_s const * const gu,
         geoip_filename == NULL || strlen(geoip_filename) == 0 ||
         expected_file_md5 == NULL || strlen(expected_file_md5) == 0) {
         fprintf(stderr, "gunzip_and_replace: %s\n", strerror(EINVAL));
-        return ERROR;
+        return GU_ERROR;
     }
 
     if (!is_valid_gzip_file(gzipfile)) {
         // We should have already reported an error.
         unlink(gzipfile);
-        return ERROR;
+        return GU_ERROR;
     }
 
     // Decompress to the filename with the suffix ".test".
@@ -842,7 +844,7 @@ static int gunzip_and_replace(geoipupdate_s const * const gu,
         free(file_path_test);
         gzclose(gz_fh);
         fclose(fhw);
-        return ERROR;
+        return GU_ERROR;
     }
 
     for (;; ) {
@@ -882,5 +884,5 @@ static int gunzip_and_replace(geoipupdate_s const * const gu,
             strerror(errno));
 
     free(file_path_test);
-    return OK;
+    return GU_OK;
 }
