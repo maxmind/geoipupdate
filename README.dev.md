@@ -1,3 +1,8 @@
+# GitHub release
+
+Run `dev-bin/release.sh`
+
+
 # Current PPA process
 
 Note: `dev-bin/ppa-release.sh` should do the following for you.
@@ -20,6 +25,15 @@ Note: `dev-bin/ppa-release.sh` should do the following for you.
 9. Repeat 4-8 for remaining distributions.
 
 This dist is _not_ yet buildable with gbp. You must build from the tarball.
+
+
+# Homebrew
+
+* Go to https://github.com/Homebrew/homebrew-core/blob/master/Formula/geoipupdate.rb
+* Edit the file to update the url and sha256. You can get the sha256 for the
+  tarball with the `sha256sum` command line utility.
+* Make a commit with the summary `geoipupdate <VERSION>`
+* Submit a PR with the changes you just made.
 
 
 # Style
