@@ -15,6 +15,8 @@ Unreleased
   file. In conjunction with changes to the download service itself, errors
   such as lacking a subscription no longer show up with the message "not a
   valid gzip file".
+* Previously, a variable named `ERROR` was used. This caused issues building
+  on Windows. Reported by Gisle Vanem. GitHub #36.
 
 2.3.1 (2017-01-05)
 ------------------
