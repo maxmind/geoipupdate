@@ -40,7 +40,7 @@ static int acquire_run_lock(geoipupdate_s const * const);
 static int md5hex(const char *, char *);
 static void common_req(CURL *, geoipupdate_s *);
 static size_t get_expected_file_md5(char *, size_t, size_t,
-                                    char *);
+                                    void *);
 static void download_to_file(geoipupdate_s *, const char *,
                              const char *, char *);
 static size_t mem_cb(void *, size_t, size_t, void *);
@@ -474,19 +474,19 @@ static int md5hex(const char *fname, char *hex_digest)
 static void common_req(CURL * curl, geoipupdate_s * gu)
 {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, GEOIP_USERAGENT);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
     // CURLOPT_TCP_KEEPALIVE appeared in 7.25. It is a typedef enum, not a
     // macro so we resort to version detection.
 #if LIBCURL_VERSION_NUM >= 0x071900
-    curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1);
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
 #endif
 
     if (!strcasecmp(gu->proto, "https")) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER,
-                         gu->skip_peer_verification != 0);
+                         (long)(gu->skip_peer_verification != 0));
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST,
-                         gu->skip_hostname_verification != 0);
+                         (long)(gu->skip_hostname_verification != 0));
     }
 
     if (gu->proxy_user_password && strlen(gu->proxy_user_password)) {
@@ -501,8 +501,9 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
 }
 
 static size_t get_expected_file_md5(char *buffer, size_t size, size_t nitems,
-                                    char *md5)
+                                    void *userdata)
 {
+    char *md5 = (char *)userdata;
     size_t total_size = size * nitems;
     if (strncasecmp(buffer, "X-Database-MD5:", 15) == 0 && total_size > 48) {
         char *start = buffer + 16;
