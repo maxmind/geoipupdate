@@ -910,7 +910,8 @@ static int gunzip_and_replace(geoipupdate_s const * const gu,
         struct utimbuf utb;
         utb.modtime = utb.actime = (time_t)filetime;
         err = utime(geoip_filename, &utb);
-        exit_if(err, "Setting timestamp of %s to %ld failed\n", geoip_filename, filetime);
+        exit_if(err, "Setting timestamp of %s to %ld failed: %s\n",
+                geoip_filename, filetime, strerror(errno));
     }
 
     // fsync directory to ensure the rename is durable
