@@ -52,11 +52,16 @@ The proxy user name and password, separated by a colon. For instance,
 .TP
 .B SkipPeerVerification
 Skip peer verification when using
-.BR https ". Valid values are " 0 " and " 1 ". The default is " 0 ".
+.BR https ". Valid values are " 0 " or " 1 ". The default is " 0 ".
 .TP
 .B SkipHostnameVerification
 Skip the host name verification when using
-.BR https ". This option is either " 0 " and " 1 ". The default is " 0 ".
+.BR https ". This option is either " 0 " or " 1 ". The default is " 0 ".
+.TP
+.B PreserveFileTimes
+Whether to preserve modification times of files downloaded from the server.
+This option is either
+.BR 0 " or " 1 ". The default is " 0 ".
 .SH FILES
 .PP
 .TP
