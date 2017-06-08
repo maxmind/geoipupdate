@@ -43,6 +43,10 @@ ProductIds GeoLite2-Country GeoLite2-City
 # Defaults to "0".
 # SkipPeerVerification 0
 
+# Whether to preserve modification times of files downloaded from the server.
+# Defaults to "0".
+# PreserveFileTimes 0
+
 # The lock file to use. This ensures only one geoipupdate process can run at a
 # time.
 # Defaults to ".geoipupdate.lock" under the DatabaseDirectory.

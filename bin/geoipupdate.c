@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <utime.h>
 #include <zlib.h>
 
 #define ZERO_MD5 ("00000000000000000000000000000000")
@@ -43,6 +44,7 @@ static size_t get_expected_file_md5(char *, size_t, size_t,
                                     void *);
 static void download_to_file(geoipupdate_s *, const char *,
                              const char *, char *);
+static long get_server_time(geoipupdate_s *);
 static size_t mem_cb(void *, size_t, size_t, void *);
 static in_mem_s *in_mem_s_new(void);
 static void in_mem_s_delete(in_mem_s *);
@@ -54,7 +56,7 @@ static int update_database_general(geoipupdate_s *, const char *);
 static int update_country_database(geoipupdate_s *);
 static int gunzip_and_replace(geoipupdate_s const * const,
                               char const * const, char const * const,
-                              char const * const);
+                              char const * const, long);
 
 void exit_unless(int expr, const char *fmt, ...)
 {
@@ -252,6 +254,12 @@ static int parse_license_file(geoipupdate_s * up)
                 while ((p = strtok_r(NULL, sep, &last))) {
                     product_insert_once(up, p);
                 }
+            } else if (!strcmp(p, "PreserveFileTimes")) {
+                p = strtok_r(NULL, sep, &last);
+                exit_if(NULL == p
+                        || (0 != strcmp(p, "0") && 0 != strcmp(p, "1")),
+                        "PreserveFileTimes must be 0 or 1\n");
+                up->preserve_file_times = atoi(p);
             } else if (!strcmp(p, "SkipPeerVerification")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p
@@ -489,6 +497,10 @@ static void common_req(CURL * curl, geoipupdate_s * gu)
                          (long)(gu->skip_hostname_verification != 0));
     }
 
+    if (gu->preserve_file_times) {
+        curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
+    }
+
     if (gu->proxy_user_password && strlen(gu->proxy_user_password)) {
         say_if(gu->verbose, "Use proxy_user_password: %s\n",
                gu->proxy_user_password);
@@ -584,6 +596,18 @@ static void download_to_file(geoipupdate_s * gu, const char *url,
         unlink(fname);
         exit(1);
     }
+}
+
+
+// Retrieve the server file time for the previous HTTP request.
+static long get_server_time(geoipupdate_s * gu)
+{
+    CURL *curl = gu->curl;
+    long filetime = -1;
+    if (curl != NULL) {
+        curl_easy_getinfo(curl, CURLINFO_FILETIME, &filetime);
+    }
+    return filetime;
 }
 
 static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp)
@@ -735,8 +759,12 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
         return GU_OK;
     }
 
+    long filetime = -1;
+    if (gu->preserve_file_times) {
+        filetime = get_server_time(gu);
+    }
     int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename,
-                                expected_file_md5);
+                                expected_file_md5, filetime);
 
     free(geoip_gz_filename);
     free(geoip_filename);
@@ -786,8 +814,12 @@ static int update_country_database(geoipupdate_s * gu)
         return GU_OK;
     }
 
+    long filetime = -1;
+    if (gu->preserve_file_times) {
+        filetime = get_server_time(gu);
+    }
     int rc = gunzip_and_replace(gu, geoip_gz_filename, geoip_filename,
-                                expected_file_md5);
+                                expected_file_md5, filetime);
 
     free(geoip_gz_filename);
     free(geoip_filename);
@@ -810,7 +842,8 @@ static int update_country_database(geoipupdate_s * gu)
 static int gunzip_and_replace(geoipupdate_s const * const gu,
                               char const * const gzipfile,
                               char const * const geoip_filename,
-                              char const * const expected_file_md5)
+                              char const * const expected_file_md5,
+                              long filetime)
 {
     if (gu == NULL ||
         gu->database_dir == NULL || strlen(gu->database_dir) == 0 ||
@@ -872,6 +905,13 @@ static int gunzip_and_replace(geoipupdate_s const * const gu,
     say_if(gu->verbose, "Rename %s to %s\n", file_path_test, geoip_filename);
     int err = rename(file_path_test, geoip_filename);
     exit_if(err, "Rename %s to %s failed\n", file_path_test, geoip_filename);
+
+    if (gu->preserve_file_times && filetime > 0) {
+        struct utimbuf utb;
+        utb.modtime = utb.actime = (time_t)filetime;
+        err = utime(geoip_filename, &utb);
+        exit_if(err, "Setting timestamp of %s to %ld failed\n", geoip_filename, filetime);
+    }
 
     // fsync directory to ensure the rename is durable
     int dirfd = open(gu->database_dir, O_DIRECTORY);

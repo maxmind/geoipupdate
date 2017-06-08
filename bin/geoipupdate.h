@@ -22,6 +22,7 @@ typedef struct {
     // user might change these before geoipupdate_s_init
     int skip_peer_verification;
     int skip_hostname_verification;
+    int preserve_file_times;
     int do_not_overwrite_database_directory;
     char * license_file;
     char * database_dir;
