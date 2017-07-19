@@ -6,7 +6,6 @@ bin_PROGRAMS = geoipupdate
 geoipupdate_SOURCES = \
 					  geoipupdate.c geoipupdate.h \
 					  md5.c md5.h \
-					  base64.c base64.h \
 					  geoipupdate_s.c \
 					  product_s.c \
 					  types.h \
