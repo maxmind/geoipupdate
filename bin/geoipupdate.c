@@ -590,14 +590,13 @@ static void download_to_file(geoipupdate_s * gu, const char *url,
 
     // In this case, the server must have told us the current MD5 hash of the
     // database we asked for.
-    if (strnlen(expected_file_md5, 33) != 32) {
+    if (gu_strnlen(expected_file_md5, 33) != 32) {
         fprintf(stderr,
                 "Did not receive a valid expected database MD5 from server\n");
         unlink(fname);
         exit(1);
     }
 }
-
 
 // Retrieve the server file time for the previous HTTP request.
 static long get_server_time(geoipupdate_s * gu)
