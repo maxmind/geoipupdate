@@ -1,6 +1,8 @@
 GeoIP Update Change Log
 =======================
 
+* Document the `LockFile` option in the `GeoIP.conf` man page. GitHub
+  issue #64.
 * Remove unused base64 library. PR by Mikhail Teterin. GitHub PR #68.
 * Add the new configuration option `PreserveFileTimes`. If set,
   the downloaded files will get the same modification times as
