@@ -3,6 +3,8 @@ GeoIP Update Change Log
 
 * Replace use of strnlen() due to lack of universal availability. First
   reported by Bill Cole. GitHub issue #71.
+* Document the `LockFile` option in the `GeoIP.conf` man page. GitHub
+  issue #64.
 * Remove unused base64 library. PR by Mikhail Teterin. GitHub PR #68.
 * Add the new configuration option `PreserveFileTimes`. If set,
   the downloaded files will get the same modification times as

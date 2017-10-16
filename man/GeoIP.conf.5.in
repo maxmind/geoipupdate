@@ -62,6 +62,12 @@ Skip the host name verification when using
 Whether to preserve modification times of files downloaded from the server.
 This option is either
 .BR 0 " or " 1 ". The default is " 0 ".
+.TP
+.B LockFile
+The lock file to use. This ensures only one
+.B geoipupdate
+process can run at a time. The default is
+.BR .geoipupdate.lock " under the " DatabaseDirectory .
 .SH FILES
 .PP
 .TP
