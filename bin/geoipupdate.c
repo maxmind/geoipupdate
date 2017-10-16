@@ -590,14 +590,13 @@ static void download_to_file(geoipupdate_s * gu, const char *url,
 
     // In this case, the server must have told us the current MD5 hash of the
     // database we asked for.
-    if (strnlen(expected_file_md5, 33) != 32) {
+    if (gu_strnlen(expected_file_md5, 33) != 32) {
         fprintf(stderr,
                 "Did not receive a valid expected database MD5 from server\n");
         unlink(fname);
         exit(1);
     }
 }
-
 
 // Retrieve the server file time for the previous HTTP request.
 static long get_server_time(geoipupdate_s * gu)
@@ -692,7 +691,7 @@ static void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
 static int update_database_general(geoipupdate_s * gu, const char *product_id)
 {
     char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL,
-    *client_ipaddr = NULL;
+         *client_ipaddr = NULL;
     char hex_digest[33] = { 0 }, hex_digest2[33] = { 0 };
 
     // Get the filename.

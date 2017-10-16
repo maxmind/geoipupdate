@@ -16,6 +16,27 @@
 static ssize_t read_file(char const * const, void * const,
                          size_t const);
 
+// Return the length of the given string in bytes. Look at at most maxlen
+// bytes.
+//
+// This is intended to behave like strnlen(3). We don't use strnlen(3) as it is
+// not part of C99.
+size_t gu_strnlen(char const * const s, size_t const maxlen)
+{
+    if (!s) {
+        return 0;
+    }
+
+    char const * ptr = s;
+    size_t n = 0;
+    while (*ptr != '\0' && n < maxlen) {
+        n++;
+        ptr++;
+    }
+
+    return n;
+}
+
 // Check whether the file looks like a valid gzip file.
 //
 // We open it and read in a small amount. We do this so we can check its header.
@@ -181,6 +202,7 @@ static ssize_t read_file(char const * const file, void * const buf,
 
 #include <assert.h>
 
+static void test_gu_strnlen(void);
 static void test_is_valid_gzip_file(void);
 static void test_slurp_file(void);
 static void test_read_file(void);
@@ -190,11 +212,96 @@ static void write_file(char const * const, void const * const,
 
 int main(void)
 {
+    test_gu_strnlen();
     test_is_valid_gzip_file();
     test_slurp_file();
     test_read_file();
 
     return 0;
+}
+
+static void test_gu_strnlen(void)
+{
+    struct test_case {
+        char const * const s;
+        size_t const maxlen;
+        size_t const output;
+        bool const skip_strnlen;
+    };
+
+    struct test_case const tests[] = {
+        {
+            .s = "test",
+            .maxlen = 4,
+            .output = 4,
+            .skip_strnlen = false,
+        },
+        {
+            .s = "test",
+            .maxlen = 5,
+            .output = 4,
+            .skip_strnlen = false,
+        },
+        {
+            .s = "test",
+            .maxlen = 6,
+            .output = 4,
+            .skip_strnlen = false,
+        },
+        {
+            .s = "test",
+            .maxlen = 14,
+            .output = 4,
+            .skip_strnlen = false,
+        },
+        {
+            .s = "test",
+            .maxlen = 2,
+            .output = 2,
+            .skip_strnlen = false,
+        },
+        {
+            .s = "test",
+            .maxlen = 0,
+            .output = 0,
+            .skip_strnlen = false,
+        },
+        {
+            .s = "",
+            .maxlen = 4,
+            .output = 0,
+            .skip_strnlen = false,
+        },
+        {
+            .s = "",
+            .maxlen = 0,
+            .output = 0,
+            .skip_strnlen = false,
+        },
+        {
+            .s = NULL,
+            .maxlen = 0,
+            .output = 0,
+            .skip_strnlen = false,
+        },
+        {
+            .s = NULL,
+            .maxlen = 10,
+            .output = 0,
+            // segfaults strnlen
+            .skip_strnlen = true,
+        },
+    };
+
+    for (size_t i = 0; i < sizeof tests / sizeof tests[0]; i++) {
+        struct test_case const test = tests[i];
+        size_t const output = gu_strnlen(test.s, test.maxlen);
+        assert(output == test.output);
+        if (test.skip_strnlen) {
+            continue;
+        }
+        assert(output == strnlen(test.s, test.maxlen));
+    }
 }
 
 static void test_is_valid_gzip_file(void)
