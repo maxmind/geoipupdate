@@ -691,7 +691,7 @@ static void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
 static int update_database_general(geoipupdate_s * gu, const char *product_id)
 {
     char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL,
-    *client_ipaddr = NULL;
+         *client_ipaddr = NULL;
     char hex_digest[33] = { 0 }, hex_digest2[33] = { 0 };
 
     // Get the filename.
