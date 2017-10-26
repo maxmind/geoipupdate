@@ -1,10 +1,9 @@
 
 #include "geoipupdate.h"
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-geoipupdate_s *geoipupdate_s_new(void)
-{
+geoipupdate_s *geoipupdate_s_new(void) {
     size_t size = sizeof(geoipupdate_s);
     geoipupdate_s *gu = xmalloc(size);
     memset(gu, 0, size);
@@ -22,12 +21,10 @@ geoipupdate_s *geoipupdate_s_new(void)
             "Unable to allocate memory for request protocol.\n");
 
     gu->host = strdup("updates.maxmind.com");
-    exit_if(NULL == gu->host,
-            "Unable to allocate memory for update host.\n");
+    exit_if(NULL == gu->host, "Unable to allocate memory for update host.\n");
 
     gu->proxy = strdup("");
-    exit_if(NULL == gu->proxy,
-            "Unable to allocate memory for proxy host.\n");
+    exit_if(NULL == gu->proxy, "Unable to allocate memory for proxy host.\n");
 
     gu->proxy_user_password = strdup("");
     exit_if(NULL == gu->proxy_user_password,
@@ -42,14 +39,12 @@ geoipupdate_s *geoipupdate_s_new(void)
     gu->license.license_key[12] = 0;
 
     gu->curl = curl_easy_init();
-    exit_if(NULL == gu->curl,
-            "Unable to initialize curl.\n");
+    exit_if(NULL == gu->curl, "Unable to initialize curl.\n");
 
     return gu;
 }
 
-void geoipupdate_s_delete(geoipupdate_s * gu)
-{
+void geoipupdate_s_delete(geoipupdate_s *gu) {
     if (gu) {
         edition_delete_all(gu);
         free(gu->license_file);
@@ -65,4 +60,3 @@ void geoipupdate_s_delete(geoipupdate_s * gu)
         free(gu);
     }
 }
-

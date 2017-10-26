@@ -41,11 +41,10 @@
 #define SIZEOF_UNSIGNED_LONG 4
 #endif
 
-
 #include <sys/types.h>
 
 #ifndef HAVE_BYTE_TYPEDEF
-#undef byte         /* maybe there is a macro with this name */
+#undef byte /* maybe there is a macro with this name */
 #ifndef __riscos__
 typedef unsigned char byte;
 #else
@@ -58,19 +57,19 @@ typedef char byte;
 #endif
 
 #ifndef HAVE_USHORT_TYPEDEF
-#undef ushort     /* maybe there is a macro with this name */
+#undef ushort /* maybe there is a macro with this name */
 typedef unsigned short ushort;
 #define HAVE_USHORT_TYPEDEF
 #endif
 
 #ifndef HAVE_ULONG_TYPEDEF
-#undef ulong        /* maybe there is a macro with this name */
+#undef ulong /* maybe there is a macro with this name */
 typedef unsigned long ulong;
 #define HAVE_ULONG_TYPEDEF
 #endif
 
 #ifndef HAVE_U16_TYPEDEF
-#undef u16          /* maybe there is a macro with this name */
+#undef u16 /* maybe there is a macro with this name */
 #if SIZEOF_UNSIGNED_INT == 2
 typedef unsigned int u16;
 #elif SIZEOF_UNSIGNED_SHORT == 2
@@ -82,7 +81,7 @@ typedef unsigned short u16;
 #endif
 
 #ifndef HAVE_U32_TYPEDEF
-#undef u32          /* maybe there is a macro with this name */
+#undef u32 /* maybe there is a macro with this name */
 #if SIZEOF_UNSIGNED_INT == 4
 typedef unsigned int u32;
 #elif SIZEOF_UNSIGNED_LONG == 4
@@ -99,22 +98,22 @@ typedef unsigned long u32;
  * Solaris and IRIX.
  */
 #ifndef HAVE_U64_TYPEDEF
-#undef u64          /* maybe there is a macro with this name */
+#undef u64 /* maybe there is a macro with this name */
 #if SIZEOF_UINT64_T == 8
 typedef uint64_t u64;
 #define U64_C(c) (UINT64_C(c))
 #define HAVE_U64_TYPEDEF
 #elif SIZEOF_UNSIGNED_INT == 8
 typedef unsigned int u64;
-#define U64_C(c) (c ## U)
+#define U64_C(c) (c##U)
 #define HAVE_U64_TYPEDEF
 #elif SIZEOF_UNSIGNED_LONG == 8
 typedef unsigned long u64;
-#define U64_C(c) (c ## UL)
+#define U64_C(c) (c##UL)
 #define HAVE_U64_TYPEDEF
 #elif SIZEOF_UNSIGNED_LONG_LONG == 8
 typedef unsigned long long u64;
-#define U64_C(c) (c ## ULL)
+#define U64_C(c) (c##ULL)
 #define HAVE_U64_TYPEDEF
 #endif
 #endif
@@ -135,6 +134,6 @@ typedef struct string_list {
     struct string_list *next;
     unsigned int flags;
     char d[1];
-} *STRLIST;
+} * STRLIST;
 
 #endif /*G10_TYPES_H*/

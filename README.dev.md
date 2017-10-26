@@ -37,4 +37,4 @@ This dist is _not_ yet buildable with gbp. You must build from the tarball.
 
 
 # Style
-Please run `dev-bin/uncrustify-all.sh` on any changes you make.
+Please run `dev-bin/clang-format-all.sh` on any changes you make.

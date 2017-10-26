@@ -9,25 +9,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-static ssize_t read_file(char const * const, void * const,
-                         size_t const);
+static ssize_t read_file(char const *const, void *const, size_t const);
 
 // Return the length of the given string in bytes. Look at at most maxlen
 // bytes.
 //
 // This is intended to behave like strnlen(3). We don't use strnlen(3) as it is
 // not part of C99.
-size_t gu_strnlen(char const * const s, size_t const maxlen)
-{
+size_t gu_strnlen(char const *const s, size_t const maxlen) {
     if (!s) {
         return 0;
     }
 
-    char const * ptr = s;
+    char const *ptr = s;
     size_t n = 0;
     while (*ptr != '\0' && n < maxlen) {
         n++;
@@ -42,8 +40,7 @@ size_t gu_strnlen(char const * const s, size_t const maxlen)
 // We open it and read in a small amount. We do this so we can check its header.
 //
 // Return true if it is.
-bool is_valid_gzip_file(char const * const file)
-{
+bool is_valid_gzip_file(char const *const file) {
     if (file == NULL || strlen(file) == 0) {
         fprintf(stderr, "is_valid_gzip_file: %s\n", strerror(EINVAL));
         return false;
@@ -51,7 +48,7 @@ bool is_valid_gzip_file(char const * const file)
 
     size_t const bufsz = 2;
 
-    uint8_t * const buf = calloc(bufsz, sizeof(uint8_t));
+    uint8_t *const buf = calloc(bufsz, sizeof(uint8_t));
     if (buf == NULL) {
         fprintf(stderr, "is_valid_gzip_file: %s\n", strerror(errno));
         return false;
@@ -65,8 +62,8 @@ bool is_valid_gzip_file(char const * const file)
     }
 
     if ((size_t const)sz != bufsz) {
-        fprintf(stderr, "%s is not a valid gzip file (due to file size)\n",
-                file);
+        fprintf(
+            stderr, "%s is not a valid gzip file (due to file size)\n", file);
         free(buf);
         return false;
     }
@@ -93,8 +90,7 @@ bool is_valid_gzip_file(char const * const file)
 // exactly 8 KiB. The useful portion may fall short of 8 KiB.
 //
 // The caller is responsible for the returned memory.
-char * slurp_file(char const * const file)
-{
+char *slurp_file(char const *const file) {
     if (file == NULL || strlen(file) == 0) {
         fprintf(stderr, "slurp_file: %s\n", strerror(EINVAL));
         return NULL;
@@ -102,7 +98,7 @@ char * slurp_file(char const * const file)
 
     size_t sz = 8193;
 
-    char * const buf = calloc(sz, sizeof(char));
+    char *const buf = calloc(sz, sizeof(char));
     if (buf == NULL) {
         fprintf(stderr, "slurp_file: %s\n", strerror(errno));
         return NULL;
@@ -123,9 +119,8 @@ char * slurp_file(char const * const file)
 // Return how many bytes we read. -1 if there was an error.
 //
 // The buffer may or may not contain a string. It may be binary data.
-static ssize_t read_file(char const * const file, void * const buf,
-                         size_t const bufsz)
-{
+static ssize_t
+read_file(char const *const file, void *const buf, size_t const bufsz) {
     if (file == NULL || strlen(file) == 0 || buf == NULL || bufsz == 0) {
         fprintf(stderr, "read_file: %s\n", strerror(EINVAL));
         return -1;
@@ -138,8 +133,10 @@ static ssize_t read_file(char const * const file, void * const buf,
 
     int const fd = open(file, O_RDONLY);
     if (fd == -1) {
-        fprintf(stderr, "read_file: Can't open file: %s: %s\n",
-                file, strerror(errno));
+        fprintf(stderr,
+                "read_file: Can't open file: %s: %s\n",
+                file,
+                strerror(errno));
         return -1;
     }
 
@@ -161,14 +158,16 @@ static ssize_t read_file(char const * const file, void * const buf,
             return -1;
         }
 
-        ssize_t const read_bytes = read(fd, buf + total_read_bytes,
-                                        bytes_left_to_read);
+        ssize_t const read_bytes =
+            read(fd, buf + total_read_bytes, bytes_left_to_read);
         if (read_bytes < 0) {
             if (errno == EINTR) {
                 retries_remaining--;
                 continue;
             }
-            fprintf(stderr, "read_file: Error reading from %s: %s\n", file,
+            fprintf(stderr,
+                    "read_file: Error reading from %s: %s\n",
+                    file,
                     strerror(errno));
             close(fd);
             return -1;
@@ -190,8 +189,10 @@ static ssize_t read_file(char const * const file, void * const buf,
     }
 
     if (close(fd) != 0) {
-        fprintf(stderr, "read_file: Error closing file: %s: %s\n",
-                file, strerror(errno));
+        fprintf(stderr,
+                "read_file: Error closing file: %s: %s\n",
+                file,
+                strerror(errno));
         return -1;
     }
 
@@ -206,12 +207,10 @@ static void test_gu_strnlen(void);
 static void test_is_valid_gzip_file(void);
 static void test_slurp_file(void);
 static void test_read_file(void);
-static char * get_temporary_filename(void);
-static void write_file(char const * const, void const * const,
-                       size_t const);
+static char *get_temporary_filename(void);
+static void write_file(char const *const, void const *const, size_t const);
 
-int main(void)
-{
+int main(void) {
     test_gu_strnlen();
     test_is_valid_gzip_file();
     test_slurp_file();
@@ -220,10 +219,9 @@ int main(void)
     return 0;
 }
 
-static void test_gu_strnlen(void)
-{
+static void test_gu_strnlen(void) {
     struct test_case {
-        char const * const s;
+        char const *const s;
         size_t const maxlen;
         size_t const output;
         bool const skip_strnlen;
@@ -231,58 +229,31 @@ static void test_gu_strnlen(void)
 
     struct test_case const tests[] = {
         {
-            .s = "test",
-            .maxlen = 4,
-            .output = 4,
-            .skip_strnlen = false,
+            .s = "test", .maxlen = 4, .output = 4, .skip_strnlen = false,
         },
         {
-            .s = "test",
-            .maxlen = 5,
-            .output = 4,
-            .skip_strnlen = false,
+            .s = "test", .maxlen = 5, .output = 4, .skip_strnlen = false,
         },
         {
-            .s = "test",
-            .maxlen = 6,
-            .output = 4,
-            .skip_strnlen = false,
+            .s = "test", .maxlen = 6, .output = 4, .skip_strnlen = false,
         },
         {
-            .s = "test",
-            .maxlen = 14,
-            .output = 4,
-            .skip_strnlen = false,
+            .s = "test", .maxlen = 14, .output = 4, .skip_strnlen = false,
         },
         {
-            .s = "test",
-            .maxlen = 2,
-            .output = 2,
-            .skip_strnlen = false,
+            .s = "test", .maxlen = 2, .output = 2, .skip_strnlen = false,
         },
         {
-            .s = "test",
-            .maxlen = 0,
-            .output = 0,
-            .skip_strnlen = false,
+            .s = "test", .maxlen = 0, .output = 0, .skip_strnlen = false,
         },
         {
-            .s = "",
-            .maxlen = 4,
-            .output = 0,
-            .skip_strnlen = false,
+            .s = "", .maxlen = 4, .output = 0, .skip_strnlen = false,
         },
         {
-            .s = "",
-            .maxlen = 0,
-            .output = 0,
-            .skip_strnlen = false,
+            .s = "", .maxlen = 0, .output = 0, .skip_strnlen = false,
         },
         {
-            .s = NULL,
-            .maxlen = 0,
-            .output = 0,
-            .skip_strnlen = false,
+            .s = NULL, .maxlen = 0, .output = 0, .skip_strnlen = false,
         },
         {
             .s = NULL,
@@ -304,13 +275,12 @@ static void test_gu_strnlen(void)
     }
 }
 
-static void test_is_valid_gzip_file(void)
-{
-    char * const filename = get_temporary_filename();
+static void test_is_valid_gzip_file(void) {
+    char *const filename = get_temporary_filename();
     assert(filename != NULL);
 
     // A buffer to work with.
-    uint8_t buf[4] = { 0 };
+    uint8_t buf[4] = {0};
 
     // Test: File does not exist.
 
@@ -363,20 +333,19 @@ static void test_is_valid_gzip_file(void)
     free(filename);
 }
 
-static void test_slurp_file(void)
-{
-    char * const filename = get_temporary_filename();
+static void test_slurp_file(void) {
+    char *const filename = get_temporary_filename();
     assert(filename != NULL);
 
     // Test: File does not exist.
 
-    char * const contents_0 = slurp_file(filename);
+    char *const contents_0 = slurp_file(filename);
     assert(contents_0 == NULL);
 
     // Test: File is zero size.
 
     write_file(filename, "", 0);
-    char * const contents_1 = slurp_file(filename);
+    char *const contents_1 = slurp_file(filename);
     assert(contents_1 != NULL);
     assert(strlen(contents_1) == 0);
     free(contents_1);
@@ -384,22 +353,22 @@ static void test_slurp_file(void)
     // Test: File has a short string.
 
     write_file(filename, "hello", strlen("hello"));
-    char * const contents_2 = slurp_file(filename);
+    char *const contents_2 = slurp_file(filename);
     assert(contents_2 != NULL);
     assert(strcmp(contents_2, "hello") == 0);
     free(contents_2);
 
     // Test: File is oversize.
 
-    char contents[8194] = { 0 };
+    char contents[8194] = {0};
     memset(contents, 'a', 8193);
 
     write_file(filename, contents, strlen(contents));
 
-    char expected[8193] = { 0 };
+    char expected[8193] = {0};
     memset(expected, 'a', 8192);
 
-    char * const contents_3 = slurp_file(filename);
+    char *const contents_3 = slurp_file(filename);
     assert(contents_3 != NULL);
     assert(strcmp(contents_3, expected) == 0);
     free(contents_3);
@@ -409,14 +378,13 @@ static void test_slurp_file(void)
     free(filename);
 }
 
-static void test_read_file(void)
-{
-    char * const filename = get_temporary_filename();
+static void test_read_file(void) {
+    char *const filename = get_temporary_filename();
     assert(filename != NULL);
 
     // Make a buffer to work with.
     size_t const bufsz = 32;
-    char * const buf = calloc(bufsz, sizeof(char));
+    char *const buf = calloc(bufsz, sizeof(char));
     assert(buf != NULL);
 
     // Test: The file does not exist.
@@ -464,11 +432,10 @@ static void test_read_file(void)
     free(buf);
 }
 
-static char * get_temporary_filename(void)
-{
+static char *get_temporary_filename(void) {
     size_t const sz = 64;
 
-    char * const filename = calloc(sz, sizeof(char));
+    char *const filename = calloc(sz, sizeof(char));
     assert(filename != NULL);
 
     strcat(filename, "/tmp/test-file-XXXXXX");
@@ -481,9 +448,9 @@ static char * get_temporary_filename(void)
     return filename;
 }
 
-static void write_file(char const * const path, void const * const contents,
-                       size_t const sz)
-{
+static void write_file(char const *const path,
+                       void const *const contents,
+                       size_t const sz) {
     assert(path != NULL);
     assert(strlen(path) != 0);
     assert(contents != NULL);
