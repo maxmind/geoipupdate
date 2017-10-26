@@ -51,7 +51,7 @@ geoipupdate_s *geoipupdate_s_new(void)
 void geoipupdate_s_delete(geoipupdate_s * gu)
 {
     if (gu) {
-        product_delete_all(gu);
+        edition_delete_all(gu);
         free(gu->license_file);
         free(gu->database_dir);
         free(gu->proto);

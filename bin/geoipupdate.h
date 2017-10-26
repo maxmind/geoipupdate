@@ -5,15 +5,15 @@
 #include <stdlib.h>
 #include <curl/curl.h>
 
-typedef struct product_s {
-    char *product_id;
-    struct product_s *next;
-} product_s;
+typedef struct edition_s {
+    char *edition_id;
+    struct edition_s *next;
+} edition_s;
 
 typedef struct {
     int user_id;
     char license_key[13];
-    product_s *first;
+    edition_s *first;
 } license_s;
 
 typedef struct {
@@ -38,12 +38,12 @@ typedef struct {
 
 geoipupdate_s * geoipupdate_s_new(void);
 void geoipupdate_s_delete(geoipupdate_s * gu);
-void product_delete_all(geoipupdate_s * gu);
+void edition_delete_all(geoipupdate_s * gu);
 
-int product_count(geoipupdate_s * gu);
-void product_insert_once(geoipupdate_s * gu, const char *product_id);
-product_s *product_new(const char *product_id);
-void product_delete(product_s * p);
+int edition_count(geoipupdate_s * gu);
+void edition_insert_once(geoipupdate_s * gu, const char *edition_id);
+edition_s *edition_new(const char *edition_id);
+void edition_delete(edition_s * p);
 
 void exit_unless(int expr, const char *fmt, ...);
 void say_if(int expr, const char *fmt, ...);

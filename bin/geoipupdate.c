@@ -256,7 +256,7 @@ static int parse_license_file(geoipupdate_s * up)
         if ((p = strtok_r(strt, sep, &last))) {
             if (!strcmp(p, "ProductIds") || !strcmp(p, "EditionIDs")) {
                 while ((p = strtok_r(NULL, sep, &last))) {
-                    product_insert_once(up, p);
+                    edition_insert_once(up, p);
                 }
             } else if (!strcmp(p, "PreserveFileTimes")) {
                 p = strtok_r(NULL, sep, &last);
@@ -347,8 +347,8 @@ static int parse_license_file(geoipupdate_s * up)
     free(buffer);
     exit_if(-1 == fclose(fh), "Error closing stream: %s", strerror(errno));
     say_if(up->verbose,
-           "Read in license key %s\nNumber of product ids %d\n",
-           up->license_file, product_count(up));
+           "Read in license key %s\nNumber of edition IDs %d\n",
+           up->license_file, edition_count(up));
     return 1;
 }
 
@@ -692,7 +692,7 @@ static void md5hex_license_ipaddr(geoipupdate_s * gu, const char *client_ipaddr,
     }
 }
 
-static int update_database_general(geoipupdate_s * gu, const char *product_id)
+static int update_database_general(geoipupdate_s * gu, const char *edition_id)
 {
     char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL,
          *client_ipaddr = NULL;
@@ -700,11 +700,11 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
 
     // Get the filename.
     xasprintf(&url, "%s://%s/app/update_getfilename?product_id=%s",
-              gu->proto, gu->host, product_id);
+              gu->proto, gu->host, edition_id);
     in_mem_s *mem = get(gu, url);
     free(url);
     if (mem->size == 0) {
-        fprintf(stderr, "product_id %s not found\n", product_id);
+        fprintf(stderr, "edition_id %s not found\n", edition_id);
         in_mem_s_delete(mem);
         return GU_ERROR;
     }
@@ -744,7 +744,7 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
         &url,
         "%s://%s/app/update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%s",
         gu->proto, gu->host, hex_digest, hex_digest2,
-        gu->license.user_id, product_id);
+        gu->license.user_id, edition_id);
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
 
     char expected_file_md5[33] = { 0 };
@@ -778,9 +778,9 @@ static int update_database_general(geoipupdate_s * gu, const char *product_id)
 static int update_database_general_all(geoipupdate_s * gu)
 {
     int err = 0;
-    for (product_s ** next = &gu->license.first; *next; next =
+    for (edition_s ** next = &gu->license.first; *next; next =
              &(*next)->next) {
-        err |= update_database_general(gu, (*next)->product_id);
+        err |= update_database_general(gu, (*next)->edition_id);
     }
     return err;
 }
