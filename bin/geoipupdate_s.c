@@ -38,7 +38,7 @@ geoipupdate_s *geoipupdate_s_new(void)
             "Unable to allocate memory for lock file path.\n");
 
     gu->verbose = 0;
-    gu->license.user_id = NO_USER_ID;
+    gu->license.account_id = NO_ACCOUNT_ID;
     gu->license.license_key[12] = 0;
 
     gu->curl = curl_easy_init();

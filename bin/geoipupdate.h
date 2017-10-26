@@ -11,7 +11,7 @@ typedef struct edition_s {
 } edition_s;
 
 typedef struct {
-    int user_id;
+    int account_id;
     char license_key[13];
     edition_s *first;
 } license_s;
@@ -49,7 +49,7 @@ void exit_unless(int expr, const char *fmt, ...);
 void say_if(int expr, const char *fmt, ...);
 void *xmalloc(size_t size);
 
-# define NO_USER_ID (-1)
+# define NO_ACCOUNT_ID (-1)
 # define GEOIP_USERAGENT "geoipupdate/" VERSION
 
 #define exit_if(expr, ...) exit_unless(!(expr), ## __VA_ARGS__)

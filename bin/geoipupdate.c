@@ -198,7 +198,7 @@ int main(int argc, char *const argv[])
                 return GU_ERROR;
             }
 
-            err = (gu->license.user_id == NO_USER_ID)
+            err = (gu->license.account_id == NO_ACCOUNT_ID)
                   ? update_country_database(gu)
                   : update_database_general_all(gu);
         }
@@ -238,12 +238,12 @@ static int parse_license_file(geoipupdate_s * up)
         if (*strt == '#') {
             continue;
         }
-        if (sscanf(strt, "UserId %d", &up->license.user_id) == 1) {
-            say_if(up->verbose, "UserId %d\n", up->license.user_id);
+        if (sscanf(strt, "UserId %d", &up->license.account_id) == 1) {
+            say_if(up->verbose, "UserId %d\n", up->license.account_id);
             continue;
         }
-        if (sscanf(strt, "AccountID %d", &up->license.user_id) == 1) {
-            say_if(up->verbose, "AccountID %d\n", up->license.user_id);
+        if (sscanf(strt, "AccountID %d", &up->license.account_id) == 1) {
+            say_if(up->verbose, "AccountID %d\n", up->license.account_id);
             continue;
         }
         if (sscanf(strt, "LicenseKey %12s",
@@ -744,7 +744,7 @@ static int update_database_general(geoipupdate_s * gu, const char *edition_id)
         &url,
         "%s://%s/app/update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%s",
         gu->proto, gu->host, hex_digest, hex_digest2,
-        gu->license.user_id, edition_id);
+        gu->license.account_id, edition_id);
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
 
     char expected_file_md5[33] = { 0 };
