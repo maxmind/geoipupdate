@@ -2,15 +2,15 @@
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
-# Enter your user ID and license key below. These are available from
+# Enter your account ID and license key below. These are available from
 # https://www.maxmind.com/en/my_license_key. If you are only using free
 # GeoLite databases, you make leave the 0 values.
-UserId 0
+AccountID 0
 LicenseKey 000000000000
 
-# Enter the product IDs of the databases you would like to update.
-# Multiple product IDs are separated by spaces.
-ProductIds GeoLite2-Country GeoLite2-City
+# Enter the edition IDs of the databases you would like to update.
+# Multiple edition IDs are separated by spaces.
+EditionIDs GeoLite2-Country GeoLite2-City
 
 # The remaining settings are OPTIONAL.
 

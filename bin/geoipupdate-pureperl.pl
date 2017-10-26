@@ -92,18 +92,18 @@ my ( $user_id, $license_key, @product_ids );
 
     while (<$fh>) {
         next if /^\s*#/;    # skip comments
-        /^\s*UserId\s+(\d+)/        and $user_id     = $1, next;
+        /^\s*(?:AccountID|UserId)\s+(\d+)/ and $user_id     = $1, next;
         /^\s*LicenseKey\s+(\S{12})/ and $license_key = $1, next;
-        /^\s*ProductIds(?>\s+)([A-Za-z\-_0-9 ]+)/
+        /^\s*(?:ProductIds|EditionIDs)(?>\s+)([A-Za-z\-_0-9 ]+)/
             and push( @product_ids, split( /\s+/, $1 ) ), next;
 
     }
 }
 
 if ( $opts{v} ) {
-    print "User id $user_id\n" if $user_id;
+    print "Account ID $user_id\n" if $user_id;
     print "Read in license key $license_key\n";
-    print "Product ids @product_ids\n";
+    print "Edition IDs @product_ids\n";
 }
 
 my $err_cnt = 0;

@@ -242,6 +242,10 @@ static int parse_license_file(geoipupdate_s * up)
             say_if(up->verbose, "UserId %d\n", up->license.user_id);
             continue;
         }
+        if (sscanf(strt, "AccountID %d", &up->license.user_id) == 1) {
+            say_if(up->verbose, "AccountID %d\n", up->license.user_id);
+            continue;
+        }
         if (sscanf(strt, "LicenseKey %12s",
                    &up->license.license_key[0]) == 1) {
             say_if(up->verbose, "LicenseKey %s\n", up->license.license_key);
@@ -250,7 +254,7 @@ static int parse_license_file(geoipupdate_s * up)
 
         char *p, *last;
         if ((p = strtok_r(strt, sep, &last))) {
-            if (!strcmp(p, "ProductIds")) {
+            if (!strcmp(p, "ProductIds") || !strcmp(p, "EditionIDs")) {
                 while ((p = strtok_r(NULL, sep, &last))) {
                     product_insert_once(up, p);
                 }
