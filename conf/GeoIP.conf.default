@@ -12,10 +12,6 @@ LicenseKey 000000000000
 # Multiple product IDs are separated by spaces.
 ProductIds GeoLite2-Country GeoLite2-City
 
-# The following are for the GeoLite Legacy databases. To update them,
-# uncomment.
-# ProductIds 506 517 533 GeoLite-Legacy-IPv6-Country GeoLite-Legacy-IPv6-City
-
 # The remaining settings are OPTIONAL.
 
 # The directory to store the database files. Defaults to /usr/local/share/GeoIP
