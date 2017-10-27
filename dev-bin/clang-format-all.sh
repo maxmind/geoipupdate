@@ -1,6 +1,6 @@
 #!/bin/sh
 
-format="clang-format -i bin/geoipupdate.c -style=file"
+format="clang-format -i -style=file"
 
 for dir in bin; do
     c_files=`find $dir -maxdepth 1 -name '*.c'`
