@@ -7,7 +7,7 @@ geoipupdate_SOURCES = \
 					  geoipupdate.c geoipupdate.h \
 					  md5.c md5.h \
 					  geoipupdate_s.c \
-					  product_s.c \
+					  edition_s.c \
 					  types.h \
 					  functions.c functions.h
 geoipupdate_LDFLAGS =

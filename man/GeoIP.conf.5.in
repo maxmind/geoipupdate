@@ -1,4 +1,4 @@
-.TH GeoIP.conf 5 "25 Sep 2013"
+.TH GeoIP.conf 5 "26 Oct 2017"
 .UC 4
 .SH NAME
 GeoIP.conf - Configuration file for geoipupdate
@@ -17,15 +17,17 @@ CONF_DIR/GeoIP.conf
 .PP
 .SS Required settings:
 .TP
-.B UserId
-Your MaxMind user ID.
+.B AccountID
+Your MaxMind account ID. This was formerly known as
+.BR UserId ".
 .TP
 .B LicenseKey
 Your case-sensitive MaxMind license key.
 .TP
-.B ProductIds
-List of product IDs. Product IDs may consist of letters, digits, and dashes
-(e.g., "GeoIP2-City", "106").
+.B EditionIDs
+List of database edition IDs. Edition IDs may consist of letters, digits, and
+dashes (e.g., "GeoIP2-City", "106"). Note: this was formerly called
+.BR ProductIds ".
 .PP
 .SS Optional settings:
 .PP

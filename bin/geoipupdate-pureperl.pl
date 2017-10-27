@@ -86,24 +86,24 @@ open my $fh, '<', $opts{f}
     or die "Error opening GeoIP Configuration file $opts{f}\n";
 print "Opened License file $opts{f}\n" if $opts{v};
 
-my ( $user_id, $license_key, @product_ids );
+my ( $account_id, $license_key, @edition_ids );
 {
     local $_;
 
     while (<$fh>) {
         next if /^\s*#/;    # skip comments
-        /^\s*UserId\s+(\d+)/        and $user_id     = $1, next;
+        /^\s*(?:AccountID|UserId)\s+(\d+)/ and $account_id     = $1, next;
         /^\s*LicenseKey\s+(\S{12})/ and $license_key = $1, next;
-        /^\s*ProductIds(?>\s+)([A-Za-z\-_0-9 ]+)/
-            and push( @product_ids, split( /\s+/, $1 ) ), next;
+        /^\s*(?:ProductIds|EditionIDs)(?>\s+)([A-Za-z\-_0-9 ]+)/
+            and push( @edition_ids, split( /\s+/, $1 ) ), next;
 
     }
 }
 
 if ( $opts{v} ) {
-    print "User id $user_id\n" if $user_id;
+    print "Account ID $account_id\n" if $account_id;
     print "Read in license key $license_key\n";
-    print "Product ids @product_ids\n";
+    print "Edition IDs @edition_ids\n";
 }
 
 my $err_cnt = 0;
@@ -120,15 +120,15 @@ my $print_on_error = sub {
     }
 };
 
-if ($user_id) {
-    for my $product_id (@product_ids) {
+if ($account_id) {
+    for my $edition_id (@edition_ids) {
 
-        # update the databases using the user id string,
-        # the license key string and the product id for each database
+        # update the databases using the account id string,
+        # the license key string and the edition id for each database
         eval {
             GeoIP_update_database_general(
-                $user_id,    $license_key,
-                $product_id, $opts{v}
+                $account_id,    $license_key,
+                $edition_id, $opts{v}
             );
         };
         $print_on_error->($@);
@@ -145,9 +145,9 @@ else {
 exit( $err_cnt > 0 ? 1 : 0 );
 
 sub GeoIP_update_database_general {
-    my ( $user_id, $license_key, $product_id, $verbose, $client_ipaddr ) = @_;
+    my ( $account_id, $license_key, $edition_id, $verbose, $client_ipaddr ) = @_;
     my $u = URI->new("$proto://$update_host/app/update_getfilename");
-    $u->query_form( product_id => $product_id );
+    $u->query_form( product_id => $edition_id );
 
     print 'Send request ' . $u->as_string, "\n" if ($verbose);
     my $res = $ua->request( GET $u->as_string, Host => $update_host );
@@ -186,8 +186,8 @@ sub GeoIP_update_database_general {
         $u->query_form(
             db_md5        => shift,
             challenge_md5 => $hex_digest2,
-            user_id       => $user_id,
-            edition_id    => $product_id
+            user_id       => $account_id,
+            edition_id    => $edition_id
         );
         print 'Send request ' . $u->as_string, "\n" if ($verbose);
         return $ua->request( GET $u->as_string, Host => $update_host );

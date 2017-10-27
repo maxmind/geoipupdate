@@ -22,10 +22,10 @@
 /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.  */
 /* Heavily modified for GnuPG by <wk@gnupg.org> */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "types.h"
 
@@ -34,15 +34,18 @@
 #endif
 
 //#define DIM(v) (sizeof(v)/sizeof((v)[0]))
-#define wipememory2(_ptr, _set, _len)      \
-    do { volatile char *_vptr =            \
-             (volatile char *)(_ptr);      \
-         size_t _vlen = (_len);            \
-         while (_vlen) { *_vptr = (_set);  \
-                         _vptr++; _vlen--; \
-         } } while (0)
+#define wipememory2(_ptr, _set, _len)                                          \
+    do {                                                                       \
+        volatile char *_vptr = (volatile char *)(_ptr);                        \
+        size_t _vlen = (_len);                                                 \
+        while (_vlen) {                                                        \
+            *_vptr = (_set);                                                   \
+            _vptr++;                                                           \
+            _vlen--;                                                           \
+        }                                                                      \
+    } while (0)
 #define wipememory(_ptr, _len) wipememory2(_ptr, 0, _len)
-#define rol(x, n) ( ((x) << (n)) | ((x) >> (32 - (n))) )
+#define rol(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 
 typedef struct {
     u32 A, B, C, D; /* chaining variables */
@@ -51,10 +54,7 @@ typedef struct {
     int count;
 } MD5_CONTEXT;
 
-
-void
-md5_init( MD5_CONTEXT *ctx )
-{
+void md5_init(MD5_CONTEXT *ctx) {
     ctx->A = 0x67452301;
     ctx->B = 0xefcdab89;
     ctx->C = 0x98badcfe;
@@ -63,9 +63,6 @@ md5_init( MD5_CONTEXT *ctx )
     ctx->nblocks = 0;
     ctx->count = 0;
 }
-
-
-
 
 /* These are the four functions used in the four steps of the MD5 algorithm
    and defined in the RFC 1321.  The first function is a little bit optimized
@@ -76,9 +73,7 @@ md5_init( MD5_CONTEXT *ctx )
 #define FH(b, c, d) (b ^ c ^ d)
 #define FI(b, c, d) (c ^ (b | ~d))
 
-static void
-burn_stack(int bytes)
-{
+static void burn_stack(int bytes) {
     char buf[128];
 
     wipememory(buf, sizeof buf);
@@ -88,15 +83,12 @@ burn_stack(int bytes)
     }
 }
 
-
-
 /****************
  * transform n*64 bytes
  */
 static void
-/*transform( MD5_CONTEXT *ctx, const void *buffer, size_t len )*/
-transform( MD5_CONTEXT *ctx, byte *data )
-{
+    /*transform( MD5_CONTEXT *ctx, const void *buffer, size_t len )*/
+    transform(MD5_CONTEXT *ctx, byte *data) {
     u32 correct_words[16];
     u32 A = ctx->A;
     u32 B = ctx->B;
@@ -105,29 +97,27 @@ transform( MD5_CONTEXT *ctx, byte *data )
     u32 *cwp = correct_words;
 
 #ifdef BIG_ENDIAN_HOST
-    { int i;
-      byte *p2, *p1;
-      for (i = 0, p1 = data, p2 = (byte *)correct_words; i < 16; i++, p2 +=
-               4) {
-          p2[3] = *p1++;
-          p2[2] = *p1++;
-          p2[1] = *p1++;
-          p2[0] = *p1++;
-      }
+    {
+        int i;
+        byte *p2, *p1;
+        for (i = 0, p1 = data, p2 = (byte *)correct_words; i < 16;
+             i++, p2 += 4) {
+            p2[3] = *p1++;
+            p2[2] = *p1++;
+            p2[1] = *p1++;
+            p2[0] = *p1++;
+        }
     }
 #else
-    memcpy( correct_words, data, 64 );
+    memcpy(correct_words, data, 64);
 #endif
 
-
-#define OP(a, b, c, d, s, T)             \
-    do                                   \
-    {                                    \
-        a += FF(b, c, d) + (*cwp++) + T; \
-        a = rol(a, s);                   \
-        a += b;                          \
-    }                                    \
-    while (0)
+#define OP(a, b, c, d, s, T)                                                   \
+    do {                                                                       \
+        a += FF(b, c, d) + (*cwp++) + T;                                       \
+        a = rol(a, s);                                                         \
+        a += b;                                                                \
+    } while (0)
 
     /* Before we start, one word about the strange constants.
          They are defined in RFC 1321 as
@@ -154,14 +144,12 @@ transform( MD5_CONTEXT *ctx, byte *data )
     OP(B, C, D, A, 22, 0x49b40821);
 
 #undef OP
-#define OP(f, a, b, c, d, k, s, T)              \
-    do                                          \
-    {                                           \
-        a += f(b, c, d) + correct_words[k] + T; \
-        a = rol(a, s);                          \
-        a += b;                                 \
-    }                                           \
-    while (0)
+#define OP(f, a, b, c, d, k, s, T)                                             \
+    do {                                                                       \
+        a += f(b, c, d) + correct_words[k] + T;                                \
+        a = rol(a, s);                                                         \
+        a += b;                                                                \
+    } while (0)
 
     /* Round 2.  */
     OP(FG, A, B, C, D, 1, 5, 0xf61e2562);
@@ -224,17 +212,13 @@ transform( MD5_CONTEXT *ctx, byte *data )
     ctx->D += D;
 }
 
-
-
 /* The routine updates the message-digest context to
  * account for the presence of each of the characters inBuf[0..inLen-1]
  * in the message whose digest is being computed.
  */
-void
-md5_write( MD5_CONTEXT *hd, byte *inbuf, size_t inlen)
-{
+void md5_write(MD5_CONTEXT *hd, byte *inbuf, size_t inlen) {
     if (hd->count == 64) { /* flush the buffer */
-        transform( hd, hd->buf );
+        transform(hd, hd->buf);
         burn_stack(80 + 6 * sizeof(void *));
         hd->count = 0;
         hd->nblocks++;
@@ -246,14 +230,14 @@ md5_write( MD5_CONTEXT *hd, byte *inbuf, size_t inlen)
         for (; inlen && hd->count < 64; inlen--) {
             hd->buf[hd->count++] = *inbuf++;
         }
-        md5_write( hd, NULL, 0 );
+        md5_write(hd, NULL, 0);
         if (!inlen) {
             return;
         }
     }
 
     while (inlen >= 64) {
-        transform( hd, inbuf );
+        transform(hd, inbuf);
         hd->count = 0;
         hd->nblocks++;
         inlen -= 64;
@@ -270,13 +254,12 @@ md5_write( MD5_CONTEXT *hd, byte *inbuf, size_t inlen)
  * Returns 16 bytes representing the digest.
  */
 
-void
-md5_final( MD5_CONTEXT *hd )
-{
+void md5_final(MD5_CONTEXT *hd) {
     u32 t, msb, lsb;
     byte *p;
 
-    md5_write(hd, NULL, 0); /* flush */;
+    md5_write(hd, NULL, 0); /* flush */
+    ;
 
     t = hd->nblocks;
     /* multiply by 64 to make a byte count */
@@ -284,7 +267,7 @@ md5_final( MD5_CONTEXT *hd )
     msb = t >> 26;
     /* add the count */
     t = lsb;
-    if ( (lsb += hd->count) < t) {
+    if ((lsb += hd->count) < t) {
         msb++;
     }
     /* multiply by 8 to make a bit count */
@@ -293,18 +276,19 @@ md5_final( MD5_CONTEXT *hd )
     msb <<= 3;
     msb |= t >> 29;
 
-    if (hd->count < 56) {             /* enough room */
-        hd->buf[hd->count++] = 0x80;  /* pad */
+    if (hd->count < 56) {            /* enough room */
+        hd->buf[hd->count++] = 0x80; /* pad */
         while (hd->count < 56) {
             hd->buf[hd->count++] = 0; /* pad */
         }
-    }else {                           /* need one extra block */
-        hd->buf[hd->count++] = 0x80;  /* pad character */
+    } else {                         /* need one extra block */
+        hd->buf[hd->count++] = 0x80; /* pad character */
         while (hd->count < 64) {
             hd->buf[hd->count++] = 0;
         }
-        md5_write(hd, NULL, 0); /* flush */;
-        memset(hd->buf, 0, 56 ); /* fill next block with zeroes */
+        md5_write(hd, NULL, 0); /* flush */
+        ;
+        memset(hd->buf, 0, 56); /* fill next block with zeroes */
     }
     /* append the 64 bit count */
     hd->buf[56] = lsb;
@@ -315,21 +299,28 @@ md5_final( MD5_CONTEXT *hd )
     hd->buf[61] = msb >> 8;
     hd->buf[62] = msb >> 16;
     hd->buf[63] = msb >> 24;
-    transform( hd, hd->buf );
+    transform(hd, hd->buf);
     burn_stack(80 + 6 * sizeof(void *));
 
     p = hd->buf;
 #ifdef BIG_ENDIAN_HOST
-#define X(a)                              \
-    do { *p++ = hd->a; *p++ = hd->a >> 8; \
-         *p++ = hd->a >> 16; *p++ = hd->a >> 24; } while (0)
+#define X(a)                                                                   \
+    do {                                                                       \
+        *p++ = hd->a;                                                          \
+        *p++ = hd->a >> 8;                                                     \
+        *p++ = hd->a >> 16;                                                    \
+        *p++ = hd->a >> 24;                                                    \
+    } while (0)
 #else /* little endian */
-#define X(a) do { *(u32 *)p = hd->a; p += 4; } while (0)
+#define X(a)                                                                   \
+    do {                                                                       \
+        *(u32 *)p = hd->a;                                                     \
+        p += 4;                                                                \
+    } while (0)
 #endif
     X(A);
     X(B);
     X(C);
     X(D);
 #undef X
-
 }
