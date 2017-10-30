@@ -1,6 +1,9 @@
 GeoIP Update Change Log
 =======================
 
+2.5.0 (2017-10-30)
+------------------
+
 * Replace use of strnlen() due to lack of universal availability. First
   reported by Bill Cole. GitHub issue #71.
 * Document the `LockFile` option in the `GeoIP.conf` man page. GitHub
