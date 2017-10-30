@@ -1,4 +1,4 @@
-.TH GeoIP.conf 5 "25 Sep 2013"
+.TH GeoIP.conf 5 "26 Oct 2017"
 .UC 4
 .SH NAME
 GeoIP.conf - Configuration file for geoipupdate
@@ -17,15 +17,17 @@ CONF_DIR/GeoIP.conf
 .PP
 .SS Required settings:
 .TP
-.B UserId
-Your MaxMind user ID.
+.B AccountID
+Your MaxMind account ID. This was formerly known as
+.BR UserId ".
 .TP
 .B LicenseKey
 Your case-sensitive MaxMind license key.
 .TP
-.B ProductIds
-List of product IDs. Product IDs may consist of letters, digits, and dashes
-(e.g., "GeoIP2-City", "106").
+.B EditionIDs
+List of database edition IDs. Edition IDs may consist of letters, digits, and
+dashes (e.g., "GeoIP2-City", "106"). Note: this was formerly called
+.BR ProductIds ".
 .PP
 .SS Optional settings:
 .PP
@@ -52,11 +54,22 @@ The proxy user name and password, separated by a colon. For instance,
 .TP
 .B SkipPeerVerification
 Skip peer verification when using
-.BR https ". Valid values are " 0 " and " 1 ". The default is " 0 ".
+.BR https ". Valid values are " 0 " or " 1 ". The default is " 0 ".
 .TP
 .B SkipHostnameVerification
 Skip the host name verification when using
-.BR https ". This option is either " 0 " and " 1 ". The default is " 0 ".
+.BR https ". This option is either " 0 " or " 1 ". The default is " 0 ".
+.TP
+.B PreserveFileTimes
+Whether to preserve modification times of files downloaded from the server.
+This option is either
+.BR 0 " or " 1 ". The default is " 0 ".
+.TP
+.B LockFile
+The lock file to use. This ensures only one
+.B geoipupdate
+process can run at a time. The default is
+.BR .geoipupdate.lock " under the " DatabaseDirectory .
 .SH FILES
 .PP
 .TP

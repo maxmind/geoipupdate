@@ -22,10 +22,18 @@ Then install `geoipupdate` by running:
 ## Installing From Source File
 
 To install this from the source package, you will need a C compiler, Make,
-the zlib library and headers, and the curl library and headers. On Debian
-or Ubuntu, you can install these dependencies by running:
+the zlib library and headers, and the curl library and headers.
+
+On Debian or Ubuntu, you can install these
+dependencies by running:
 
     $ sudo apt-get install build-essential libcurl4-openssl-dev zlib1g-dev
+
+On Centos 7 or RHEL 7, you can install these
+dependencies by running:
+
+    $ sudo yum groupinstall 'Development Tools'
+    $ sudo yum install libcurl-devel
 
 Once you have the necessary dependencies, run the following commands:
 
