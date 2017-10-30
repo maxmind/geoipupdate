@@ -1,3 +1,9 @@
+geoipupdate (2.5.0-0+maxmind1) artful; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Mon, 30 Oct 2017 07:45:42 -0700
+
 geoipupdate (2.4.0-0+maxmind1) zesty; urgency=low
 
   * New upstream release.
