@@ -1,6 +1,9 @@
 GeoIP Update Change Log
 =======================
 
+* Document that the `LockFile` is not removed from the filesystem after
+  a successful exit from the program. GitHub issue #79.
+
 2.5.0 (2017-10-30)
 ------------------
 
