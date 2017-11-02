@@ -45,5 +45,6 @@ EditionIDs GeoLite2-Country GeoLite2-City
 
 # The lock file to use. This ensures only one geoipupdate process can run at a
 # time.
+# Note: Once created, this lockfile is not removed from the filesystem.
 # Defaults to ".geoipupdate.lock" under the DatabaseDirectory.
 # LockFile /usr/local/share/GeoIP/.geoipupdate.lock

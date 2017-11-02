@@ -68,7 +68,9 @@ This option is either
 .B LockFile
 The lock file to use. This ensures only one
 .B geoipupdate
-process can run at a time. The default is
+process can run at a time. 
+Note: Once created, this lockfile is not removed from the filesystem. 
+The default is
 .BR .geoipupdate.lock " under the " DatabaseDirectory .
 .SH FILES
 .PP
