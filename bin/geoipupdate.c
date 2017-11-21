@@ -30,7 +30,6 @@ typedef struct {
 } in_mem_s;
 
 static void xasprintf(char **, const char *, ...);
-static void *xcalloc(size_t, size_t);
 static void *xrealloc(void *, size_t);
 static void usage(void);
 static int parse_opts(geoipupdate_s *, int, char *const[]);
@@ -87,14 +86,8 @@ void say_if(int expr, const char *fmt, ...) {
     va_end(ap);
 }
 
-static void *xcalloc(size_t nmemb, size_t size) {
+void *xcalloc(size_t nmemb, size_t size) {
     void *ptr = calloc(nmemb, size);
-    exit_if(!ptr, "Out of memory\n");
-    return ptr;
-}
-
-void *xmalloc(size_t size) {
-    void *ptr = malloc(size);
     exit_if(!ptr, "Out of memory\n");
     return ptr;
 }
@@ -226,7 +219,7 @@ static int parse_license_file(geoipupdate_s *up) {
 
     const char *sep = " \t\r\n";
     size_t bsize = 1024;
-    char *buffer = (char *)xmalloc(bsize);
+    char *buffer = (char *)xcalloc(bsize, sizeof(char));
     ssize_t read_bytes;
     while ((read_bytes = my_getline(&buffer, &bsize, fh)) != -1) {
         size_t idx = strspn(buffer, sep);
@@ -632,8 +625,8 @@ static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp) {
 }
 
 static in_mem_s *in_mem_s_new(void) {
-    in_mem_s *mem = (in_mem_s *)xmalloc(sizeof(in_mem_s));
-    mem->ptr = (char *)xcalloc(1, 1);
+    in_mem_s *mem = (in_mem_s *)xcalloc(1, sizeof(in_mem_s));
+    mem->ptr = (char *)xcalloc(1, sizeof(char));
     mem->size = 0;
     return mem;
 }

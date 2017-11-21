@@ -32,7 +32,7 @@ void edition_insert_once(geoipupdate_s *gu, const char *edition_id) {
 }
 
 edition_s *edition_new(const char *edition_id) {
-    edition_s *p = xmalloc(sizeof(edition_s));
+    edition_s *p = xcalloc(1, sizeof(edition_s));
     p->edition_id = strdup(edition_id);
     exit_if(NULL == p->edition_id,
             "Unable to allocate memory for edition ID.\n");
