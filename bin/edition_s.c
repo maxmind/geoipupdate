@@ -1,5 +1,6 @@
 
 #include "geoipupdate.h"
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -35,7 +36,8 @@ edition_s *edition_new(const char *edition_id) {
     edition_s *p = xcalloc(1, sizeof(edition_s));
     p->edition_id = strdup(edition_id);
     exit_if(NULL == p->edition_id,
-            "Unable to allocate memory for edition ID.\n");
+            "Unable to allocate memory for edition ID: %s\n",
+            strerror(errno));
     p->next = NULL;
     return p;
 }

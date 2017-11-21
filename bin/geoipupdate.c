@@ -73,7 +73,7 @@ static void xasprintf(char **ptr, const char *fmt, ...) {
     va_start(ap, fmt);
     int rc = vasprintf(ptr, fmt, ap);
     va_end(ap);
-    exit_if(rc == -1, "Out of memory\n");
+    exit_if(rc == -1, "Error calling vasprintf: %s\n", strerror(errno));
 }
 
 void say_if(int expr, const char *fmt, ...) {
@@ -88,13 +88,13 @@ void say_if(int expr, const char *fmt, ...) {
 
 void *xcalloc(size_t nmemb, size_t size) {
     void *ptr = calloc(nmemb, size);
-    exit_if(!ptr, "Out of memory\n");
+    exit_if(!ptr, "Error allocating memory: %s\n", strerror(errno));
     return ptr;
 }
 
 static void *xrealloc(void *ptr, size_t size) {
     void *mem = realloc(ptr, size);
-    exit_if(mem == NULL, "Out of memory\n");
+    exit_if(mem == NULL, "Error reallocating memory: %s\n", strerror(errno));
     return mem;
 }
 
@@ -126,9 +126,10 @@ static int parse_opts(geoipupdate_s *gu, int argc, char *const argv[]) {
             case 'd':
                 free(gu->database_dir);
                 gu->database_dir = strdup(optarg);
-                exit_if(
-                    NULL == gu->database_dir,
-                    "Unable to allocate memory for database directory path.");
+                exit_if(NULL == gu->database_dir,
+                        "Unable to allocate memory for database directory "
+                        "path: %s\n",
+                        strerror(errno));
 
                 // The database directory in the config file is ignored if we
                 // use -d
@@ -138,7 +139,8 @@ static int parse_opts(geoipupdate_s *gu, int argc, char *const argv[]) {
                 free(gu->license_file);
                 gu->license_file = strdup(optarg);
                 exit_if(NULL == gu->license_file,
-                        "Unable to allocate memory for license file path.\n");
+                        "Unable to allocate memory for license file path: %s\n",
+                        strerror(errno));
                 break;
             case 'h':
             default:
@@ -169,8 +171,9 @@ int main(int argc, char *const argv[]) {
         parse_opts(gu, argc, argv);
         if (parse_license_file(gu)) {
             exit_unless(stat(gu->database_dir, &st) == 0,
-                        "%s does not exist\n",
-                        gu->database_dir);
+                        "%s does not exist: %s\n",
+                        gu->database_dir,
+                        strerror(errno));
             exit_unless(S_ISDIR(st.st_mode),
                         "%s is not a directory\n",
                         gu->database_dir);
@@ -180,8 +183,9 @@ int main(int argc, char *const argv[]) {
             // open the file, and avoid potential race issues where permissions
             // change between now and then.
             exit_unless(access(gu->database_dir, W_OK) == 0,
-                        "%s is not writable\n",
-                        gu->database_dir);
+                        "%s is not writable: %s\n",
+                        gu->database_dir,
+                        strerror(errno));
 
             if (acquire_run_lock(gu) != 0) {
                 geoipupdate_s_delete(gu);
@@ -214,7 +218,10 @@ static ssize_t my_getline(char **linep, size_t *linecapp, FILE *stream) {
 static int parse_license_file(geoipupdate_s *up) {
     say_if(up->verbose, "%s\n", PACKAGE_STRING);
     FILE *fh = fopen(up->license_file, "rb");
-    exit_unless(!!fh, "Can't open license file %s\n", up->license_file);
+    exit_unless(!!fh,
+                "Can't open license file %s: %s\n",
+                up->license_file,
+                strerror(errno));
     say_if(up->verbose, "Opened License file %s\n", up->license_file);
 
     const char *sep = " \t\r\n";
@@ -266,7 +273,8 @@ static int parse_license_file(geoipupdate_s *up) {
                 free(up->proto);
                 up->proto = strdup(p);
                 exit_if(NULL == up->proto,
-                        "Unable to allocate memory for request protocol.\n");
+                        "Unable to allocate memory for request protocol: %s\n",
+                        strerror(errno));
             } else if (!strcmp(p, "SkipHostnameVerification")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p ||
@@ -279,7 +287,8 @@ static int parse_license_file(geoipupdate_s *up) {
                 free(up->host);
                 up->host = strdup(p);
                 exit_if(NULL == up->host,
-                        "Unable to allocate memory for update host.\n");
+                        "Unable to allocate memory for update host: %s\n",
+                        strerror(errno));
             } else if (!strcmp(p, "DatabaseDirectory")) {
                 if (!up->do_not_overwrite_database_directory) {
                     p = strtok_r(NULL, sep, &last);
@@ -288,7 +297,8 @@ static int parse_license_file(geoipupdate_s *up) {
                     up->database_dir = strdup(p);
                     exit_if(NULL == up->database_dir,
                             "Unable to allocate memory for database directory "
-                            "path.\n");
+                            "path: %s\n",
+                            strerror(errno));
                 }
             } else if (!strcmp(p, "Proxy")) {
                 p = strtok_r(NULL, sep, &last);
@@ -296,7 +306,8 @@ static int parse_license_file(geoipupdate_s *up) {
                 free(up->proxy);
                 up->proxy = strdup(p);
                 exit_if(NULL == up->proxy,
-                        "Unable to allocate memory for proxy host.\n");
+                        "Unable to allocate memory for proxy host: %s\n",
+                        strerror(errno));
             } else if (!strcmp(p, "ProxyUserPassword")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p,
@@ -304,7 +315,8 @@ static int parse_license_file(geoipupdate_s *up) {
                 free(up->proxy_user_password);
                 up->proxy_user_password = strdup(p);
                 exit_if(NULL == up->proxy_user_password,
-                        "Unable to allocate memory for proxy credentials.\n");
+                        "Unable to allocate memory for proxy credentials: %s\n",
+                        strerror(errno));
             } else if (!strcmp(p, "LockFile")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p, "LockFile must be a file path\n");
@@ -313,7 +325,8 @@ static int parse_license_file(geoipupdate_s *up) {
                 free(up->lock_file);
                 up->lock_file = strdup(p);
                 exit_if(NULL == up->lock_file,
-                        "Out of memory allocating LockFile string\n");
+                        "Unable to allocate memory for LockFile string: %s\n",
+                        strerror(errno));
             } else {
                 say_if(up->verbose, "Skip unknown directive: %s\n", p);
             }
@@ -456,19 +469,24 @@ static int md5hex(const char *fname, char *hex_digest) {
     }
 
     struct stat st;
-    exit_unless(stat(fname, &st) == 0 && S_ISREG(st.st_mode),
-                "%s is not a file\n",
-                fname);
+    exit_unless(stat(fname, &st) == 0,
+                "Unable to stat %s: %s\n",
+                fname,
+                strerror(errno));
+    exit_unless(S_ISREG(st.st_mode), "%s is not a file\n", fname);
 
     md5_init(&context);
     while ((len = fread(buffer, 1, bsize, fh)) > 0) {
         md5_write(&context, buffer, len);
     }
+    exit_if(ferror(fh), "Unable to read %s: %s\n", fname, strerror(errno));
+
     md5_final(&context);
     memcpy(digest, context.buf, 16);
     exit_if(-1 == fclose(fh), "Error closing stream: %s", strerror(errno));
     for (int i = 0; i < 16; i++) {
-        snprintf(&hex_digest[2 * i], 3, "%02x", digest[i]);
+        int c = snprintf(&hex_digest[2 * i], 3, "%02x", digest[i]);
+        exit_if(c < 0, "Unable to write digest: %s\n", strerror(errno));
     }
     return 1;
 }
@@ -868,10 +886,11 @@ static int gunzip_and_replace(geoipupdate_s const *const gu,
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
 
     gzFile gz_fh = gzopen(gzipfile, "rb");
-    exit_if(gz_fh == NULL, "Can't open %s\n", gzipfile);
+    exit_if(gz_fh == NULL, "Can't open %s: %s\n", gzipfile, strerror(errno));
 
     FILE *fhw = fopen(file_path_test, "wb");
-    exit_if(fhw == NULL, "Can't open %s\n", file_path_test);
+    exit_if(
+        fhw == NULL, "Can't open %s: %s\n", file_path_test, strerror(errno));
 
     size_t const bsize = 8192;
     char *const buffer = calloc(bsize, sizeof(char));
@@ -885,30 +904,54 @@ static int gunzip_and_replace(geoipupdate_s const *const gu,
 
     for (;;) {
         int amt = gzread(gz_fh, buffer, bsize);
-        if (amt == 0) {
-            // EOF
-            break;
+        if (amt <= 0) {
+            if (gzeof(gz_fh)) {
+                // EOF
+                break;
+            }
+            int gzerr = 0;
+            const char *msg = gzerror(gz_fh, &gzerr);
+            if (gzerr == Z_ERRNO) {
+                fprintf(stderr,
+                        "Unable to read %s: %s\n",
+                        gzipfile,
+                        strerror(errno));
+            } else {
+                fprintf(stderr, "Unable to decompress %s: %s\n", gzipfile, msg);
+            }
+            exit(1);
         }
-        exit_if(amt == -1, "Gzip read error while reading from %s\n", gzipfile);
         exit_unless(fwrite(buffer, 1, amt, fhw) == (size_t)amt,
-                    "Gzip write error\n");
+                    "Unable to write to %s: %s\n",
+                    file_path_test,
+                    strerror(errno));
     }
-    exit_if(-1 == fclose(fhw), "Error closing stream: %s", strerror(errno));
-    exit_if(gzclose(gz_fh) != Z_OK,
-            "Gzip read error while closing from %s\n",
-            gzipfile);
+    exit_if(-1 == fclose(fhw), "Error closing stream: %s\n", strerror(errno));
+    if (gzclose(gz_fh) != Z_OK) {
+        int gzerr = 0;
+        const char *msg = gzerror(gz_fh, &gzerr);
+        if (gzerr == Z_ERRNO) {
+            msg = strerror(errno);
+        }
+        fprintf(stderr, "Unable to close %s: %s\n", gzipfile, msg);
+        exit(1);
+    }
     free(buffer);
 
     char actual_md5[33] = {0};
     md5hex(file_path_test, actual_md5);
     exit_if(strncasecmp(actual_md5, expected_file_md5, 32),
-            "MD5 of new database (%s) does not match expected MD5 (%s)",
+            "MD5 of new database (%s) does not match expected MD5 (%s)\n",
             actual_md5,
             expected_file_md5);
 
     say_if(gu->verbose, "Rename %s to %s\n", file_path_test, geoip_filename);
     int err = rename(file_path_test, geoip_filename);
-    exit_if(err, "Rename %s to %s failed\n", file_path_test, geoip_filename);
+    exit_if(err,
+            "Rename %s to %s failed: %s\n",
+            file_path_test,
+            geoip_filename,
+            strerror(errno));
 
     if (gu->preserve_file_times && filetime > 0) {
         struct utimbuf utb;
@@ -924,15 +967,15 @@ static int gunzip_and_replace(geoipupdate_s const *const gu,
     // fsync directory to ensure the rename is durable
     int dirfd = open(gu->database_dir, O_DIRECTORY);
     exit_if(
-        -1 == dirfd, "Error opening database directory: %s", strerror(errno));
+        -1 == dirfd, "Error opening database directory: %s\n", strerror(errno));
     exit_if(-1 == fsync(dirfd),
-            "Error syncing database directory: %s",
+            "Error syncing database directory: %s\n",
             strerror(errno));
     exit_if(-1 == close(dirfd),
-            "Error closing database directory: %s",
+            "Error closing database directory: %s\n",
             strerror(errno));
     exit_if(-1 == unlink(gzipfile),
-            "Error unlinking %s: %s",
+            "Error unlinking %s: %s\n",
             gzipfile,
             strerror(errno));
 
