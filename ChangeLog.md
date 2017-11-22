@@ -1,6 +1,8 @@
 GeoIP Update Change Log
 =======================
 
+* Improve the error checking and display the underlying reason for the
+  error when possible. Reported by Jonathan Kosgei. GitHub #82.
 * Document that the `LockFile` is not removed from the filesystem after
   a successful exit from the program. GitHub issue #79.
 
