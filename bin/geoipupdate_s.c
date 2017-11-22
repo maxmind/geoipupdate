@@ -7,7 +7,6 @@
 geoipupdate_s *geoipupdate_s_new(void) {
     size_t size = sizeof(geoipupdate_s);
     geoipupdate_s *gu = xcalloc(1, size);
-    memset(gu, 0, size);
 
     gu->license_file = strdup(SYSCONFDIR "/GeoIP.conf");
     exit_if(NULL == gu->license_file,
