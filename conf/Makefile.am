@@ -8,13 +8,13 @@ install-exec-hook:
 		$(MKDIR_P) "$(DESTDIR)$(sysconfdir)" ; \
 	fi
 	@if [ -f "$(DESTDIR)$(DEFAULT_CONFIG_FILE)" ]; then \
-	        echo "$@ will not overwrite existing $(DESTDIR)$(DEFAULT_CONFIG_FILE)" ; \
+		echo "$@ will not overwrite existing $(DESTDIR)$(DEFAULT_CONFIG_FILE)" ; \
 	else \
-	        echo "$(INSTALL_DATA) GeoIP.conf.default $(DESTDIR)$(DEFAULT_CONFIG_FILE)"; \
-	        $(INSTALL_DATA) "$(srcdir)/GeoIP.conf.default" "$(DESTDIR)$(DEFAULT_CONFIG_FILE)"; \
+		echo "$(INSTALL_DATA) GeoIP.conf.default $(DESTDIR)$(DEFAULT_CONFIG_FILE)"; \
+		$(INSTALL_DATA) "$(srcdir)/GeoIP.conf.default" "$(DESTDIR)$(DEFAULT_CONFIG_FILE)"; \
 	fi
 
 uninstall-hook:
 	@if test -f "$(DESTDIR)$(DEFAULT_CONFIG_FILE)" ; then \
 		rm "$(DESTDIR)$(DEFAULT_CONFIG_FILE)"; \
-fi
+	fi
