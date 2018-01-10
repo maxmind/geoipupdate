@@ -1,6 +1,10 @@
 GeoIP Update Change Log
 =======================
 
+* We now update the default GeoIP.conf during installation so that
+  directory paths match build parameters. Previously this config always
+  said the data directory was under /usr/local/share which was not always
+  accurate.
 * Improve the error checking and display the underlying reason for the
   error when possible. Reported by Jonathan Kosgei. GitHub #82.
 * Document that the `LockFile` is not removed from the filesystem after

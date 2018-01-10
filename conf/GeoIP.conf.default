@@ -14,8 +14,8 @@ EditionIDs GeoLite2-Country GeoLite2-City
 
 # The remaining settings are OPTIONAL.
 
-# The directory to store the database files. Defaults to /usr/local/share/GeoIP
-# DatabaseDirectory /usr/local/share/GeoIP
+# The directory to store the database files. Defaults to DATADIR
+# DatabaseDirectory DATADIR
 
 # The server to use. Defaults to "updates.maxmind.com".
 # Host updates.maxmind.com
@@ -47,4 +47,4 @@ EditionIDs GeoLite2-Country GeoLite2-City
 # time.
 # Note: Once created, this lockfile is not removed from the filesystem.
 # Defaults to ".geoipupdate.lock" under the DatabaseDirectory.
-# LockFile /usr/local/share/GeoIP/.geoipupdate.lock
+# LockFile DATADIR/.geoipupdate.lock
