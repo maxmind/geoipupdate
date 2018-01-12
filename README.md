@@ -16,8 +16,8 @@ sources, run:
 
 Then install `geoipupdate` by running:
 
-    $ sudo aptitude update
-    $ sudo aptitude install geoipupdate
+    $ sudo apt update
+    $ sudo apt install geoipupdate
 
 ## Installing From Source File
 
