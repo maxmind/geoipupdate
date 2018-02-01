@@ -27,7 +27,7 @@ size_t gu_strnlen(char const *const s, size_t const maxlen) {
 
     char const *ptr = s;
     size_t n = 0;
-    while (*ptr != '\0' && n < maxlen) {
+    while (n < maxlen && *ptr != '\0') {
         n++;
         ptr++;
     }

@@ -1,6 +1,8 @@
 GeoIP Update Change Log
 =======================
 
+* Fixed issue in `gu_strnlen()` dereferencing a pointer before checking
+  that it was in array bounds. Issue found by fcntl.
 * We now update the default GeoIP.conf during installation so that
   directory paths match build parameters. Previously this config always
   said the data directory was under /usr/local/share which was not always
