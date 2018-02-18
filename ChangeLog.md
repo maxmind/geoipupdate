@@ -11,6 +11,8 @@ GeoIP Update Change Log
   error when possible. Reported by Jonathan Kosgei. GitHub #82.
 * Document that the `LockFile` is not removed from the filesystem after
   a successful exit from the program. GitHub issue #79.
+* Make default configuration directory agree with default installation
+  directory.
 
 2.5.0 (2017-10-30)
 ------------------
