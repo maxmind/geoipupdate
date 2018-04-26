@@ -49,7 +49,7 @@ use File::Basename;
 use Getopt::Std;
 use HTTP::Request::Common;
 use LWP::UserAgent;
-use PerlIO::gzip;
+use IO::Uncompress::Gunzip;
 use URI;
 
 my $ua = LWP::UserAgent->new( agent => "pp_geoipupdate/$VERSION" );
@@ -257,7 +257,7 @@ sub _gunzip_and_replace {
         # --- uncompress the gzip data
         {
             local $_;
-            open my $gin,  '<:gzip', \$content  or die $!;
+	    my $gin = new IO::Uncompress::Gunzip( \$content ) or die $!;
             open my $gout, '>:raw',  $tmp_fname or die $!;
             print {$gout} $_ while (<$gin>);
         }
