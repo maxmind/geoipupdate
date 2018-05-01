@@ -44,12 +44,12 @@ our $VERSION = '0.08';
 use 5.008;
 use Data::Dumper;
 use Digest::MD5;
-use File::Spec;
 use File::Basename;
+use File::Spec;
 use Getopt::Std;
 use HTTP::Request::Common;
-use LWP::UserAgent;
 use IO::Uncompress::Gunzip;
+use LWP::UserAgent;
 use URI;
 
 my $ua = LWP::UserAgent->new( agent => "pp_geoipupdate/$VERSION" );
@@ -257,7 +257,7 @@ sub _gunzip_and_replace {
         # --- uncompress the gzip data
         {
             local $_;
-	    my $gin = new IO::Uncompress::Gunzip( \$content ) or die $!;
+	    my $gin = IO::Uncompress::Gunzip->new( \$content ) or die $!;
             open my $gout, '>:raw',  $tmp_fname or die $!;
             print {$gout} $_ while (<$gin>);
         }
