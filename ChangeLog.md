@@ -1,6 +1,15 @@
 GeoIP Update Change Log
 =======================
 
+2.6.0
+------------------
+
+* IMPORTANT: `geoipupdate-pureperl.pl` has been removed and will no
+  longer be distributed with `geoipupdate`. This Perl script had known
+  issues and did not have feature parity with the C implementation. If
+  you were using the Perl version, we recommend that you switch to the
+  C version. If you are not able to do this, you may continue using the
+  Perl version distributed with 2.5.0.
 * Fixed issue in `gu_strnlen()` dereferencing a pointer before checking
   that it was in array bounds. Issue found by fcntl.
 * We now update the default GeoIP.conf during installation so that
