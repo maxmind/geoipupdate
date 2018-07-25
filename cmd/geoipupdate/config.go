@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -19,8 +21,7 @@ type Config struct {
 	LicenseKey        string
 	LockFile          string
 	PreserveFileTimes bool
-	Proxy             string
-	ProxyUserPassword string
+	Proxy             *url.URL
 	URL               string
 }
 
@@ -43,7 +44,7 @@ func NewConfig(
 	scanner := bufio.NewScanner(fh)
 	lineNumber := 0
 	keysSeen := map[string]struct{}{}
-	var host string
+	var host, proxy, proxyUserPassword string
 	for scanner.Scan() {
 		lineNumber++
 		line := strings.TrimSpace(scanner.Text())
@@ -92,9 +93,9 @@ func NewConfig(
 				config.PreserveFileTimes = true
 			}
 		case "Proxy":
-			config.Proxy = value
+			proxy = value
 		case "ProxyUserPassword":
-			config.ProxyUserPassword = value
+			proxyUserPassword = value
 		case "Protocol", "SkipHostnameVerification", "SkipPeerVerification":
 			// Deprecated.
 		default:
@@ -113,7 +114,7 @@ func NewConfig(
 		}
 	}
 
-	// Set defaults.
+	// Set defaults & post-process.
 
 	// Argument takes precedence.
 	if databaseDirectory != "" {
@@ -134,5 +135,62 @@ func NewConfig(
 
 	config.URL = "https://" + host
 
+	proxyURL, err := parseProxy(proxy, proxyUserPassword)
+	if err != nil {
+		return nil, err
+	}
+	config.Proxy = proxyURL
+
 	return config, nil
+}
+
+var schemeRE = regexp.MustCompile(`(?i)\A([a-z][a-z0-9+\-.]*)://`)
+
+func parseProxy(
+	proxy,
+	proxyUserPassword string,
+) (*url.URL, error) {
+	if proxy == "" {
+		return nil, nil
+	}
+
+	// If no scheme is provided, use http.
+	matches := schemeRE.FindStringSubmatch(proxy)
+	if matches == nil {
+		proxy = "http://" + proxy
+	} else {
+		scheme := strings.ToLower(matches[1])
+		// The http package only supports http and socks5.
+		if scheme != "http" && scheme != "socks5" {
+			return nil, errors.Errorf("unsupported proxy type: %s", scheme)
+		}
+	}
+
+	// Now that we have a scheme, we should be able to parse.
+	u, err := url.Parse(proxy)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing proxy URL")
+	}
+
+	if strings.Index(u.Host, ":") == -1 {
+		u.Host += ":1080" // The 1080 default historically came from cURL.
+	}
+
+	// Historically if the Proxy option had a username and password they would
+	// override any specified in the ProxyUserPassword option. Continue that.
+	if u.User != nil {
+		return u, nil
+	}
+
+	if proxyUserPassword == "" {
+		return u, nil
+	}
+
+	userPassword := strings.SplitN(proxyUserPassword, ":", 2)
+	if len(userPassword) != 2 {
+		return nil, errors.New("proxy user/password is malformed")
+	}
+	u.User = url.UserPassword(userPassword[0], userPassword[1])
+
+	return u, nil
 }

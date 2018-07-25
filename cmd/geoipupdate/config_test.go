@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"net/url"
 	"os"
 	"testing"
 
@@ -164,8 +165,11 @@ LockFile /usr/lock
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City", "GeoIP2-City"},
 				LicenseKey:        "abcdefghi",
 				LockFile:          "/usr/lock",
-				Proxy:             "127.0.0.1:8888",
-				ProxyUserPassword: "username:password",
+				Proxy: &url.URL{
+					Scheme: "http",
+					User:   url.UserPassword("username", "password"),
+					Host:   "127.0.0.1:8888",
+				},
 				PreserveFileTimes: true,
 				URL:               "https://updates.example.com",
 			},
@@ -296,5 +300,87 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 			assert.EqualError(t, err, test.Err, test.Description)
 		}
 		assert.Equal(t, test.Output, config, test.Description)
+	}
+}
+
+func TestParseProxy(t *testing.T) {
+	tests := []struct {
+		Proxy        string
+		UserPassword string
+		Output       string
+		Err          string
+	}{
+		{
+			Proxy:  "127.0.0.1",
+			Output: "http://127.0.0.1:1080",
+		},
+		{
+			Proxy:  "127.0.0.1:8888",
+			Output: "http://127.0.0.1:8888",
+		},
+		{
+			Proxy:  "http://127.0.0.1:8888",
+			Output: "http://127.0.0.1:8888",
+		},
+		{
+			Proxy:  "socks5://127.0.0.1",
+			Output: "socks5://127.0.0.1:1080",
+		},
+		{
+			Proxy:  "socks5://127.0.0.1:8888",
+			Output: "socks5://127.0.0.1:8888",
+		},
+		{
+			Proxy:  "Garbage",
+			Output: "http://Garbage:1080",
+		},
+		{
+			Proxy: "ftp://127.0.0.1",
+			Err:   "unsupported proxy type: ftp",
+		},
+		{
+			Proxy: "ftp://127.0.0.1:8888",
+			Err:   "unsupported proxy type: ftp",
+		},
+		{
+			Proxy:  "login:password@127.0.0.1",
+			Output: "http://login:password@127.0.0.1:1080",
+		},
+		{
+			Proxy:        "login:password@127.0.0.1",
+			UserPassword: "something:else",
+			Output:       "http://login:password@127.0.0.1:1080",
+		},
+		{
+			Proxy:        "127.0.0.1",
+			UserPassword: "something:else",
+			Output:       "http://something:else@127.0.0.1:1080",
+		},
+		{
+			Proxy:        "127.0.0.1:8888",
+			UserPassword: "something:else",
+			Output:       "http://something:else@127.0.0.1:8888",
+		},
+		{
+			Proxy:        "user:password@127.0.0.1:8888",
+			UserPassword: "user2:password2",
+			Output:       "http://user:password@127.0.0.1:8888",
+		},
+		{
+			Proxy:        "http://user:password@127.0.0.1:8888",
+			UserPassword: "user2:password2",
+			Output:       "http://user:password@127.0.0.1:8888",
+		},
+	}
+
+	for _, test := range tests {
+		output, err := parseProxy(test.Proxy, test.UserPassword)
+		if test.Err != "" {
+			assert.EqualError(t, err, test.Err)
+			assert.Nil(t, output)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, test.Output, output.String())
+		}
 	}
 }

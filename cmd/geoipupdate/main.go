@@ -64,7 +64,7 @@ func setup(
 	config *Config,
 	verbose bool,
 ) (*flock.Flock, error) {
-	if err := maybeSetProxy(config); err != nil {
+	if err := maybeSetProxy(config, verbose); err != nil {
 		return nil, err
 	}
 
@@ -92,31 +92,18 @@ func setup(
 // http.DefaultTransport (which uses a net.Dialer with KeepAlive set).
 var client = &http.Client{}
 
-func maybeSetProxy(config *Config) error {
-	if config.Proxy == "" {
+func maybeSetProxy(
+	config *Config,
+	verbose bool,
+) error {
+	if config.Proxy == nil {
 		return nil
 	}
-	proxy := config.Proxy
 
-	if strings.Index(proxy, ":") == -1 {
-		proxy += ":1080" // The 1080 default came from cURL.
+	if verbose {
+		log.Printf("Using proxy: %s", config.Proxy)
 	}
-	proxy = "http://" + proxy
-
-	proxyURL, err := url.Parse(proxy)
-	if err != nil {
-		return errors.Wrap(err, "error parsing proxy URL")
-	}
-
-	if config.ProxyUserPassword != "" {
-		userPassword := strings.SplitN(config.ProxyUserPassword, ":", 2)
-		if len(userPassword) != 2 {
-			return errors.New("proxy user/password is malformed")
-		}
-		proxyURL.User = url.UserPassword(userPassword[0], userPassword[1])
-	}
-
-	http.DefaultTransport.(*http.Transport).Proxy = http.ProxyURL(proxyURL)
+	http.DefaultTransport.(*http.Transport).Proxy = http.ProxyURL(config.Proxy)
 
 	return nil
 }
