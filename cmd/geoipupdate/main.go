@@ -29,22 +29,35 @@ func main() {
 
 	config, err := NewConfig(args.ConfigFile, args.DatabaseDirectory)
 	if err != nil {
-		log.Fatalf("Error loading configuration file: %+v", err)
+		fatal(args, "Error loading configuration file", err)
 	}
 
 	lock, err := setup(config, args.Verbose)
 	if err != nil {
-		log.Fatalf("Error preparing to update: %+v", err)
+		fatal(args, "Error preparing to update", err)
 	}
 	defer func() {
 		if err := lock.Unlock(); err != nil {
-			log.Fatalf("Error unlocking lock file: %+v", errors.Wrap(err, "unlocking"))
+			fatal(args, "Error unlocking lock file", errors.Wrap(err, "unlocking"))
 		}
 	}()
 
 	if err := run(config, args.Verbose); err != nil {
-		log.Fatalf("Error retrieving updates: %+v", err)
+		fatal(args, "Error retrieving updates", err)
 	}
+}
+
+func fatal(
+	args *Args,
+	msg string,
+	err error,
+) {
+	if args.StackTrace {
+		log.Print(msg + fmt.Sprintf(": %+v", err))
+	} else {
+		log.Print(msg + fmt.Sprintf(": %s", err))
+	}
+	os.Exit(1)
 }
 
 func setup(
