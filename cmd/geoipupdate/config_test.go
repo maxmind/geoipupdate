@@ -234,6 +234,22 @@ SkipPeerVerification 1
 				URL:               "https://updates.maxmind.com",
 			},
 		},
+		{
+			Description: "CRLF line ending works",
+			Input:       "AccountID 0\r\nLicenseKey 123\r\nEditionIDs GeoIP2-City\r\n",
+			Output: &Config{
+				DatabaseDirectory: "/tmp",
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "123",
+				LockFile:          "/tmp/.geoipupdate.lock",
+				URL:               "https://updates.maxmind.com",
+			},
+		},
+		{
+			Description: "CR line ending does not work",
+			Input:       "AccountID 0\rLicenseKey 123\rEditionIDs GeoIP2-City\r",
+			Err:         `invalid account ID format: strconv.Atoi: parsing "0\rLicenseKey 123\rEditionIDs GeoIP2-City": invalid syntax`,
+		},
 	}
 
 	tempFh, err := ioutil.TempFile("", "conf-test")
