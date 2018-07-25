@@ -191,7 +191,7 @@ func getFilename(
 		}
 	}()
 
-	buf, err := ioutil.ReadAll(res.Body)
+	buf, err := ioutil.ReadAll(io.LimitReader(res.Body, 256))
 	if err != nil {
 		return "", errors.Wrap(err, "error reading response body")
 	}
@@ -299,7 +299,7 @@ func maybeUpdate(
 	}
 
 	if res.StatusCode != http.StatusOK {
-		buf, err := ioutil.ReadAll(res.Body)
+		buf, err := ioutil.ReadAll(io.LimitReader(res.Body, 256))
 		if err == nil {
 			return errors.Errorf("unexpected HTTP status code: %s: %s", res.Status, buf)
 		}
