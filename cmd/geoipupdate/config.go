@@ -51,11 +51,12 @@ func NewConfig(
 			continue
 		}
 
-		fields := strings.SplitN(line, " ", 2)
-		if len(fields) != 2 {
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
 			return nil, errors.Errorf("invalid format on line %d", lineNumber)
 		}
-		key, value := fields[0], fields[1]
+		key := fields[0]
+		value := strings.Join(fields[1:], " ")
 
 		if _, ok := keysSeen[key]; ok {
 			return nil, errors.Errorf("`%s' is in the config multiple times", key)

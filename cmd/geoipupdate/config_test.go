@@ -248,7 +248,34 @@ SkipPeerVerification 1
 		{
 			Description: "CR line ending does not work",
 			Input:       "AccountID 0\rLicenseKey 123\rEditionIDs GeoIP2-City\r",
-			Err:         `invalid account ID format: strconv.Atoi: parsing "0\rLicenseKey 123\rEditionIDs GeoIP2-City": invalid syntax`,
+			Err:         `invalid account ID format: strconv.Atoi: parsing "0 LicenseKey 123 EditionIDs GeoIP2-City": invalid syntax`,
+		},
+		{
+			Description: "Multiple spaces between option and value works",
+			Input: `AccountID  123
+LicenseKey  456
+EditionIDs    GeoLite2-City      GeoLite2-Country
+`,
+			Output: &Config{
+				AccountID:         123,
+				DatabaseDirectory: "/tmp",
+				EditionIDs:        []string{"GeoLite2-City", "GeoLite2-Country"},
+				LicenseKey:        "456",
+				LockFile:          "/tmp/.geoipupdate.lock",
+				URL:               "https://updates.maxmind.com",
+			},
+		},
+		{
+			Description: "Tabs between options and values works",
+			Input:       "AccountID\t123\nLicenseKey\t\t456\nEditionIDs\t\t\tGeoLite2-City\t\t\t\tGeoLite2-Country\t\t\t\t\n",
+			Output: &Config{
+				AccountID:         123,
+				DatabaseDirectory: "/tmp",
+				EditionIDs:        []string{"GeoLite2-City", "GeoLite2-Country"},
+				LicenseKey:        "456",
+				LockFile:          "/tmp/.geoipupdate.lock",
+				URL:               "https://updates.maxmind.com",
+			},
 		},
 	}
 
