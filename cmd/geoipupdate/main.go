@@ -87,9 +87,10 @@ func setup(
 	return lock, nil
 }
 
-var client = &http.Client{
-	Timeout: 30 * time.Minute, // Allow for slow downloads
-}
+// Do not set a timeout to allow for very slow connections. Note the client
+// will have TCP KeepAlive's enabled by default due to using
+// http.DefaultTransport (which uses a net.Dialer with KeepAlive set).
+var client = &http.Client{}
 
 func maybeSetProxy(config *Config) error {
 	if config.Proxy == "" {
