@@ -387,7 +387,7 @@ func writeAndCheck(
 	}
 
 	gotMD5 := fmt.Sprintf("%x", md5Writer.Sum(nil))
-	if gotMD5 != newMD5 {
+	if !strings.EqualFold(gotMD5, newMD5) {
 		_ = os.Remove(targetTest)
 		return errors.Errorf("MD5 of new database (%s) does not match expected MD5 (%s)",
 			gotMD5, newMD5)

@@ -159,6 +159,19 @@ func TestUpdateEdition(t *testing.T) {
 				"Location": "/go-here",
 			},
 		},
+		{
+			Description:     "MD5 sums are case insensitive",
+			CreateDirectory: true,
+			DatabaseBefore:  "database goes here",
+			DatabaseAfter:   "new database goes here",
+			FilenameStatus:  http.StatusOK,
+			FilenameBody:    "GeoIP2-City.mmdb",
+			DownloadStatus:  http.StatusOK,
+			DownloadBody:    "new database goes here",
+			DownloadHeaders: map[string]string{
+				"X-Database-MD5": "985ECF3D7959B146208B3DC0189B21A5",
+			},
+		},
 	}
 
 	updateRE := regexp.MustCompile(`\A/geoip/databases/\S+/update\z`)
