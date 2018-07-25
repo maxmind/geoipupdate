@@ -16,7 +16,7 @@ website](https://golang.org).
 
 The easiest way is via `go get`:
 
-    $ go get github.com/maxmind/geoipupdate2/cmd/geoipupdate
+    $ go get -u github.com/maxmind/geoipupdate2/cmd/geoipupdate
 
 The program will be installed to `$GOPATH/bin/geoipupdate`.
 
