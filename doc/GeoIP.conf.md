@@ -32,8 +32,8 @@ sensitive.
 * `Host` - The host name of the server to use. The default is
   `updates.maxmind.com`.
 * `Proxy` - The proxy host name or IP address. You may optionally specify
-  a full proxy URL, such as `http://user:pass@127.0.0.1:8888`, or a port
-  number, `127.0.0.1:8888`. If no port number is specified, 1080 will be used.
+  a port number, e.g., `127.0.0.1:8888`. If no port number is specified,
+  1080 will be used.
 * `ProxyUserPassword` - The proxy user name and password, separated by a
   colon. For instance, `username:password`.
 * `PreserveFileTimes` - Whether to preserve modification times of files
