@@ -20,7 +20,7 @@ sensitive.
 * `AccountID` - Your MaxMind account ID. This was formerly known as
   `UserId`.
 * `LicenseKey` - Your case-sensitive MaxMind license key.
-* `EditionIDs`  -List of database edition IDs. Edition IDs may consist
+* `EditionIDs` - List of database edition IDs. Edition IDs may consist
   of letters, digits, and dashes (e.g., "GeoIP2-City", "106"). Note: this
   was formerly called `ProductIds`.
 
@@ -32,7 +32,7 @@ sensitive.
 * `Host` - The host name of the server to use. The default is
   `updates.maxmind.com`.
 * `Proxy` - The proxy host name or IP address. You may optionally specify
-  a full proxy URL, such as `http://user:pass@127.0.0.1:88888`, or a port
+  a full proxy URL, such as `http://user:pass@127.0.0.1:8888`, or a port
   number, `127.0.0.1:8888`. If no port number is specified, 1080 will be used.
 * `ProxyUserPassword` - The proxy user name and password, separated by a
   colon. For instance, `username:password`.

@@ -6,7 +6,9 @@ geoipupdate - GeoIP2, GeoLite2, and GeoIP Legacy Update Program
 
 ## SYNOPSIS
 
-geoipupdate \[-Vvh\] \[-f license\_file\] \[-d target\_directory\]
+```
+geoipupdate [-V] [-v] [-h] [-f CONFIG_FILE] [-d TARGET_DIRECTORY]
+```
 
 ## DESCRIPTION
 
@@ -33,23 +35,23 @@ open.
 
 ## USAGE
 
-Typically you should run `geoipupdate` weekly. One way to achieve this
-is to use cron. Below is a sample crontab file that runs `geoipupdate`
-on each Wednesday at noon:
+Typically you should run `geoipupdate` weekly. On most Unix-like systems,
+this can be achieved by using cron. Below is a sample crontab file that
+runs `geoipupdate` on each Wednesday at noon:
 
 ```
 # top of crontab
 
 MAILTO=your@email.com
 
-0 12 * * 3 BIN_DIR/geoipupdate
+0 12 * * 3 geoipupdate
 
 # end of crontab
 
 ```
 
 To use with a proxy server, update your `GeoIP.conf` file as specified
-in the `GeoIP.conf` man page or set the `http\_proxy` environment
+in the `GeoIP.conf` man page or set the `http_proxy` environment
 variable.
 
 ## RETURN CODES
@@ -74,7 +76,8 @@ Report bugs to [support@maxmind.com](mailto:support@maxmind.com).
 This software is Copyright (c) 2018 by MaxMind, Inc.
 
 This is free software, licensed under the [Apache License, Version
-2.0](LICENSE-APACHE) or the [MIT License](LICENSE-MIT), at your option.
+2.0](../LICENSE-APACHE) or the [MIT License](../LICENSE-MIT), at your
+option.
 
 ## MORE INFORMATION
 
