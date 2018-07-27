@@ -25,6 +25,11 @@ The program will be installed to `$GOPATH/bin/geoipupdate`.
 Please see our [online guide](https://dev.maxmind.com/geoip/geoipupdate/) for
 directions on how to configure GeoIP Update.
 
+# Documentation
+
+See our documentation for the [`geoipupdate` program](doc/geoipupdate.md)
+and the [`GeoIP.conf` configuration file](doc/GeoIP.conf.md).
+
 # Bug Reports
 
 Please report bugs by filing an issue with our GitHub issue tracker at
