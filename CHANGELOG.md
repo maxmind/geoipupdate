@@ -1,3 +1,5 @@
-# 0.0.1
+# CHANGELOG
+
+## 0.0.1
 
 * Initial version
