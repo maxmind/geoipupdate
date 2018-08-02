@@ -570,6 +570,12 @@ static int download_to_file(geoipupdate_s *gu,
         return GU_NO_UPDATE;
     }
 
+    if (status == 401) {
+        fprintf(stderr, "Your account ID or license key is invalid\n");
+        unlink(fname);
+        return GU_ERROR;
+    }
+
     if (status < 200 || status >= 300) {
         fprintf(stderr,
                 "Received an unexpected HTTP status code of %ld from %s:\n",
