@@ -22,6 +22,7 @@
 enum gu_status {
     GU_OK = 0,
     GU_ERROR = 1,
+    GU_NO_UPDATE = 2,
 };
 
 typedef struct {
@@ -40,17 +41,14 @@ static int acquire_run_lock(geoipupdate_s const *const);
 static int md5hex(const char *, char *);
 static void common_req(CURL *, geoipupdate_s *);
 static size_t get_expected_file_md5(char *, size_t, size_t, void *);
-static void
+static int
 download_to_file(geoipupdate_s *, const char *, const char *, char *);
 static long get_server_time(geoipupdate_s *);
 static size_t mem_cb(void *, size_t, size_t, void *);
 static in_mem_s *in_mem_s_new(void);
 static void in_mem_s_delete(in_mem_s *);
-static in_mem_s *get(geoipupdate_s *, const char *);
-static void md5hex_license_ipaddr(geoipupdate_s *, const char *, char *);
 static int update_database_general_all(geoipupdate_s *);
 static int update_database_general(geoipupdate_s *, const char *);
-static int update_country_database(geoipupdate_s *);
 static int gunzip_and_replace(geoipupdate_s const *const,
                               char const *const,
                               char const *const,
@@ -193,9 +191,7 @@ int main(int argc, char *const argv[]) {
                 return GU_ERROR;
             }
 
-            err = (gu->license.account_id == NO_ACCOUNT_ID)
-                      ? update_country_database(gu)
-                      : update_database_general_all(gu);
+            err = update_database_general_all(gu);
         }
         geoipupdate_s_delete(gu);
     }
@@ -545,15 +541,11 @@ static size_t get_expected_file_md5(char *buffer,
 // Make an HTTP request and download the response body to a file.
 //
 // If the HTTP status is not 2xx, we have a error message in the body rather
-// than a file. Write it to stderr and exit.
-//
-// TODO(wstorey@maxmind.com): Return boolean/int whether we succeeded rather
-// than exiting. Beyond being cleaner and easier to test, it will allow us to
-// clean up after ourselves better.
-static void download_to_file(geoipupdate_s *gu,
-                             const char *url,
-                             const char *fname,
-                             char *expected_file_md5) {
+// than a file. Write it to stderr and return an error.
+static int download_to_file(geoipupdate_s *gu,
+                            const char *url,
+                            const char *fname,
+                            char *expected_file_md5) {
     FILE *f = fopen(fname, "wb");
     if (f == NULL) {
         fprintf(stderr, "Can't open %s: %s\n", fname, strerror(errno));
@@ -564,6 +556,16 @@ static void download_to_file(geoipupdate_s *gu,
     CURL *curl = gu->curl;
 
     expected_file_md5[0] = '\0';
+
+    char account_id[10] = {0};
+    int n = snprintf(account_id, 10, "%d", gu->license.account_id);
+    exit_if(n < 0 || n >= 10,
+            "Error creating account_id string: %s\n",
+            strerror(errno));
+
+    curl_easy_setopt(curl, CURLOPT_USERNAME, account_id);
+    curl_easy_setopt(curl, CURLOPT_PASSWORD, gu->license.license_key);
+
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, get_expected_file_md5);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, expected_file_md5);
 
@@ -588,6 +590,12 @@ static void download_to_file(geoipupdate_s *gu,
         exit(1);
     }
 
+    if (status == 304) {
+        say_if(gu->verbose, "No new updates available\n");
+        unlink(fname);
+        return GU_NO_UPDATE;
+    }
+
     if (status < 200 || status >= 300) {
         fprintf(stderr,
                 "Received an unexpected HTTP status code of %ld from %s:\n",
@@ -600,7 +608,7 @@ static void download_to_file(geoipupdate_s *gu,
             free(message);
         }
         unlink(fname);
-        exit(1);
+        return GU_ERROR;
     }
 
     // We have HTTP 2xx.
@@ -611,8 +619,9 @@ static void download_to_file(geoipupdate_s *gu,
         fprintf(stderr,
                 "Did not receive a valid expected database MD5 from server\n");
         unlink(fname);
-        exit(1);
+        return GU_ERROR;
     }
+    return GU_OK;
 }
 
 // Retrieve the server file time for the previous HTTP request.
@@ -656,7 +665,17 @@ static void in_mem_s_delete(in_mem_s *mem) {
     }
 }
 
-static in_mem_s *get(geoipupdate_s *gu, const char *url) {
+static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
+    char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL;
+    char hex_digest[33] = {0};
+
+    // Get the filename.
+    xasprintf(&url,
+              "%s://%s/app/update_getfilename?product_id=%s",
+              gu->proto,
+              gu->host,
+              edition_id);
+
     in_mem_s *mem = in_mem_s_new();
 
     say_if(gu->verbose, "url: %s\n", url);
@@ -674,47 +693,15 @@ static in_mem_s *get(geoipupdate_s *gu, const char *url) {
     long status = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
-    exit_if(status < 200 || status >= 300,
-            "Received an unexpected HTTP status code of %ld from %s",
-            status,
-            url);
-
-    return mem;
-}
-
-// Generate an MD5 hash of the concatenation of license key with IP address.
-//
-// This hash is suitable for the challenge parameter for downloading from the
-// /update_secure endpoint.
-static void md5hex_license_ipaddr(geoipupdate_s *gu,
-                                  const char *client_ipaddr,
-                                  char *new_digest_str) {
-    unsigned char digest[16];
-    MD5_CONTEXT context;
-    md5_init(&context);
-    md5_write(&context,
-              (unsigned char *)gu->license.license_key,
-              strlen(gu->license.license_key));
-    md5_write(&context, (unsigned char *)client_ipaddr, strlen(client_ipaddr));
-    md5_final(&context);
-    memcpy(digest, context.buf, 16);
-    for (int i = 0; i < 16; i++) {
-        snprintf(&new_digest_str[2 * i], 3, "%02x", digest[i]);
+    if (status != 200) {
+        fprintf(stderr,
+                "Received an unexpected HTTP status code of %ld from %s\n",
+                status,
+                url);
+        in_mem_s_delete(mem);
+        return GU_ERROR;
     }
-}
 
-static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
-    char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL,
-         *client_ipaddr = NULL;
-    char hex_digest[33] = {0}, hex_digest2[33] = {0};
-
-    // Get the filename.
-    xasprintf(&url,
-              "%s://%s/app/update_getfilename?product_id=%s",
-              gu->proto,
-              gu->host,
-              edition_id);
-    in_mem_s *mem = get(gu, url);
     free(url);
     if (mem->size == 0) {
         fprintf(stderr, "edition_id %s not found\n", edition_id);
@@ -729,63 +716,27 @@ static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
     md5hex(geoip_filename, hex_digest);
     say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
 
-    // Look up our IP.
-    xasprintf(&url, "%s://%s/app/update_getipaddr", gu->proto, gu->host);
-    mem = get(gu, url);
-    free(url);
-
-    client_ipaddr = strdup(mem->ptr);
-    if (NULL == client_ipaddr) {
-        fprintf(stderr, "Unable to allocate memory for client IP address.\n");
-        free(geoip_filename);
-        in_mem_s_delete(mem);
-        return GU_ERROR;
-    }
-
-    in_mem_s_delete(mem);
-
-    say_if(gu->verbose, "Client IP address: %s\n", client_ipaddr);
-
-    // Make the challenge MD5 hash.
-    md5hex_license_ipaddr(gu, client_ipaddr, hex_digest2);
-
-    free(client_ipaddr);
-    say_if(gu->verbose, "md5hex_digest2 (challenge): %s\n", hex_digest2);
-
     // Download.
     xasprintf(&url,
-              "%s://%s/app/"
-              "update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%"
-              "s",
+              "%s://%s/geoip/databases/%s/update?db_md5=%s",
               gu->proto,
               gu->host,
-              hex_digest,
-              hex_digest2,
-              gu->license.account_id,
-              edition_id);
+              edition_id,
+              hex_digest);
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
 
     char expected_file_md5[33] = {0};
-    download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
+    int rc = download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
     free(url);
 
-    // Was there actually an update? We can tell because if not we will have
-    // the same MD5 reported back. Note in the past we would check the response
-    // body which does still say whether we have an update.
-    if (strcmp(hex_digest, expected_file_md5) == 0) {
-        say_if(gu->verbose, "No new updates available\n");
-        unlink(geoip_gz_filename);
-        free(geoip_filename);
-        free(geoip_gz_filename);
-        return GU_OK;
+    if (rc == GU_OK) {
+        long filetime = -1;
+        if (gu->preserve_file_times) {
+            filetime = get_server_time(gu);
+        }
+        rc = gunzip_and_replace(
+            gu, geoip_gz_filename, geoip_filename, expected_file_md5, filetime);
     }
-
-    long filetime = -1;
-    if (gu->preserve_file_times) {
-        filetime = get_server_time(gu);
-    }
-    int rc = gunzip_and_replace(
-        gu, geoip_gz_filename, geoip_filename, expected_file_md5, filetime);
 
     free(geoip_gz_filename);
     free(geoip_filename);
@@ -799,53 +750,6 @@ static int update_database_general_all(geoipupdate_s *gu) {
         err |= update_database_general(gu, (*next)->edition_id);
     }
     return err;
-}
-
-static int update_country_database(geoipupdate_s *gu) {
-    char *geoip_filename = NULL, *geoip_gz_filename = NULL, *url = NULL;
-    char hex_digest[33] = {0};
-
-    xasprintf(&geoip_filename, "%s/GeoIP.dat", gu->database_dir);
-    xasprintf(&geoip_gz_filename, "%s/GeoIP.dat.gz", gu->database_dir);
-
-    // Calculate the MD5 hash of the database we currently have, if any. We get
-    // back a zero MD5 hash if we don't have it yet.
-    md5hex(geoip_filename, hex_digest);
-    say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
-
-    xasprintf(&url,
-              "%s://%s/app/update?license_key=%s&md5=%s",
-              gu->proto,
-              gu->host,
-              &gu->license.license_key[0],
-              hex_digest);
-
-    char expected_file_md5[33] = {0};
-    download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
-    free(url);
-
-    // Was there actually an update? We can tell because if not we will have
-    // the same MD5 reported back. Note in the past we would check the response
-    // body which does still say whether we have an update.
-    if (strcmp(hex_digest, expected_file_md5) == 0) {
-        say_if(gu->verbose, "No new updates available\n");
-        unlink(geoip_gz_filename);
-        free(geoip_filename);
-        free(geoip_gz_filename);
-        return GU_OK;
-    }
-
-    long filetime = -1;
-    if (gu->preserve_file_times) {
-        filetime = get_server_time(gu);
-    }
-    int rc = gunzip_and_replace(
-        gu, geoip_gz_filename, geoip_filename, expected_file_md5, filetime);
-
-    free(geoip_gz_filename);
-    free(geoip_filename);
-
-    return rc;
 }
 
 // Decompress the compressed database and move it into place in the database
