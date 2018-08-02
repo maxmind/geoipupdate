@@ -229,31 +229,58 @@ static void test_gu_strnlen(void) {
 
     struct test_case const tests[] = {
         {
-            .s = "test", .maxlen = 4, .output = 4, .skip_strnlen = false,
+            .s = "test",
+            .maxlen = 4,
+            .output = 4,
+            .skip_strnlen = false,
         },
         {
-            .s = "test", .maxlen = 5, .output = 4, .skip_strnlen = false,
+            .s = "test",
+            .maxlen = 5,
+            .output = 4,
+            .skip_strnlen = false,
         },
         {
-            .s = "test", .maxlen = 6, .output = 4, .skip_strnlen = false,
+            .s = "test",
+            .maxlen = 6,
+            .output = 4,
+            .skip_strnlen = false,
         },
         {
-            .s = "test", .maxlen = 14, .output = 4, .skip_strnlen = false,
+            .s = "test",
+            .maxlen = 14,
+            .output = 4,
+            .skip_strnlen = false,
         },
         {
-            .s = "test", .maxlen = 2, .output = 2, .skip_strnlen = false,
+            .s = "test",
+            .maxlen = 2,
+            .output = 2,
+            .skip_strnlen = false,
         },
         {
-            .s = "test", .maxlen = 0, .output = 0, .skip_strnlen = false,
+            .s = "test",
+            .maxlen = 0,
+            .output = 0,
+            .skip_strnlen = false,
         },
         {
-            .s = "", .maxlen = 4, .output = 0, .skip_strnlen = false,
+            .s = "",
+            .maxlen = 4,
+            .output = 0,
+            .skip_strnlen = false,
         },
         {
-            .s = "", .maxlen = 0, .output = 0, .skip_strnlen = false,
+            .s = "",
+            .maxlen = 0,
+            .output = 0,
+            .skip_strnlen = false,
         },
         {
-            .s = NULL, .maxlen = 0, .output = 0, .skip_strnlen = false,
+            .s = NULL,
+            .maxlen = 0,
+            .output = 0,
+            .skip_strnlen = false,
         },
         {
             .s = NULL,
