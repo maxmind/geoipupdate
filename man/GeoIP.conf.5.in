@@ -1,4 +1,4 @@
-.TH GeoIP.conf 5 "26 Oct 2017"
+.TH GeoIP.conf 5 "2 Aug 2018"
 .UC 4
 .SH NAME
 GeoIP.conf - Configuration file for geoipupdate
