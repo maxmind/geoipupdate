@@ -1,9 +1,14 @@
 GeoIP Update Change Log
 =======================
 
-2.6.0
+3.0.0
 ------------------
 
+* BREAKING CHANGE: The configuration options `Protocol`,
+  `SkipPeerVerification`, and `SkipHostnameVerification` are no longer
+  supported. If they are present in the configuration file, they will
+  be ignored. HTTPS with peer and hostname verification will be used
+  on all requests.
 * IMPORTANT: `geoipupdate-pureperl.pl` has been removed and will no
   longer be distributed with `geoipupdate`. This Perl script had known
   issues and did not have feature parity with the C implementation. If

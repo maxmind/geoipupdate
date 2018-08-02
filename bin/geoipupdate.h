@@ -20,14 +20,11 @@ typedef struct {
     license_s license;
 
     // user might change these before geoipupdate_s_init
-    int skip_peer_verification;
-    int skip_hostname_verification;
     int preserve_file_times;
     int do_not_overwrite_database_directory;
     char *license_file;
     char *database_dir;
     char *host;
-    char *proto;
     char *proxy;               // 1.2.3.4, 1.2.3.4:1234
     char *proxy_user_password; // user:pwd
     char *lock_file;           // Path to a global runtime lock file.

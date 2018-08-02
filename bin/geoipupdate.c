@@ -255,28 +255,6 @@ static int parse_license_file(geoipupdate_s *up) {
                             (0 != strcmp(p, "0") && 0 != strcmp(p, "1")),
                         "PreserveFileTimes must be 0 or 1\n");
                 up->preserve_file_times = atoi(p);
-            } else if (!strcmp(p, "SkipPeerVerification")) {
-                p = strtok_r(NULL, sep, &last);
-                exit_if(NULL == p ||
-                            (0 != strcmp(p, "0") && 0 != strcmp(p, "1")),
-                        "SkipPeerVerification must be 0 or 1\n");
-                up->skip_peer_verification = atoi(p);
-            } else if (!strcmp(p, "Protocol")) {
-                p = strtok_r(NULL, sep, &last);
-                exit_if(NULL == p ||
-                            (0 != strcmp(p, "http") && 0 != strcmp(p, "https")),
-                        "Protocol must be http or https\n");
-                free(up->proto);
-                up->proto = strdup(p);
-                exit_if(NULL == up->proto,
-                        "Unable to allocate memory for request protocol: %s\n",
-                        strerror(errno));
-            } else if (!strcmp(p, "SkipHostnameVerification")) {
-                p = strtok_r(NULL, sep, &last);
-                exit_if(NULL == p ||
-                            (0 != strcmp(p, "0") && 0 != strcmp(p, "1")),
-                        "SkipHostnameVerification must be 0 or 1\n");
-                up->skip_hostname_verification = atoi(p);
             } else if (!strcmp(p, "Host")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p, "Host must be defined\n");
@@ -497,14 +475,10 @@ static void common_req(CURL *curl, geoipupdate_s *gu) {
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
 #endif
 
-    if (!strcasecmp(gu->proto, "https")) {
-        curl_easy_setopt(curl,
-                         CURLOPT_SSL_VERIFYPEER,
-                         (long)(gu->skip_peer_verification != 0));
-        curl_easy_setopt(curl,
-                         CURLOPT_SSL_VERIFYHOST,
-                         (long)(gu->skip_hostname_verification != 0));
-    }
+    // These should be the default already, but setting them to ensure
+    // they are set correctly on all curl versions.
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
     if (gu->preserve_file_times) {
         curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
@@ -671,8 +645,7 @@ static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
 
     // Get the filename.
     xasprintf(&url,
-              "%s://%s/app/update_getfilename?product_id=%s",
-              gu->proto,
+              "https://%s/app/update_getfilename?product_id=%s",
               gu->host,
               edition_id);
 
@@ -718,8 +691,7 @@ static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
 
     // Download.
     xasprintf(&url,
-              "%s://%s/geoip/databases/%s/update?db_md5=%s",
-              gu->proto,
+              "https://%s/geoip/databases/%s/update?db_md5=%s",
               gu->host,
               edition_id,
               hex_digest);
