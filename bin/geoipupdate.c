@@ -583,7 +583,7 @@ static int download_to_file(geoipupdate_s *gu,
         return GU_ERROR;
     }
 
-    if (status < 200 || status >= 300) {
+    if (status != 200) {
         fprintf(stderr,
                 "Received an unexpected HTTP status code of %ld from %s:\n",
                 status,
