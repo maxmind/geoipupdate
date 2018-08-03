@@ -536,9 +536,13 @@ static int download_to_file(geoipupdate_s *gu,
 
     char account_id[10] = {0};
     int n = snprintf(account_id, 10, "%d", gu->license.account_id);
-    exit_if(n < 0 || n >= 10,
-            "Error creating account_id string: %s\n",
+    exit_if(n < 0,
+            "Error creating account ID string for %d: %s\n",
+            gu->license.account_id,
             strerror(errno));
+    exit_if(n < 0 || n >= 10,
+            "An unexpectedly large account ID was encountered: %d\n",
+            gu->license.account_id);
 
     curl_easy_setopt(curl, CURLOPT_USERNAME, account_id);
     curl_easy_setopt(curl, CURLOPT_PASSWORD, gu->license.license_key);
