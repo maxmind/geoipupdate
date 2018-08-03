@@ -16,6 +16,7 @@
 #include <utime.h>
 #include <zlib.h>
 
+#define GEOLITE2_PREFIX ("GeoLite2-")
 #define ZERO_MD5 ("00000000000000000000000000000000")
 #define say(fmt, ...) say_if(1, fmt, ##__VA_ARGS__)
 
@@ -41,8 +42,8 @@ static int acquire_run_lock(geoipupdate_s const *const);
 static int md5hex(const char *, char *);
 static void common_req(CURL *, geoipupdate_s *);
 static size_t get_expected_file_md5(char *, size_t, size_t, void *);
-static int
-download_to_file(geoipupdate_s *, const char *, const char *, char *);
+static int download_to_file(
+    geoipupdate_s *, const char *, const char *, char *, const char *);
 static long get_server_time(geoipupdate_s *);
 static size_t mem_cb(void *, size_t, size_t, void *);
 static in_mem_s *in_mem_s_new(void);
@@ -522,7 +523,8 @@ static size_t get_expected_file_md5(char *buffer,
 static int download_to_file(geoipupdate_s *gu,
                             const char *url,
                             const char *fname,
-                            char *expected_file_md5) {
+                            char *expected_file_md5,
+                            const char *edition_id) {
     FILE *f = fopen(fname, "wb");
     if (f == NULL) {
         fprintf(stderr, "Can't open %s: %s\n", fname, strerror(errno));
@@ -534,18 +536,22 @@ static int download_to_file(geoipupdate_s *gu,
 
     expected_file_md5[0] = '\0';
 
-    char account_id[10] = {0};
-    int n = snprintf(account_id, 10, "%d", gu->license.account_id);
-    exit_if(n < 0,
-            "Error creating account ID string for %d: %s\n",
-            gu->license.account_id,
-            strerror(errno));
-    exit_if(n < 0 || n >= 10,
-            "An unexpectedly large account ID was encountered: %d\n",
-            gu->license.account_id);
+    // We do not need to include the Authorization header on free downloads.
+    // We check if it is a free download by looking at the edition ID prefix.
+    if (strncmp(GEOLITE2_PREFIX, edition_id, sizeof(GEOLITE2_PREFIX) - 1)) {
+        char account_id[10] = {0};
+        int n = snprintf(account_id, 10, "%d", gu->license.account_id);
+        exit_if(n < 0,
+                "Error creating account ID string for %d: %s\n",
+                gu->license.account_id,
+                strerror(errno));
+        exit_if(n < 0 || n >= 10,
+                "An unexpectedly large account ID was encountered: %d\n",
+                gu->license.account_id);
 
-    curl_easy_setopt(curl, CURLOPT_USERNAME, account_id);
-    curl_easy_setopt(curl, CURLOPT_PASSWORD, gu->license.license_key);
+        curl_easy_setopt(curl, CURLOPT_USERNAME, account_id);
+        curl_easy_setopt(curl, CURLOPT_PASSWORD, gu->license.license_key);
+    }
 
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, get_expected_file_md5);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, expected_file_md5);
@@ -712,7 +718,8 @@ static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
 
     char expected_file_md5[33] = {0};
-    int rc = download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
+    int rc = download_to_file(
+        gu, url, geoip_gz_filename, expected_file_md5, edition_id);
     free(url);
 
     if (rc == GU_OK) {
