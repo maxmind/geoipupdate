@@ -684,6 +684,7 @@ static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
                 "Received an unexpected HTTP status code of %ld from %s\n",
                 status,
                 url);
+        free(url);
         in_mem_s_delete(mem);
         return GU_ERROR;
     }
