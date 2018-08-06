@@ -50,7 +50,7 @@ void exit_unless(int expr, const char *fmt, ...);
 void say_if(int expr, const char *fmt, ...);
 void *xcalloc(size_t, size_t);
 
-#define NO_ACCOUNT_ID (-1)
+#define NO_ACCOUNT_ID (0)
 #define GEOIP_USERAGENT "geoipupdate/" VERSION
 
 #define exit_if(expr, ...) exit_unless(!(expr), ##__VA_ARGS__)

@@ -308,10 +308,6 @@ static int parse_license_file(geoipupdate_s *up) {
         }
     }
 
-    // For historical reasons, we treat 0 an no license key.
-    if (up->license.account_id == 0) {
-        up->license.account_id = NO_ACCOUNT_ID;
-    }
     exit_if(up->license.account_id == NO_ACCOUNT_ID &&
                 up->license.license_key[0] != 0 &&
                 strncmp(ZERO_LICENSE_KEY,
