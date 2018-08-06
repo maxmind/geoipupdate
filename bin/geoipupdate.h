@@ -12,7 +12,11 @@ typedef struct edition_s {
 
 typedef struct {
     int account_id;
-    char license_key[13];
+    // For a long time, license keys were restricted to 12 characters. However,
+    // we want to change this for newer license keys. The array size is
+    // arbitrarily 100 as that seems big enough to hold any future license
+    // key.
+    char license_key[100];
     edition_s *first;
 } license_s;
 
