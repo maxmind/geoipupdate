@@ -4,6 +4,11 @@ GeoIP Update Change Log
 3.0.0
 ------------------
 
+* BREAKING CHANGE: When downloading the free databases without a
+  MaxMind account, you must either not have `AccountID`, `UserId`,
+  or `LicenseKey` set in your configuration file or they must be set
+  to the zero values previously recommended in our documentation. Any
+  other value will cause an authorization error.
 * BREAKING CHANGE: The configuration options `Protocol`,
   `SkipPeerVerification`, and `SkipHostnameVerification` are no longer
   supported. If they are present in the configuration file, they will
