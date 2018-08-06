@@ -17,13 +17,6 @@ CONF_DIR/GeoIP.conf
 .PP
 .SS Required settings:
 .TP
-.B AccountID
-Your MaxMind account ID. This was formerly known as
-.BR UserId ".
-.TP
-.B LicenseKey
-Your case-sensitive MaxMind license key.
-.TP
 .B EditionIDs
 List of database edition IDs. Edition IDs may consist of letters, digits, and
 dashes (e.g., "GeoIP2-City", "106"). Note: this was formerly called
@@ -31,6 +24,14 @@ dashes (e.g., "GeoIP2-City", "106"). Note: this was formerly called
 .PP
 .SS Optional settings:
 .PP
+.TP
+.B AccountID
+Your MaxMind account ID. This was formerly known as
+.BR UserId ". This is required when downloading a paid database.
+.TP
+.B LicenseKey
+Your case-sensitive MaxMind license key. This is required when downloading a
+paid database.
 .TP
 .B DatabaseDirectory
 The directory to store the database files. The default is DATADIR
