@@ -16,7 +16,6 @@
 #include <utime.h>
 #include <zlib.h>
 
-#define GEOLITE2_PREFIX ("GeoLite2-")
 #define ZERO_MD5 ("00000000000000000000000000000000")
 #define say(fmt, ...) say_if(1, fmt, ##__VA_ARGS__)
 
@@ -42,8 +41,8 @@ static int acquire_run_lock(geoipupdate_s const *const);
 static int md5hex(const char *, char *);
 static void common_req(CURL *, geoipupdate_s *);
 static size_t get_expected_file_md5(char *, size_t, size_t, void *);
-static int download_to_file(
-    geoipupdate_s *, const char *, const char *, char *, const char *);
+static int
+download_to_file(geoipupdate_s *, const char *, const char *, char *);
 static long get_server_time(geoipupdate_s *);
 static size_t mem_cb(void *, size_t, size_t, void *);
 static in_mem_s *in_mem_s_new(void);
@@ -308,6 +307,11 @@ static int parse_license_file(geoipupdate_s *up) {
         }
     }
 
+    // For historical reasons, we treat 0 an no license key.
+    if (up->license.account_id == 0) {
+        up->license.account_id = NO_ACCOUNT_ID;
+    }
+
     // If we don't have a LockFile specified, then default to .geoipupdate.lock
     // in the database directory. Do this here as the database directory may
     // have been set either on the command line or in the configuration file.
@@ -523,8 +527,7 @@ static size_t get_expected_file_md5(char *buffer,
 static int download_to_file(geoipupdate_s *gu,
                             const char *url,
                             const char *fname,
-                            char *expected_file_md5,
-                            const char *edition_id) {
+                            char *expected_file_md5) {
     FILE *f = fopen(fname, "wb");
     if (f == NULL) {
         fprintf(stderr, "Can't open %s: %s\n", fname, strerror(errno));
@@ -536,9 +539,10 @@ static int download_to_file(geoipupdate_s *gu,
 
     expected_file_md5[0] = '\0';
 
-    // We do not need to include the Authorization header on free downloads.
-    // We check if it is a free download by looking at the edition ID prefix.
-    if (strncmp(GEOLITE2_PREFIX, edition_id, sizeof(GEOLITE2_PREFIX) - 1)) {
+    // If the account ID is not set, the user is likely trying to do a free
+    // download, e.g., GeoLite2. We don't need to send the basic auth header
+    // for these.
+    if (gu->license.account_id != NO_ACCOUNT_ID) {
         char account_id[10] = {0};
         int n = snprintf(account_id, 10, "%d", gu->license.account_id);
         exit_if(n < 0,
@@ -718,8 +722,7 @@ static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
 
     char expected_file_md5[33] = {0};
-    int rc = download_to_file(
-        gu, url, geoip_gz_filename, expected_file_md5, edition_id);
+    int rc = download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
     free(url);
 
     if (rc == GU_OK) {
