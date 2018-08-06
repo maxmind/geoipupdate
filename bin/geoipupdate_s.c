@@ -38,10 +38,6 @@ geoipupdate_s *geoipupdate_s_new(void) {
             "Unable to allocate memory for lock file path: %s\n",
             strerror(errno));
 
-    gu->verbose = 0;
-    gu->license.account_id = NO_ACCOUNT_ID;
-    gu->license.license_key[12] = 0;
-
     // curl_easy_init() provides no useful error messages or codes:
     // https://curl.haxx.se/mail/lib-2009-11/0243.html
     gu->curl = curl_easy_init();
