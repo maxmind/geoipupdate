@@ -16,6 +16,7 @@
 #include <utime.h>
 #include <zlib.h>
 
+#define ZERO_LICENSE_KEY ("000000000000")
 #define ZERO_MD5 ("00000000000000000000000000000000")
 #define say(fmt, ...) say_if(1, fmt, ##__VA_ARGS__)
 
@@ -311,6 +312,12 @@ static int parse_license_file(geoipupdate_s *up) {
     if (up->license.account_id == 0) {
         up->license.account_id = NO_ACCOUNT_ID;
     }
+    exit_if(up->license.account_id == NO_ACCOUNT_ID &&
+                up->license.license_key[0] != 0 &&
+                strncmp(ZERO_LICENSE_KEY,
+                        up->license.license_key,
+                        sizeof(ZERO_LICENSE_KEY) - 1),
+            "AccountID must be set if LicenseKey is set\n");
 
     // If we don't have a LockFile specified, then default to .geoipupdate.lock
     // in the database directory. Do this here as the database directory may
