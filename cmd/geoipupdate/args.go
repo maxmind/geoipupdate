@@ -1,9 +1,10 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"os"
+
+	flag "github.com/spf13/pflag"
 )
 
 // Args are command line arguments.
@@ -15,12 +16,17 @@ type Args struct {
 }
 
 func getArgs() *Args {
-	configFile := flag.String("f", "", "Configuration file (required)")
-	databaseDirectory := flag.String("d", "", "Store databases in this directory (optional)")
-	help := flag.Bool("h", false, "Display help and exit")
+	configFile := flag.StringP("config-file", "f", "", "Configuration file (required)")
+	databaseDirectory := flag.StringP(
+		"database-directory",
+		"d",
+		"",
+		"Store databases in this directory (optional)",
+	)
+	help := flag.BoolP("help", "h", false, "Display help and exit")
 	stackTrace := flag.Bool("stack-trace", false, "Show a stack trace along with any error message.")
-	verbose := flag.Bool("v", false, "Use verbose output")
-	version := flag.Bool("V", false, "Display the version and exit")
+	verbose := flag.BoolP("verbose", "v", false, "Use verbose output")
+	version := flag.BoolP("version", "V", false, "Display the version and exit")
 
 	flag.Parse()
 
