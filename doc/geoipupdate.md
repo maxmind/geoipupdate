@@ -7,7 +7,7 @@ geoipupdate - GeoIP2, GeoLite2, and GeoIP Legacy Update Program
 ## SYNOPSIS
 
 ```
-geoipupdate [-V] [-v] [-h] [-f CONFIG_FILE] [-d TARGET_DIRECTORY]
+geoipupdate [-Vvh] [-f CONFIG_FILE] [-d TARGET_DIRECTORY]
 ```
 
 ## DESCRIPTION
@@ -22,16 +22,17 @@ open.
 
 ## OPTIONS
 
-* `-d` - Install databases to a custom directory. This must be specified
-  if `DatabaseDirectory` is not set in the configuration file.
-* `-f` - The configuration file to use. See [GeoIP.conf](GeoIP.conf.md)
-  for more information. *Required*.
-* `-h` - Display help and exit.
-* `-stack-trace` - Show a stack trace on any error message. This is
+* `-d`, `--database-directory` - Install databases to a custom directory. This
+  must be specified if `DatabaseDirectory` is not set in the configuration
+  file.
+* `-f`, `--config-file` - The configuration file to use. See
+  [GeoIP.conf](GeoIP.conf.md) for more information. *Required*.
+* `-h`, `--help` - Display help and exit.
+* `--stack-trace` - Show a stack trace on any error message. This is
   primarily useful for debugging.
-* `-V` - Display version information and exit.
-* `-v` - Enable verbose mode. Prints out the steps that `geoipupdate`
-  takes.
+* `-V`, `--version` - Display version information and exit.
+* `-v`, `--verbose` - Enable verbose mode. Prints out the steps that
+  `geoipupdate` takes.
 
 ## USAGE
 
