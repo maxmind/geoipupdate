@@ -12,7 +12,11 @@ typedef struct edition_s {
 
 typedef struct {
     int account_id;
-    char license_key[13];
+    // For a long time, license keys were restricted to 12 characters. However,
+    // we want to change this for newer license keys. The array size is
+    // arbitrarily 100 as that seems big enough to hold any future license
+    // key.
+    char license_key[100];
     edition_s *first;
 } license_s;
 
@@ -20,14 +24,11 @@ typedef struct {
     license_s license;
 
     // user might change these before geoipupdate_s_init
-    int skip_peer_verification;
-    int skip_hostname_verification;
     int preserve_file_times;
     int do_not_overwrite_database_directory;
     char *license_file;
     char *database_dir;
     char *host;
-    char *proto;
     char *proxy;               // 1.2.3.4, 1.2.3.4:1234
     char *proxy_user_password; // user:pwd
     char *lock_file;           // Path to a global runtime lock file.
@@ -49,7 +50,7 @@ void exit_unless(int expr, const char *fmt, ...);
 void say_if(int expr, const char *fmt, ...);
 void *xcalloc(size_t, size_t);
 
-#define NO_ACCOUNT_ID (-1)
+#define NO_ACCOUNT_ID (0)
 #define GEOIP_USERAGENT "geoipupdate/" VERSION
 
 #define exit_if(expr, ...) exit_unless(!(expr), ##__VA_ARGS__)

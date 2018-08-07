@@ -87,8 +87,8 @@ static void burn_stack(int bytes) {
  * transform n*64 bytes
  */
 static void
-    /*transform( MD5_CONTEXT *ctx, const void *buffer, size_t len )*/
-    transform(MD5_CONTEXT *ctx, byte *data) {
+/*transform( MD5_CONTEXT *ctx, const void *buffer, size_t len )*/
+transform(MD5_CONTEXT *ctx, byte *data) {
     u32 correct_words[16];
     u32 A = ctx->A;
     u32 B = ctx->B;

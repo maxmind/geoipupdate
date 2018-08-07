@@ -76,4 +76,4 @@ This software is licensed under the GNU General Public License (GPL), version
 
 # Copyright
 
-This software is Copyright (c) 2014 - 2017 by MaxMind, Inc.
+This software is Copyright (c) 2014 - 2018 by MaxMind, Inc.

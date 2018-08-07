@@ -1,4 +1,4 @@
-.TH GeoIP.conf 5 "26 Oct 2017"
+.TH GeoIP.conf 5 "2 Aug 2018"
 .UC 4
 .SH NAME
 GeoIP.conf - Configuration file for geoipupdate
@@ -17,13 +17,6 @@ CONF_DIR/GeoIP.conf
 .PP
 .SS Required settings:
 .TP
-.B AccountID
-Your MaxMind account ID. This was formerly known as
-.BR UserId ".
-.TP
-.B LicenseKey
-Your case-sensitive MaxMind license key.
-.TP
 .B EditionIDs
 List of database edition IDs. Edition IDs may consist of letters, digits, and
 dashes (e.g., "GeoIP2-City", "106"). Note: this was formerly called
@@ -32,16 +25,20 @@ dashes (e.g., "GeoIP2-City", "106"). Note: this was formerly called
 .SS Optional settings:
 .PP
 .TP
+.B AccountID
+Your MaxMind account ID. This was formerly known as
+.BR UserId ". This is required when downloading a paid database.
+.TP
+.B LicenseKey
+Your case-sensitive MaxMind license key. This is required when downloading a
+paid database.
+.TP
 .B DatabaseDirectory
 The directory to store the database files. The default is DATADIR
 .TP
 .B Host
 The host name of the server to use. The default is
 .BR updates.maxmind.com ".
-.TP
-.B Protocol
-The protocol to use. Valid values are
-.BR https " and " http ". The default is " https ".
 .TP
 .B Proxy
 The proxy host name or IP address. You may optionally specify a
@@ -52,14 +49,6 @@ port number, e.g.,
 The proxy user name and password, separated by a colon. For instance,
 .BR username:password ".
 .TP
-.B SkipPeerVerification
-Skip peer verification when using
-.BR https ". Valid values are " 0 " or " 1 ". The default is " 0 ".
-.TP
-.B SkipHostnameVerification
-Skip the host name verification when using
-.BR https ". This option is either " 0 " or " 1 ". The default is " 0 ".
-.TP
 .B PreserveFileTimes
 Whether to preserve modification times of files downloaded from the server.
 This option is either
@@ -68,8 +57,8 @@ This option is either
 .B LockFile
 The lock file to use. This ensures only one
 .B geoipupdate
-process can run at a time. 
-Note: Once created, this lockfile is not removed from the filesystem. 
+process can run at a time.
+Note: Once created, this lockfile is not removed from the filesystem.
 The default is
 .BR .geoipupdate.lock " under the " DatabaseDirectory .
 .SH FILES
