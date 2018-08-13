@@ -1,7 +1,7 @@
 GeoIP Update Change Log
 =======================
 
-3.0.0
+3.0.0 (2018-08-13)
 ------------------
 
 * BREAKING CHANGE: When downloading the free databases without a
