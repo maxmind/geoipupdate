@@ -1,6 +1,45 @@
 GeoIP Update Change Log
 =======================
 
+3.0.0 (2018-08-13)
+------------------
+
+* BREAKING CHANGE: When downloading the free databases without a
+  MaxMind account, you must either not have `AccountID`, `UserId`,
+  or `LicenseKey` set in your configuration file or they must be set
+  to the zero values previously recommended in our documentation. Any
+  other value will cause an authorization error.
+* BREAKING CHANGE: The configuration options `Protocol`,
+  `SkipPeerVerification`, and `SkipHostnameVerification` are no longer
+  supported. If they are present in the configuration file, they will
+  be ignored. HTTPS with peer and hostname verification will be used
+  on all requests.
+* BREAKING CHANGE: The configuration file must have the `AccountID`
+  or the deprecated `UserId` when downloading a paid database.
+  Previously, when downloading the GeoIP Legacy Country database, you
+  were able to only provide the `LicenseKey`.
+* IMPORTANT: `geoipupdate-pureperl.pl` has been removed and will no
+  longer be distributed with `geoipupdate`. This Perl script had known
+  issues and did not have feature parity with the C implementation. If
+  you were using the Perl version, we recommend that you switch to the
+  C version. If you are not able to do this, you may continue using the
+  Perl version distributed with 2.5.0.
+* This program no longer uses the following endpoints:
+  `/app/update_getipaddr`, `/app/update`, and `/app/update_secure`.
+  `/geoip/databases/{edition_id}/update` is now used instead.
+* Fixed issue in `gu_strnlen()` dereferencing a pointer before checking
+  that it was in array bounds. Issue found by fcntl.
+* We now update the default GeoIP.conf during installation so that
+  directory paths match build parameters. Previously this config always
+  said the data directory was under /usr/local/share which was not always
+  accurate.
+* Improve the error checking and display the underlying reason for the
+  error when possible. Reported by Jonathan Kosgei. GitHub #82.
+* Document that the `LockFile` is not removed from the filesystem after
+  a successful exit from the program. GitHub issue #79.
+* Make default configuration directory agree with default installation
+  directory.
+
 2.5.0 (2017-10-30)
 ------------------
 

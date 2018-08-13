@@ -13,8 +13,6 @@ geoipupdate_SOURCES = \
 geoipupdate_LDFLAGS =
 geoipupdate_LDADD =
 
-EXTRA_DIST = geoipupdate-pureperl.pl
-
 TESTS = functions_test
 
 check_PROGRAMS = functions_test

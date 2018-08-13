@@ -16,12 +16,14 @@
 #include <utime.h>
 #include <zlib.h>
 
+#define ZERO_LICENSE_KEY ("000000000000")
 #define ZERO_MD5 ("00000000000000000000000000000000")
 #define say(fmt, ...) say_if(1, fmt, ##__VA_ARGS__)
 
 enum gu_status {
     GU_OK = 0,
     GU_ERROR = 1,
+    GU_NO_UPDATE = 2,
 };
 
 typedef struct {
@@ -30,7 +32,6 @@ typedef struct {
 } in_mem_s;
 
 static void xasprintf(char **, const char *, ...);
-static void *xcalloc(size_t, size_t);
 static void *xrealloc(void *, size_t);
 static void usage(void);
 static int parse_opts(geoipupdate_s *, int, char *const[]);
@@ -41,17 +42,14 @@ static int acquire_run_lock(geoipupdate_s const *const);
 static int md5hex(const char *, char *);
 static void common_req(CURL *, geoipupdate_s *);
 static size_t get_expected_file_md5(char *, size_t, size_t, void *);
-static void
+static int
 download_to_file(geoipupdate_s *, const char *, const char *, char *);
 static long get_server_time(geoipupdate_s *);
 static size_t mem_cb(void *, size_t, size_t, void *);
 static in_mem_s *in_mem_s_new(void);
 static void in_mem_s_delete(in_mem_s *);
-static in_mem_s *get(geoipupdate_s *, const char *);
-static void md5hex_license_ipaddr(geoipupdate_s *, const char *, char *);
 static int update_database_general_all(geoipupdate_s *);
 static int update_database_general(geoipupdate_s *, const char *);
-static int update_country_database(geoipupdate_s *);
 static int gunzip_and_replace(geoipupdate_s const *const,
                               char const *const,
                               char const *const,
@@ -74,7 +72,7 @@ static void xasprintf(char **ptr, const char *fmt, ...) {
     va_start(ap, fmt);
     int rc = vasprintf(ptr, fmt, ap);
     va_end(ap);
-    exit_if(rc == -1, "Out of memory\n");
+    exit_if(rc == -1, "Error calling vasprintf: %s\n", strerror(errno));
 }
 
 void say_if(int expr, const char *fmt, ...) {
@@ -87,21 +85,15 @@ void say_if(int expr, const char *fmt, ...) {
     va_end(ap);
 }
 
-static void *xcalloc(size_t nmemb, size_t size) {
+void *xcalloc(size_t nmemb, size_t size) {
     void *ptr = calloc(nmemb, size);
-    exit_if(!ptr, "Out of memory\n");
-    return ptr;
-}
-
-void *xmalloc(size_t size) {
-    void *ptr = malloc(size);
-    exit_if(!ptr, "Out of memory\n");
+    exit_if(!ptr, "Error allocating memory: %s\n", strerror(errno));
     return ptr;
 }
 
 static void *xrealloc(void *ptr, size_t size) {
     void *mem = realloc(ptr, size);
-    exit_if(mem == NULL, "Out of memory\n");
+    exit_if(mem == NULL, "Error reallocating memory: %s\n", strerror(errno));
     return mem;
 }
 
@@ -133,9 +125,10 @@ static int parse_opts(geoipupdate_s *gu, int argc, char *const argv[]) {
             case 'd':
                 free(gu->database_dir);
                 gu->database_dir = strdup(optarg);
-                exit_if(
-                    NULL == gu->database_dir,
-                    "Unable to allocate memory for database directory path.");
+                exit_if(NULL == gu->database_dir,
+                        "Unable to allocate memory for database directory "
+                        "path: %s\n",
+                        strerror(errno));
 
                 // The database directory in the config file is ignored if we
                 // use -d
@@ -145,7 +138,8 @@ static int parse_opts(geoipupdate_s *gu, int argc, char *const argv[]) {
                 free(gu->license_file);
                 gu->license_file = strdup(optarg);
                 exit_if(NULL == gu->license_file,
-                        "Unable to allocate memory for license file path.\n");
+                        "Unable to allocate memory for license file path: %s\n",
+                        strerror(errno));
                 break;
             case 'h':
             default:
@@ -176,8 +170,9 @@ int main(int argc, char *const argv[]) {
         parse_opts(gu, argc, argv);
         if (parse_license_file(gu)) {
             exit_unless(stat(gu->database_dir, &st) == 0,
-                        "%s does not exist\n",
-                        gu->database_dir);
+                        "%s does not exist: %s\n",
+                        gu->database_dir,
+                        strerror(errno));
             exit_unless(S_ISDIR(st.st_mode),
                         "%s is not a directory\n",
                         gu->database_dir);
@@ -187,8 +182,9 @@ int main(int argc, char *const argv[]) {
             // open the file, and avoid potential race issues where permissions
             // change between now and then.
             exit_unless(access(gu->database_dir, W_OK) == 0,
-                        "%s is not writable\n",
-                        gu->database_dir);
+                        "%s is not writable: %s\n",
+                        gu->database_dir,
+                        strerror(errno));
 
             if (acquire_run_lock(gu) != 0) {
                 geoipupdate_s_delete(gu);
@@ -196,9 +192,7 @@ int main(int argc, char *const argv[]) {
                 return GU_ERROR;
             }
 
-            err = (gu->license.account_id == NO_ACCOUNT_ID)
-                      ? update_country_database(gu)
-                      : update_database_general_all(gu);
+            err = update_database_general_all(gu);
         }
         geoipupdate_s_delete(gu);
     }
@@ -221,12 +215,15 @@ static ssize_t my_getline(char **linep, size_t *linecapp, FILE *stream) {
 static int parse_license_file(geoipupdate_s *up) {
     say_if(up->verbose, "%s\n", PACKAGE_STRING);
     FILE *fh = fopen(up->license_file, "rb");
-    exit_unless(!!fh, "Can't open license file %s\n", up->license_file);
+    exit_unless(!!fh,
+                "Can't open license file %s: %s\n",
+                up->license_file,
+                strerror(errno));
     say_if(up->verbose, "Opened License file %s\n", up->license_file);
 
     const char *sep = " \t\r\n";
     size_t bsize = 1024;
-    char *buffer = (char *)xmalloc(bsize);
+    char *buffer = (char *)xcalloc(bsize, sizeof(char));
     ssize_t read_bytes;
     while ((read_bytes = my_getline(&buffer, &bsize, fh)) != -1) {
         size_t idx = strspn(buffer, sep);
@@ -259,34 +256,14 @@ static int parse_license_file(geoipupdate_s *up) {
                             (0 != strcmp(p, "0") && 0 != strcmp(p, "1")),
                         "PreserveFileTimes must be 0 or 1\n");
                 up->preserve_file_times = atoi(p);
-            } else if (!strcmp(p, "SkipPeerVerification")) {
-                p = strtok_r(NULL, sep, &last);
-                exit_if(NULL == p ||
-                            (0 != strcmp(p, "0") && 0 != strcmp(p, "1")),
-                        "SkipPeerVerification must be 0 or 1\n");
-                up->skip_peer_verification = atoi(p);
-            } else if (!strcmp(p, "Protocol")) {
-                p = strtok_r(NULL, sep, &last);
-                exit_if(NULL == p ||
-                            (0 != strcmp(p, "http") && 0 != strcmp(p, "https")),
-                        "Protocol must be http or https\n");
-                free(up->proto);
-                up->proto = strdup(p);
-                exit_if(NULL == up->proto,
-                        "Unable to allocate memory for request protocol.\n");
-            } else if (!strcmp(p, "SkipHostnameVerification")) {
-                p = strtok_r(NULL, sep, &last);
-                exit_if(NULL == p ||
-                            (0 != strcmp(p, "0") && 0 != strcmp(p, "1")),
-                        "SkipHostnameVerification must be 0 or 1\n");
-                up->skip_hostname_verification = atoi(p);
             } else if (!strcmp(p, "Host")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p, "Host must be defined\n");
                 free(up->host);
                 up->host = strdup(p);
                 exit_if(NULL == up->host,
-                        "Unable to allocate memory for update host.\n");
+                        "Unable to allocate memory for update host: %s\n",
+                        strerror(errno));
             } else if (!strcmp(p, "DatabaseDirectory")) {
                 if (!up->do_not_overwrite_database_directory) {
                     p = strtok_r(NULL, sep, &last);
@@ -295,7 +272,8 @@ static int parse_license_file(geoipupdate_s *up) {
                     up->database_dir = strdup(p);
                     exit_if(NULL == up->database_dir,
                             "Unable to allocate memory for database directory "
-                            "path.\n");
+                            "path: %s\n",
+                            strerror(errno));
                 }
             } else if (!strcmp(p, "Proxy")) {
                 p = strtok_r(NULL, sep, &last);
@@ -303,7 +281,8 @@ static int parse_license_file(geoipupdate_s *up) {
                 free(up->proxy);
                 up->proxy = strdup(p);
                 exit_if(NULL == up->proxy,
-                        "Unable to allocate memory for proxy host.\n");
+                        "Unable to allocate memory for proxy host: %s\n",
+                        strerror(errno));
             } else if (!strcmp(p, "ProxyUserPassword")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p,
@@ -311,7 +290,8 @@ static int parse_license_file(geoipupdate_s *up) {
                 free(up->proxy_user_password);
                 up->proxy_user_password = strdup(p);
                 exit_if(NULL == up->proxy_user_password,
-                        "Unable to allocate memory for proxy credentials.\n");
+                        "Unable to allocate memory for proxy credentials: %s\n",
+                        strerror(errno));
             } else if (!strcmp(p, "LockFile")) {
                 p = strtok_r(NULL, sep, &last);
                 exit_if(NULL == p, "LockFile must be a file path\n");
@@ -320,12 +300,20 @@ static int parse_license_file(geoipupdate_s *up) {
                 free(up->lock_file);
                 up->lock_file = strdup(p);
                 exit_if(NULL == up->lock_file,
-                        "Out of memory allocating LockFile string\n");
+                        "Unable to allocate memory for LockFile string: %s\n",
+                        strerror(errno));
             } else {
                 say_if(up->verbose, "Skip unknown directive: %s\n", p);
             }
         }
     }
+
+    exit_if(up->license.account_id == NO_ACCOUNT_ID &&
+                up->license.license_key[0] != 0 &&
+                strncmp(ZERO_LICENSE_KEY,
+                        up->license.license_key,
+                        sizeof(ZERO_LICENSE_KEY) - 1),
+            "AccountID must be set if LicenseKey is set\n");
 
     // If we don't have a LockFile specified, then default to .geoipupdate.lock
     // in the database directory. Do this here as the database directory may
@@ -463,19 +451,24 @@ static int md5hex(const char *fname, char *hex_digest) {
     }
 
     struct stat st;
-    exit_unless(stat(fname, &st) == 0 && S_ISREG(st.st_mode),
-                "%s is not a file\n",
-                fname);
+    exit_unless(stat(fname, &st) == 0,
+                "Unable to stat %s: %s\n",
+                fname,
+                strerror(errno));
+    exit_unless(S_ISREG(st.st_mode), "%s is not a file\n", fname);
 
     md5_init(&context);
     while ((len = fread(buffer, 1, bsize, fh)) > 0) {
         md5_write(&context, buffer, len);
     }
+    exit_if(ferror(fh), "Unable to read %s: %s\n", fname, strerror(errno));
+
     md5_final(&context);
     memcpy(digest, context.buf, 16);
     exit_if(-1 == fclose(fh), "Error closing stream: %s", strerror(errno));
     for (int i = 0; i < 16; i++) {
-        snprintf(&hex_digest[2 * i], 3, "%02x", digest[i]);
+        int c = snprintf(&hex_digest[2 * i], 3, "%02x", digest[i]);
+        exit_if(c < 0, "Unable to write digest: %s\n", strerror(errno));
     }
     return 1;
 }
@@ -490,14 +483,10 @@ static void common_req(CURL *curl, geoipupdate_s *gu) {
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
 #endif
 
-    if (!strcasecmp(gu->proto, "https")) {
-        curl_easy_setopt(curl,
-                         CURLOPT_SSL_VERIFYPEER,
-                         (long)(gu->skip_peer_verification != 0));
-        curl_easy_setopt(curl,
-                         CURLOPT_SSL_VERIFYHOST,
-                         (long)(gu->skip_hostname_verification != 0));
-    }
+    // These should be the default already, but setting them to ensure
+    // they are set correctly on all curl versions.
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
     if (gu->preserve_file_times) {
         curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
@@ -533,16 +522,15 @@ static size_t get_expected_file_md5(char *buffer,
 
 // Make an HTTP request and download the response body to a file.
 //
-// If the HTTP status is not 2xx, we have a error message in the body rather
-// than a file. Write it to stderr and exit.
-//
-// TODO(wstorey@maxmind.com): Return boolean/int whether we succeeded rather
-// than exiting. Beyond being cleaner and easier to test, it will allow us to
-// clean up after ourselves better.
-static void download_to_file(geoipupdate_s *gu,
-                             const char *url,
-                             const char *fname,
-                             char *expected_file_md5) {
+// If the HTTP status is 200, we have a file. If it is 304, the file has
+// not changed and we display an error message. If it is 401, there was
+// an authentication issue and we display an error message. If it is
+// any other status code, we assume it is an error and write the body
+// to stderr.
+static int download_to_file(geoipupdate_s *gu,
+                            const char *url,
+                            const char *fname,
+                            char *expected_file_md5) {
     FILE *f = fopen(fname, "wb");
     if (f == NULL) {
         fprintf(stderr, "Can't open %s: %s\n", fname, strerror(errno));
@@ -553,6 +541,25 @@ static void download_to_file(geoipupdate_s *gu,
     CURL *curl = gu->curl;
 
     expected_file_md5[0] = '\0';
+
+    // If the account ID is not set, the user is likely trying to do a free
+    // download, e.g., GeoLite2. We don't need to send the basic auth header
+    // for these.
+    if (gu->license.account_id != NO_ACCOUNT_ID) {
+        char account_id[10] = {0};
+        int n = snprintf(account_id, 10, "%d", gu->license.account_id);
+        exit_if(n < 0,
+                "Error creating account ID string for %d: %s\n",
+                gu->license.account_id,
+                strerror(errno));
+        exit_if(n < 0 || n >= 10,
+                "An unexpectedly large account ID was encountered: %d\n",
+                gu->license.account_id);
+
+        curl_easy_setopt(curl, CURLOPT_USERNAME, account_id);
+        curl_easy_setopt(curl, CURLOPT_PASSWORD, gu->license.license_key);
+    }
+
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, get_expected_file_md5);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, expected_file_md5);
 
@@ -577,7 +584,19 @@ static void download_to_file(geoipupdate_s *gu,
         exit(1);
     }
 
-    if (status < 200 || status >= 300) {
+    if (status == 304) {
+        say_if(gu->verbose, "No new updates available\n");
+        unlink(fname);
+        return GU_NO_UPDATE;
+    }
+
+    if (status == 401) {
+        fprintf(stderr, "Your account ID or license key is invalid\n");
+        unlink(fname);
+        return GU_ERROR;
+    }
+
+    if (status != 200) {
         fprintf(stderr,
                 "Received an unexpected HTTP status code of %ld from %s:\n",
                 status,
@@ -589,7 +608,7 @@ static void download_to_file(geoipupdate_s *gu,
             free(message);
         }
         unlink(fname);
-        exit(1);
+        return GU_ERROR;
     }
 
     // We have HTTP 2xx.
@@ -600,8 +619,9 @@ static void download_to_file(geoipupdate_s *gu,
         fprintf(stderr,
                 "Did not receive a valid expected database MD5 from server\n");
         unlink(fname);
-        exit(1);
+        return GU_ERROR;
     }
+    return GU_OK;
 }
 
 // Retrieve the server file time for the previous HTTP request.
@@ -632,8 +652,8 @@ static size_t mem_cb(void *contents, size_t size, size_t nmemb, void *userp) {
 }
 
 static in_mem_s *in_mem_s_new(void) {
-    in_mem_s *mem = (in_mem_s *)xmalloc(sizeof(in_mem_s));
-    mem->ptr = (char *)xcalloc(1, 1);
+    in_mem_s *mem = (in_mem_s *)xcalloc(1, sizeof(in_mem_s));
+    mem->ptr = (char *)xcalloc(1, sizeof(char));
     mem->size = 0;
     return mem;
 }
@@ -645,7 +665,16 @@ static void in_mem_s_delete(in_mem_s *mem) {
     }
 }
 
-static in_mem_s *get(geoipupdate_s *gu, const char *url) {
+static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
+    char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL;
+    char hex_digest[33] = {0};
+
+    // Get the filename.
+    xasprintf(&url,
+              "https://%s/app/update_getfilename?product_id=%s",
+              gu->host,
+              edition_id);
+
     in_mem_s *mem = in_mem_s_new();
 
     say_if(gu->verbose, "url: %s\n", url);
@@ -663,47 +692,16 @@ static in_mem_s *get(geoipupdate_s *gu, const char *url) {
     long status = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
 
-    exit_if(status < 200 || status >= 300,
-            "Received an unexpected HTTP status code of %ld from %s",
-            status,
-            url);
-
-    return mem;
-}
-
-// Generate an MD5 hash of the concatenation of license key with IP address.
-//
-// This hash is suitable for the challenge parameter for downloading from the
-// /update_secure endpoint.
-static void md5hex_license_ipaddr(geoipupdate_s *gu,
-                                  const char *client_ipaddr,
-                                  char *new_digest_str) {
-    unsigned char digest[16];
-    MD5_CONTEXT context;
-    md5_init(&context);
-    md5_write(&context,
-              (unsigned char *)gu->license.license_key,
-              strlen(gu->license.license_key));
-    md5_write(&context, (unsigned char *)client_ipaddr, strlen(client_ipaddr));
-    md5_final(&context);
-    memcpy(digest, context.buf, 16);
-    for (int i = 0; i < 16; i++) {
-        snprintf(&new_digest_str[2 * i], 3, "%02x", digest[i]);
+    if (status != 200) {
+        fprintf(stderr,
+                "Received an unexpected HTTP status code of %ld from %s\n",
+                status,
+                url);
+        free(url);
+        in_mem_s_delete(mem);
+        return GU_ERROR;
     }
-}
 
-static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
-    char *url = NULL, *geoip_filename = NULL, *geoip_gz_filename = NULL,
-         *client_ipaddr = NULL;
-    char hex_digest[33] = {0}, hex_digest2[33] = {0};
-
-    // Get the filename.
-    xasprintf(&url,
-              "%s://%s/app/update_getfilename?product_id=%s",
-              gu->proto,
-              gu->host,
-              edition_id);
-    in_mem_s *mem = get(gu, url);
     free(url);
     if (mem->size == 0) {
         fprintf(stderr, "edition_id %s not found\n", edition_id);
@@ -718,63 +716,26 @@ static int update_database_general(geoipupdate_s *gu, const char *edition_id) {
     md5hex(geoip_filename, hex_digest);
     say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
 
-    // Look up our IP.
-    xasprintf(&url, "%s://%s/app/update_getipaddr", gu->proto, gu->host);
-    mem = get(gu, url);
-    free(url);
-
-    client_ipaddr = strdup(mem->ptr);
-    if (NULL == client_ipaddr) {
-        fprintf(stderr, "Unable to allocate memory for client IP address.\n");
-        free(geoip_filename);
-        in_mem_s_delete(mem);
-        return GU_ERROR;
-    }
-
-    in_mem_s_delete(mem);
-
-    say_if(gu->verbose, "Client IP address: %s\n", client_ipaddr);
-
-    // Make the challenge MD5 hash.
-    md5hex_license_ipaddr(gu, client_ipaddr, hex_digest2);
-
-    free(client_ipaddr);
-    say_if(gu->verbose, "md5hex_digest2 (challenge): %s\n", hex_digest2);
-
     // Download.
     xasprintf(&url,
-              "%s://%s/app/"
-              "update_secure?db_md5=%s&challenge_md5=%s&user_id=%d&edition_id=%"
-              "s",
-              gu->proto,
+              "https://%s/geoip/databases/%s/update?db_md5=%s",
               gu->host,
-              hex_digest,
-              hex_digest2,
-              gu->license.account_id,
-              edition_id);
+              edition_id,
+              hex_digest);
     xasprintf(&geoip_gz_filename, "%s.gz", geoip_filename);
 
     char expected_file_md5[33] = {0};
-    download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
+    int rc = download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
     free(url);
 
-    // Was there actually an update? We can tell because if not we will have
-    // the same MD5 reported back. Note in the past we would check the response
-    // body which does still say whether we have an update.
-    if (strcmp(hex_digest, expected_file_md5) == 0) {
-        say_if(gu->verbose, "No new updates available\n");
-        unlink(geoip_gz_filename);
-        free(geoip_filename);
-        free(geoip_gz_filename);
-        return GU_OK;
+    if (rc == GU_OK) {
+        long filetime = -1;
+        if (gu->preserve_file_times) {
+            filetime = get_server_time(gu);
+        }
+        rc = gunzip_and_replace(
+            gu, geoip_gz_filename, geoip_filename, expected_file_md5, filetime);
     }
-
-    long filetime = -1;
-    if (gu->preserve_file_times) {
-        filetime = get_server_time(gu);
-    }
-    int rc = gunzip_and_replace(
-        gu, geoip_gz_filename, geoip_filename, expected_file_md5, filetime);
 
     free(geoip_gz_filename);
     free(geoip_filename);
@@ -788,53 +749,6 @@ static int update_database_general_all(geoipupdate_s *gu) {
         err |= update_database_general(gu, (*next)->edition_id);
     }
     return err;
-}
-
-static int update_country_database(geoipupdate_s *gu) {
-    char *geoip_filename = NULL, *geoip_gz_filename = NULL, *url = NULL;
-    char hex_digest[33] = {0};
-
-    xasprintf(&geoip_filename, "%s/GeoIP.dat", gu->database_dir);
-    xasprintf(&geoip_gz_filename, "%s/GeoIP.dat.gz", gu->database_dir);
-
-    // Calculate the MD5 hash of the database we currently have, if any. We get
-    // back a zero MD5 hash if we don't have it yet.
-    md5hex(geoip_filename, hex_digest);
-    say_if(gu->verbose, "md5hex_digest: %s\n", hex_digest);
-
-    xasprintf(&url,
-              "%s://%s/app/update?license_key=%s&md5=%s",
-              gu->proto,
-              gu->host,
-              &gu->license.license_key[0],
-              hex_digest);
-
-    char expected_file_md5[33] = {0};
-    download_to_file(gu, url, geoip_gz_filename, expected_file_md5);
-    free(url);
-
-    // Was there actually an update? We can tell because if not we will have
-    // the same MD5 reported back. Note in the past we would check the response
-    // body which does still say whether we have an update.
-    if (strcmp(hex_digest, expected_file_md5) == 0) {
-        say_if(gu->verbose, "No new updates available\n");
-        unlink(geoip_gz_filename);
-        free(geoip_filename);
-        free(geoip_gz_filename);
-        return GU_OK;
-    }
-
-    long filetime = -1;
-    if (gu->preserve_file_times) {
-        filetime = get_server_time(gu);
-    }
-    int rc = gunzip_and_replace(
-        gu, geoip_gz_filename, geoip_filename, expected_file_md5, filetime);
-
-    free(geoip_gz_filename);
-    free(geoip_filename);
-
-    return rc;
 }
 
 // Decompress the compressed database and move it into place in the database
@@ -875,10 +789,11 @@ static int gunzip_and_replace(geoipupdate_s const *const gu,
     say_if(gu->verbose, "Uncompress file %s to %s\n", gzipfile, file_path_test);
 
     gzFile gz_fh = gzopen(gzipfile, "rb");
-    exit_if(gz_fh == NULL, "Can't open %s\n", gzipfile);
+    exit_if(gz_fh == NULL, "Can't open %s: %s\n", gzipfile, strerror(errno));
 
     FILE *fhw = fopen(file_path_test, "wb");
-    exit_if(fhw == NULL, "Can't open %s\n", file_path_test);
+    exit_if(
+        fhw == NULL, "Can't open %s: %s\n", file_path_test, strerror(errno));
 
     size_t const bsize = 8192;
     char *const buffer = calloc(bsize, sizeof(char));
@@ -892,30 +807,54 @@ static int gunzip_and_replace(geoipupdate_s const *const gu,
 
     for (;;) {
         int amt = gzread(gz_fh, buffer, bsize);
-        if (amt == 0) {
-            // EOF
-            break;
+        if (amt <= 0) {
+            if (gzeof(gz_fh)) {
+                // EOF
+                break;
+            }
+            int gzerr = 0;
+            const char *msg = gzerror(gz_fh, &gzerr);
+            if (gzerr == Z_ERRNO) {
+                fprintf(stderr,
+                        "Unable to read %s: %s\n",
+                        gzipfile,
+                        strerror(errno));
+            } else {
+                fprintf(stderr, "Unable to decompress %s: %s\n", gzipfile, msg);
+            }
+            exit(1);
         }
-        exit_if(amt == -1, "Gzip read error while reading from %s\n", gzipfile);
         exit_unless(fwrite(buffer, 1, amt, fhw) == (size_t)amt,
-                    "Gzip write error\n");
+                    "Unable to write to %s: %s\n",
+                    file_path_test,
+                    strerror(errno));
     }
-    exit_if(-1 == fclose(fhw), "Error closing stream: %s", strerror(errno));
-    exit_if(gzclose(gz_fh) != Z_OK,
-            "Gzip read error while closing from %s\n",
-            gzipfile);
+    exit_if(-1 == fclose(fhw), "Error closing stream: %s\n", strerror(errno));
+    if (gzclose(gz_fh) != Z_OK) {
+        int gzerr = 0;
+        const char *msg = gzerror(gz_fh, &gzerr);
+        if (gzerr == Z_ERRNO) {
+            msg = strerror(errno);
+        }
+        fprintf(stderr, "Unable to close %s: %s\n", gzipfile, msg);
+        exit(1);
+    }
     free(buffer);
 
     char actual_md5[33] = {0};
     md5hex(file_path_test, actual_md5);
     exit_if(strncasecmp(actual_md5, expected_file_md5, 32),
-            "MD5 of new database (%s) does not match expected MD5 (%s)",
+            "MD5 of new database (%s) does not match expected MD5 (%s)\n",
             actual_md5,
             expected_file_md5);
 
     say_if(gu->verbose, "Rename %s to %s\n", file_path_test, geoip_filename);
     int err = rename(file_path_test, geoip_filename);
-    exit_if(err, "Rename %s to %s failed\n", file_path_test, geoip_filename);
+    exit_if(err,
+            "Rename %s to %s failed: %s\n",
+            file_path_test,
+            geoip_filename,
+            strerror(errno));
 
     if (gu->preserve_file_times && filetime > 0) {
         struct utimbuf utb;
@@ -931,15 +870,15 @@ static int gunzip_and_replace(geoipupdate_s const *const gu,
     // fsync directory to ensure the rename is durable
     int dirfd = open(gu->database_dir, O_DIRECTORY);
     exit_if(
-        -1 == dirfd, "Error opening database directory: %s", strerror(errno));
+        -1 == dirfd, "Error opening database directory: %s\n", strerror(errno));
     exit_if(-1 == fsync(dirfd),
-            "Error syncing database directory: %s",
+            "Error syncing database directory: %s\n",
             strerror(errno));
     exit_if(-1 == close(dirfd),
-            "Error closing database directory: %s",
+            "Error closing database directory: %s\n",
             strerror(errno));
     exit_if(-1 == unlink(gzipfile),
-            "Error unlinking %s: %s",
+            "Error unlinking %s: %s\n",
             gzipfile,
             strerror(errno));
 
