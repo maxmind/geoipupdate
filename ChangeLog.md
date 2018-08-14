@@ -1,6 +1,13 @@
 GeoIP Update Change Log
 =======================
 
+3.0.1 (2018-08-14)
+------------------
+
+* When there were no updates available, 3.0.0 incorrectly returned an
+  exit code of 1 instead of 0. This release reverts to the pre-3.0.0
+  behavior, returning an exit code of 0 in this case.
+
 3.0.0 (2018-08-13)
 ------------------
 
