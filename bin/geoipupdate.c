@@ -197,7 +197,7 @@ int main(int argc, char *const argv[]) {
         geoipupdate_s_delete(gu);
     }
     curl_global_cleanup();
-    return err ? GU_ERROR : GU_OK;
+    return err & GU_ERROR ? GU_ERROR : GU_OK;
 }
 
 static ssize_t my_getline(char **linep, size_t *linecapp, FILE *stream) {
