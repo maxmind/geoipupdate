@@ -1,6 +1,16 @@
 GeoIP Update Change Log
 =======================
 
+3.1.0
+------------------
+
+* This version restores the ability to use the `AccountID` / `UserId`
+  999999 along with an all-zero license key when downloading free
+  databases. However, the use of this combination is not recommended
+  and may break in future versions.
+* When printing verbose output, only the first four character of the
+  `LicenseKey` will now be displayed.
+
 3.0.1 (2018-08-14)
 ------------------
 
