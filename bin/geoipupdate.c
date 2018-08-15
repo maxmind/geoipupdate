@@ -241,7 +241,8 @@ static int parse_license_file(geoipupdate_s *up) {
             continue;
         }
         if (sscanf(strt, "LicenseKey %12s", &up->license.license_key[0]) == 1) {
-            say_if(up->verbose, "LicenseKey %s\n", up->license.license_key);
+            say_if(
+                up->verbose, "LicenseKey %.4s...\n", up->license.license_key);
             continue;
         }
 
