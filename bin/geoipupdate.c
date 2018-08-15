@@ -16,6 +16,7 @@
 #include <utime.h>
 #include <zlib.h>
 
+#define OLD_FREE_ACCOUNT_ID (999999)
 #define ZERO_LICENSE_KEY ("000000000000")
 #define ZERO_MD5 ("00000000000000000000000000000000")
 #define say(fmt, ...) say_if(1, fmt, ##__VA_ARGS__)
@@ -308,11 +309,20 @@ static int parse_license_file(geoipupdate_s *up) {
         }
     }
 
+    bool is_zero_license_key = !strncmp(ZERO_LICENSE_KEY,
+                                        up->license.license_key,
+                                        sizeof(ZERO_LICENSE_KEY) - 1);
+
+    // We used to recommend using 999999 / 000000000000 for free downloads and
+    // many people still use this combination. We need to check for the
+    // ZERO_LICENSE_KEY to ensure that a real AccountID of 999999 will work in
+    // the future.
+    if (up->license.account_id == OLD_FREE_ACCOUNT_ID && is_zero_license_key) {
+        up->license.account_id = NO_ACCOUNT_ID;
+    }
+
     exit_if(up->license.account_id == NO_ACCOUNT_ID &&
-                up->license.license_key[0] != 0 &&
-                strncmp(ZERO_LICENSE_KEY,
-                        up->license.license_key,
-                        sizeof(ZERO_LICENSE_KEY) - 1),
+                up->license.license_key[0] != 0 && !is_zero_license_key,
             "AccountID must be set if LicenseKey is set\n");
 
     // If we don't have a LockFile specified, then default to .geoipupdate.lock
