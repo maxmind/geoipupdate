@@ -1,7 +1,7 @@
 GeoIP Update Change Log
 =======================
 
-3.1.0
+3.1.0 (2018-08-16)
 ------------------
 
 * This version restores the ability to use the `AccountID` / `UserId`
