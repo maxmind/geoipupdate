@@ -1,3 +1,9 @@
+geoipupdate (3.1.0-0+maxmind1) bionic; urgency=medium
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Thu, 16 Aug 2018 07:52:51 -0700
+
 geoipupdate (3.0.1-0+maxmind1) bionic; urgency=medium
 
   * New upstream release.
