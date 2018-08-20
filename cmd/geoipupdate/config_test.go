@@ -62,7 +62,6 @@ EditionIDs GeoLite2-Country GeoLite2-City
 			Output: &Config{
 				DatabaseDirectory: "/tmp",
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
-				LicenseKey:        "000000000000",
 				LockFile:          "/tmp/.geoipupdate.lock",
 				URL:               "https://updates.maxmind.com",
 			},
@@ -112,7 +111,6 @@ ProductIds GeoLite2-Country GeoLite2-City
 			Output: &Config{
 				DatabaseDirectory: "/tmp",
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
-				LicenseKey:        "000000000000",
 				LockFile:          "/tmp/.geoipupdate.lock",
 				URL:               "https://updates.maxmind.com",
 			},
@@ -216,10 +214,40 @@ EditionID GeoIP2-City
 			Err: "unknown option on line 2",
 		},
 		{
-			Description: "Missing required key",
-			Input: `Host updates.maxmind.com
+			Description: "Missing required key in options",
+			Input:       ``,
+			Err:         "the `EditionIDs` option is required",
+		},
+		{
+			Description: "LicenseKey is found but AccountID is not",
+			Input: `LicenseKey abcd
+EditionIDs GeoIP2-City
 `,
-			Err: "the `AccountID' option is required",
+			Err: "the `AccountID` option is required if the `LicenseKey` option is set",
+		},
+		{
+			Description: "AccountID 0 with the LicenseKey 000000000000 is treated as no AccountID/LicenseKey",
+			Input: `AccountID 0
+LicenseKey 000000000000
+EditionIDs GeoIP2-City`,
+			Output: &Config{
+				DatabaseDirectory: "/tmp",
+				EditionIDs:        []string{"GeoIP2-City"},
+				LockFile:          "/tmp/.geoipupdate.lock",
+				URL:               "https://updates.maxmind.com",
+			},
+		},
+		{
+			Description: "AccountID 999999 with the LicenseKey 000000000000 is treated as no AccountID/LicenseKey",
+			Input: `AccountID 999999
+LicenseKey 000000000000
+EditionIDs GeoIP2-City`,
+			Output: &Config{
+				DatabaseDirectory: "/tmp",
+				EditionIDs:        []string{"GeoIP2-City"},
+				LockFile:          "/tmp/.geoipupdate.lock",
+				URL:               "https://updates.maxmind.com",
+			},
 		},
 		{
 			Description: "Deprecated options",

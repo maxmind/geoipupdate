@@ -107,10 +107,16 @@ func NewConfig(
 		return nil, errors.Wrap(err, "error reading file")
 	}
 
-	requiredKeys := []string{"AccountID", "LicenseKey", "EditionIDs"}
-	for _, k := range requiredKeys {
-		if _, ok := keysSeen[k]; !ok {
-			return nil, errors.Errorf("the `%s' option is required", k)
+	if _, ok := keysSeen["EditionIDs"]; !ok {
+		return nil, errors.Errorf("the `EditionIDs` option is required")
+	}
+
+	{
+		_, LicenseKeySeen := keysSeen["LicenseKey"]
+		_, AccountIDSeen := keysSeen["AccountID"]
+
+		if LicenseKeySeen && !AccountIDSeen {
+			return nil, errors.Errorf("the `AccountID` option is required if the `LicenseKey` option is set")
 		}
 	}
 
@@ -140,6 +146,11 @@ func NewConfig(
 		return nil, err
 	}
 	config.Proxy = proxyURL
+
+	if (config.AccountID == 0 || config.AccountID == 999999) && config.LicenseKey == "000000000000" {
+		config.AccountID = 0
+		config.LicenseKey = ""
+	}
 
 	return config, nil
 }

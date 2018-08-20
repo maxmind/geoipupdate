@@ -274,7 +274,7 @@ func maybeUpdate(
 	if err != nil {
 		return errors.Wrap(err, "error creating request")
 	}
-	if !strings.HasPrefix(editionID, "GeoLite2") {
+	if config.AccountID != 0 {
 		req.SetBasicAuth(fmt.Sprintf("%d", config.AccountID), config.LicenseKey)
 	}
 
