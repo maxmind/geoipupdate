@@ -147,6 +147,10 @@ func NewConfig(
 	}
 	config.Proxy = proxyURL
 
+	// We used to recommend using 999999 / 000000000000 for free downloads and
+	// many people still use this combination. We need to check for the
+	// 000000000000 license key to ensure that a real AccountID of 999999 will
+	// work in the future.
 	if (config.AccountID == 0 || config.AccountID == 999999) && config.LicenseKey == "000000000000" {
 		config.AccountID = 0
 		config.LicenseKey = ""
