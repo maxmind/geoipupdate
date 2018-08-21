@@ -265,7 +265,7 @@ EditionIDs GeoIP2-City`,
 		},
 		{
 			Description: "Deprecated options",
-			Input: `AccountID 0
+			Input: `AccountID 123
 LicenseKey abcd
 EditionIDs GeoIP2-City
 Protocol http
@@ -273,6 +273,7 @@ SkipHostnameVerification 1
 SkipPeerVerification 1
 `,
 			Output: &Config{
+				AccountID:         123,
 				DatabaseDirectory: "/tmp",
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "abcd",
@@ -282,8 +283,9 @@ SkipPeerVerification 1
 		},
 		{
 			Description: "CRLF line ending works",
-			Input:       "AccountID 0\r\nLicenseKey 123\r\nEditionIDs GeoIP2-City\r\n",
+			Input:       "AccountID 123\r\nLicenseKey 123\r\nEditionIDs GeoIP2-City\r\n",
 			Output: &Config{
+				AccountID:         123,
 				DatabaseDirectory: "/tmp",
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "123",
