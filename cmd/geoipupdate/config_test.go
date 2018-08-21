@@ -250,6 +250,20 @@ EditionIDs GeoIP2-City`,
 			},
 		},
 		{
+			Description: "AccountID 999999 with a non-000000000000 LicenseKey is treated normally",
+			Input: `AccountID 999999
+LicenseKey abcd
+EditionIDs GeoIP2-City`,
+			Output: &Config{
+				AccountID:         999999,
+				DatabaseDirectory: "/tmp",
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "abcd",
+				LockFile:          "/tmp/.geoipupdate.lock",
+				URL:               "https://updates.maxmind.com",
+			},
+		},
+		{
 			Description: "Deprecated options",
 			Input: `AccountID 0
 LicenseKey abcd
