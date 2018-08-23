@@ -119,6 +119,10 @@ func NewConfig(
 			return nil, errors.Errorf("the `AccountID` option is required if the `LicenseKey` option is set")
 		}
 
+		if AccountIDSeen && !LicenseKeySeen {
+			return nil, errors.Errorf("the `LicenseKey` option is required if the `AccountID` option is set")
+		}
+
 		if AccountIDSeen && config.AccountID == 0 && LicenseKeySeen && config.LicenseKey != "000000000000" {
 			return nil, errors.New("setting an `AccountID` option of 0 with a `LicenseKey` option other than 000000000000 is disallowed")
 		}

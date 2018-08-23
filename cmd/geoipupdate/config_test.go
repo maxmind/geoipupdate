@@ -226,6 +226,12 @@ EditionIDs GeoIP2-City
 			Err: "the `AccountID` option is required if the `LicenseKey` option is set",
 		},
 		{
+			Description: "AccountID is found but LicenseKey is not",
+			Input: `AccountID 123
+EditionIDs GeoIP2-City`,
+			Err: "the `LicenseKey` option is required if the `AccountID` option is set",
+		},
+		{
 			Description: "AccountID 0 with the LicenseKey 000000000000 is treated as no AccountID/LicenseKey",
 			Input: `AccountID 0
 LicenseKey 000000000000
