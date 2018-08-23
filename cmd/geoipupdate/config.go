@@ -118,6 +118,10 @@ func NewConfig(
 		if LicenseKeySeen && !AccountIDSeen {
 			return nil, errors.Errorf("the `AccountID` option is required if the `LicenseKey` option is set")
 		}
+
+		if AccountIDSeen && config.AccountID == 0 && LicenseKeySeen && config.LicenseKey != "000000000000" {
+			return nil, errors.New("setting an `AccountID` option of 0 with a `LicenseKey` option other than 000000000000 is disallowed")
+		}
 	}
 
 	// Set defaults & post-process.
@@ -146,10 +150,6 @@ func NewConfig(
 		return nil, err
 	}
 	config.Proxy = proxyURL
-
-	if config.AccountID == 0 && config.LicenseKey != "000000000000" {
-		return nil, errors.New("setting an `AccountID` option of 0 with a `LicenseKey` option other than 000000000000 is disallowed")
-	}
 
 	// We used to recommend using 999999 / 000000000000 for free downloads and
 	// many people still use this combination. We need to check for the
