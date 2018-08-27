@@ -107,10 +107,24 @@ func NewConfig(
 		return nil, errors.Wrap(err, "error reading file")
 	}
 
-	requiredKeys := []string{"AccountID", "LicenseKey", "EditionIDs"}
-	for _, k := range requiredKeys {
-		if _, ok := keysSeen[k]; !ok {
-			return nil, errors.Errorf("the `%s' option is required", k)
+	if _, ok := keysSeen["EditionIDs"]; !ok {
+		return nil, errors.Errorf("the `EditionIDs` option is required")
+	}
+
+	{
+		_, LicenseKeySeen := keysSeen["LicenseKey"]
+		_, AccountIDSeen := keysSeen["AccountID"]
+
+		if LicenseKeySeen && !AccountIDSeen {
+			return nil, errors.Errorf("the `AccountID` option is required if the `LicenseKey` option is set")
+		}
+
+		if AccountIDSeen && !LicenseKeySeen {
+			return nil, errors.Errorf("the `LicenseKey` option is required if the `AccountID` option is set")
+		}
+
+		if AccountIDSeen && config.AccountID == 0 && LicenseKeySeen && config.LicenseKey != "000000000000" {
+			return nil, errors.New("setting an `AccountID` option of 0 with a `LicenseKey` option other than 000000000000 is disallowed")
 		}
 	}
 
@@ -140,6 +154,15 @@ func NewConfig(
 		return nil, err
 	}
 	config.Proxy = proxyURL
+
+	// We used to recommend using 999999 / 000000000000 for free downloads and
+	// many people still use this combination. We need to check for the
+	// 000000000000 license key to ensure that a real AccountID of 999999 will
+	// work in the future.
+	if (config.AccountID == 0 || config.AccountID == 999999) && config.LicenseKey == "000000000000" {
+		config.AccountID = 0
+		config.LicenseKey = ""
+	}
 
 	return config, nil
 }

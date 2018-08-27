@@ -17,15 +17,14 @@ sensitive.
 
 ### Required settings:
 
-* `AccountID` - Your MaxMind account ID. This was formerly known as
-  `UserId`.
-* `LicenseKey` - Your case-sensitive MaxMind license key.
 * `EditionIDs` - List of database edition IDs. Edition IDs may consist
   of letters, digits, and dashes (e.g., "GeoIP2-City", "106"). Note: this
   was formerly called `ProductIds`.
 
 ### Optional settings:
 
+* `AccountID` - Your MaxMind account ID. This was formerly known as
+  `UserId`.
 * `DatabaseDirectory` - The directory to store the database files. If this
   is not set, you must specify the directory using the `-d` command line
   argument.
@@ -39,6 +38,7 @@ sensitive.
 * `PreserveFileTimes` - Whether to preserve modification times of files
   downloaded from the server. This option is either `0` or `1`. The default
   is `0`.
+* `LicenseKey` - Your case-sensitive MaxMind license key.
 * `LockFile` - The lock file to use. This ensures only one `geoipupdate`
   process can run at a time. Note: Once created, this lockfile is not removed
   from the filesystem. The default is `.geoipupdate.lock` under the
