@@ -1,6 +1,12 @@
 GeoIP Update Change Log
 =======================
 
+3.1.1 (2018-09-10)
+------------------
+
+* This version now allows parsing of license keys longer than 12
+  characters.
+
 3.1.0 (2018-08-16)
 ------------------
 
