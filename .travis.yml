@@ -1,6 +1,20 @@
 language: go
 
 go:
-  - "1.8.x"
-  - "1.9.x"
   - "1.10.x"
+  - "1.11.x"
+
+before_install:
+  - sudo apt-get install -y nodejs
+  - npm install -g snyk
+
+install:
+  - go get -t ./...
+  - snyk test --org=maxmind
+
+after_success:
+  - snyk monitor --org=maxmind --project-name=maxmind/geoipupdate2
+
+env:
+  global:
+    secure: "lqMoEipm/JszLrRFIxrfgIxczRIeBDBJLzpphS0wH2o4t9c1SesGPPmr0wfk6uf6yOjFCPHTuMpgex8jsXbpUc6Jf+FDC1eQZLWnV2Ve4/gdC20W0N96sdBzHcjGR6euYWPi7vzfE/3VAqgrS1Vbswc54vPVMEYGzSoNIaBP09Q3/xAuNNTRVGyEVF7POFv606gZ8sN+RR+081GhxRbzkmYAnfO/csdDRdag/yMlASVgYQU7zc9UNmXggsln3WvUv92vgOv/q+U9/BxPjIpRAkkTudUIqkrlE1OOu1b1xcRuiT1oQzRjTEi5yVR5stBBc4Rv/RzRN7y92vgh86PVoo2vDJPDXciSthmDntLciXU+Jq7+n3EUL6OKwtwpBP5ZT6KHrNXuMKNevWRHMj3fKUGjUbHrDG364wtggAXY7RRakcGE0i0Hkn+yvWdxE8GJTGiK6gW3jP2qFiGGU5DKaRL9rC1O3EokAa0J0v6VTW+aLuCy9AGkWZ6G274IucZId+SPj03KBBqtUEAZKDRGGOgrS78oJKCj90YJLQn2a2SGUQ2/JEmI97NSANbBv24XztiEPfdG9oabyHHLtfdN68mVuvHgvGvmIO63GtI3abYtTC83jXBzZrgAgZK7cNrh4Y2Thf2y8z+iFXDYWDLrnwFVaAi+KLVDDQbXMeiFWyc="
