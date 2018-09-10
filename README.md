@@ -33,7 +33,7 @@ On Centos 7 or RHEL 7, you can install these
 dependencies by running:
 
     $ sudo yum groupinstall 'Development Tools'
-    $ sudo yum install libcurl-devel
+    $ sudo yum install libcurl-devel zlib-devel
 
 Once you have the necessary dependencies, run the following commands:
 
