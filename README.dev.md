@@ -1,9 +1,25 @@
 # GitHub release
 
-Run `dev-bin/release.sh`
+Note: Don't edit `configure.ac` manually to bump the version; the release script
+will take care of that. Just make your changes and edit the `ChangeLog.md` file.
+
+Run `dev-bin/release.sh`.
 
 
 # Current PPA process
+
+Prerequisites: See https://github.com/maxmind/libmaxminddb/blob/master/README.dev.md#ppa
+and https://github.com/maxmind/libmaxminddb/blob/master/README.dev.md#prerequisites-for-releasing .
+Basically, you need to:
+1. Have a launchpad.net account
+2. Be on the MaxMind Launchpad team
+3. Have a GPG key hooked up to your Launchpad account
+4. Install the required release packages
+5. Install `hub`
+6. Run `dev-bin/ppa-release.sh` from the `ubuntu-ppa` branch with `DEBFULLNAME`
+   and `DEBEMAIL` environment variables set.
+
+Now check out the branch `ubuntu-ppa`.
 
 Note: `dev-bin/ppa-release.sh` should do the following for you.
 
