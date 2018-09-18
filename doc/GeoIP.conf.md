@@ -25,9 +25,10 @@ sensitive.
 
 * `AccountID` - Your MaxMind account ID. This was formerly known as
   `UserId`.
-* `DatabaseDirectory` - The directory to store the database files. If this
-  is not set, you must specify the directory using the `-d` command line
-  argument.
+* `DatabaseDirectory` - The directory to store the database files. If not
+  set, the default is `/usr/share/GeoIP` on Unix-like systems and
+  `C:\ProgramData\GeoIP` on Windows. This can be overridden at run time by
+  the `-d` command line argument.
 * `Host` - The host name of the server to use. The default is
   `updates.maxmind.com`.
 * `Proxy` - The proxy host name or IP address. You may optionally specify

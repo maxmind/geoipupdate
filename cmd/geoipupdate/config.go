@@ -136,7 +136,7 @@ func NewConfig(
 	}
 
 	if config.DatabaseDirectory == "" {
-		return nil, errors.New("no database directory specified, please set one in the config or provide it with -d")
+		config.DatabaseDirectory = defaultDatabaseDirectory
 	}
 
 	if host == "" {
