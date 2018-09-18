@@ -1,5 +1,3 @@
-// +build windows
-
 package main
 
 // These can be changed using compile time flags. e.g.,
