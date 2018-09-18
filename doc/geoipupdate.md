@@ -26,9 +26,8 @@ open.
   This is optional. If provided, it overrides any `DatabaseDirectory` set
   in the configuration file.
 * `-f`, `--config-file` - The configuration file to use. See
-  [GeoIP.conf](GeoIP.conf.md) for more information. This is optional. On
-  Unix-like systems it defaults to `/etc/GeoIP.conf` if not provided. On
-  Windows it defaults to `C:\ProgramData\GeoIP.conf` if not provided.
+  [GeoIP.conf](GeoIP.conf.md) for more information. This is optional. It
+  defaults to CONFFILE.
 * `-h`, `--help` - Display help and exit.
 * `--stack-trace` - Show a stack trace on any error message. This is
   primarily useful for debugging.
