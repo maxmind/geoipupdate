@@ -7,6 +7,6 @@ import (
 var (
 	// I'm not sure these make sense. However they can be overridden at runtime
 	// and in the configuration, so we have some flexibility.
-	defaultConfigFile        = os.Getenv("SYSTEMDRIVE") + `\ProgramData\GeoIP.conf`
+	defaultConfigFile        = os.Getenv("SYSTEMDRIVE") + `\ProgramData\MaxMind\GeoIP.conf`
 	defaultDatabaseDirectory = os.Getenv("SYSTEMDRIVE") + `\ProgramData\MaxMind\GeoIP`
 )
