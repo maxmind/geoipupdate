@@ -32,9 +32,9 @@ and the [`GeoIP.conf` configuration file](doc/GeoIP.conf.md).
 
 # Default config file and database directory paths
 
-We define the default paths for the config file and database directory. If
+We define default paths for the config file and database directory. If
 these defaults are not appropriate for you, you can change them at build
-time using flags like so:
+time using flags:
 
     go build -ldflags "-X main.defaultConfigFile=/etc/GeoIP.conf \
         -X main.defaultDatabaseDirectory=/usr/share/GeoIP"
