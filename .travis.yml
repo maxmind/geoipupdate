@@ -10,7 +10,7 @@ before_install:
 
 install:
   - go get -t ./...
-  - snyk test --org=maxmind
+  - "if [[ $TRAVIS_GO_VERSION =~ ^1\.11\.[0-9]+$ ]]; then snyk test --org=maxmind; fi"
 
 after_success:
   - "if [[ $TRAVIS_BRANCH == 'master' && $TRAVIS_PULL_REQUEST == 'false' && $TRAVIS_GO_VERSION =~ ^1\.11\.[0-9]+$ ]]; then snyk monitor --org=maxmind --project-name=maxmind/geoipupdate2; fi"
