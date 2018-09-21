@@ -1,19 +1,21 @@
 language: go
 
-go:
-  - "1.10.x"
-  - "1.11.x"
+matrix:
+  include:
+    - go: "1.10.x"
+    - go: "1.11.x"
+      env: RUN_SNYK=true
 
 before_install:
-  - sudo apt-get install -y nodejs
-  - npm install -g snyk
+  - "if [[ $RUN_SNYK ]]; then sudo apt-get install -y nodejs; fi"
+  - "if [[ $RUN_SNYK ]]; then npm install -g snyk; fi"
 
 install:
   - go get -t ./...
-  - "if [[ $TRAVIS_GO_VERSION =~ ^1\\.11\\.[0-9]+$ ]]; then snyk test --org=maxmind; fi"
+  - "if [[ $RUN_SNYK ]]; then snyk test --org=maxmind; fi"
 
 after_success:
-  - "if [[ $TRAVIS_BRANCH == 'master' && $TRAVIS_PULL_REQUEST == 'false' && $TRAVIS_GO_VERSION =~ ^1\\.11\\.[0-9]+$ ]]; then snyk monitor --org=maxmind --project-name=maxmind/geoipupdate2; fi"
+  - "if [[ $TRAVIS_BRANCH == 'master' && $TRAVIS_PULL_REQUEST == 'false' && $RUN_SNYK ]]; then snyk monitor --org=maxmind --project-name=maxmind/geoipupdate2; fi"
 
 env:
   global:
