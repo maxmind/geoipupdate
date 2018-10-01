@@ -31,6 +31,10 @@ func main() {
 	if err != nil {
 		fatal(args, "Error loading configuration file", err)
 	}
+	if args.Verbose {
+		log.Printf("Using config file %s", args.ConfigFile)
+		log.Printf("Using database directory %s", config.DatabaseDirectory)
+	}
 
 	lock, err := setup(config, args.Verbose)
 	if err != nil {

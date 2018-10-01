@@ -1,2 +1,3 @@
 *.swp
+/build
 /cmd/geoipupdate/geoipupdate

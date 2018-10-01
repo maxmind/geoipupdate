@@ -22,11 +22,12 @@ open.
 
 ## OPTIONS
 
-* `-d`, `--database-directory` - Install databases to a custom directory. This
-  must be specified if `DatabaseDirectory` is not set in the configuration
-  file.
+* `-d`, `--database-directory` - Install databases to a custom directory.
+  This is optional. If provided, it overrides any `DatabaseDirectory` set
+  in the configuration file.
 * `-f`, `--config-file` - The configuration file to use. See
-  [GeoIP.conf](GeoIP.conf.md) for more information. *Required*.
+  [GeoIP.conf](GeoIP.conf.md) for more information. This is optional. It
+  defaults to CONFFILE.
 * `-h`, `--help` - Display help and exit.
 * `--stack-trace` - Show a stack trace on any error message. This is
   primarily useful for debugging.

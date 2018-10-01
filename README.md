@@ -30,6 +30,15 @@ directions on how to configure GeoIP Update.
 See our documentation for the [`geoipupdate` program](doc/geoipupdate.md)
 and the [`GeoIP.conf` configuration file](doc/GeoIP.conf.md).
 
+# Default config file and database directory paths
+
+We define default paths for the config file and database directory. If
+these defaults are not appropriate for you, you can change them at build
+time using flags:
+
+    go build -ldflags "-X main.defaultConfigFile=/etc/GeoIP.conf \
+        -X main.defaultDatabaseDirectory=/usr/share/GeoIP"
+
 # Bug Reports
 
 Please report bugs by filing an issue with our GitHub issue tracker at
