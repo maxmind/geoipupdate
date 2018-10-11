@@ -7,15 +7,15 @@ matrix:
       env: RUN_SNYK=true
 
 before_install:
-  - "if [[ $RUN_SNYK ]]; then sudo apt-get install -y nodejs; fi"
-  - "if [[ $RUN_SNYK ]]; then npm install -g snyk; fi"
+  - "if [[ $RUN_SNYK && $SNYK_TOKEN ]]; then sudo apt-get install -y nodejs; fi"
+  - "if [[ $RUN_SNYK && $SNYK_TOKEN ]]; then npm install -g snyk; fi"
 
 install:
   - go get -t ./...
-  - "if [[ $RUN_SNYK ]]; then snyk test --org=maxmind; fi"
+  - "if [[ $RUN_SNYK && $SNYK_TOKEN ]]; then snyk test --org=maxmind; fi"
 
 after_success:
-  - "if [[ $TRAVIS_BRANCH == 'master' && $TRAVIS_PULL_REQUEST == 'false' && $RUN_SNYK ]]; then snyk monitor --org=maxmind --project-name=maxmind/geoipupdate2; fi"
+  - "if [[ $TRAVIS_BRANCH == 'master' && $TRAVIS_PULL_REQUEST == 'false' && $RUN_SNYK && $SNYK_TOKEN ]]; then snyk monitor --org=maxmind --project-name=maxmind/geoipupdate2; fi"
 
 env:
   global:
