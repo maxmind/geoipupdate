@@ -5,13 +5,21 @@ archive:
     linux: 'Linux'
     386: 'i386'
     amd64: 'x86_64'
+    windows: 'Windows'
   files:
     - 'CHANGELOG.md'
     - 'LICENSE-APACHE'
     - 'LICENSE-MIT'
     - 'README.md'
+  format_overrides:
+    - goos: windows
+      format: zip
 build:
   binary: 'geoipupdate'
+  goos:
+    - 'darwin'
+    - 'linux'
+    - 'windows'
   main: './cmd/geoipupdate'
 checksum:
   name_template: 'checksums.txt'
