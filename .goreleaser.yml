@@ -11,15 +11,27 @@ archive:
     - 'LICENSE-APACHE'
     - 'LICENSE-MIT'
     - 'README.md'
+    - 'GeoIP.conf'
+    - 'GeoIP.conf.md'
+    - 'geoipupdate.md'
   format_overrides:
     - goos: windows
       format: zip
-build:
+builds:
+- main: './cmd/geoipupdate'
   binary: 'geoipupdate'
   goos:
     - 'darwin'
     - 'linux'
+  hooks:
+    pre: 'make clean BUILDDIR=.'
+    post: 'make data BUILDDIR=.'
+- main: './cmd/geoipupdate'
+  binary: 'geoipupdate'
+  goos:
     - 'windows'
-  main: './cmd/geoipupdate'
+  hooks:
+    pre: 'make clean BUILDDIR=.'
+    post: 'make data OS=Windows_NT BUILDDIR=.'
 checksum:
   name_template: 'checksums.txt'

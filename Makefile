@@ -1,32 +1,50 @@
+ifndef BUILDDIR
+BUILDDIR=build
+endif
+
 ifndef CONFFILE
+ifeq ($(OS),Windows_NT)
+CONFFILE=%SystemDrive%\ProgramData\MaxMind\GeoIPUpdate\GeoIP.conf
+else
 CONFFILE=/usr/local/etc/GeoIP.conf
+endif
 endif
 
 ifndef DATADIR
+ifeq ($(OS),Windows_NT)
+DATADIR=%SystemDrive%\ProgramData\MaxMind\GeoIPUpdate\GeoIP
+else
 DATADIR=/usr/local/share/GeoIP
+endif
 endif
 
 all: \
-	build/geoipupdate \
-	build/GeoIP.conf \
-	build/GeoIP.conf.md \
-	build/geoipupdate.md
+	$(BUILDDIR)/geoipupdate \
+	data
 
-build:
-	mkdir -p build
+data: \
+	$(BUILDDIR)/GeoIP.conf \
+	$(BUILDDIR)/GeoIP.conf.md \
+	$(BUILDDIR)/geoipupdate.md
 
-build/geoipupdate: build
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
+
+$(BUILDDIR)/geoipupdate: $(BUILDDIR)
 	(cd cmd/geoipupdate && go build -ldflags '-X main.defaultConfigFile=$(CONFFILE) -X main.defaultDatabaseDirectory=$(DATADIR)')
-	cp cmd/geoipupdate/geoipupdate build
+	cp cmd/geoipupdate/geoipupdate $(BUILDDIR)
 
-build/GeoIP.conf: build conf/GeoIP.conf.default
-	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' conf/GeoIP.conf.default > build/GeoIP.conf
+$(BUILDDIR)/GeoIP.conf: $(BUILDDIR) conf/GeoIP.conf.default
+	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' conf/GeoIP.conf.default > $(BUILDDIR)/GeoIP.conf
 
-build/GeoIP.conf.md: build doc/GeoIP.conf.md
-	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' doc/GeoIP.conf.md > build/GeoIP.conf.md
+$(BUILDDIR)/GeoIP.conf.md: $(BUILDDIR) doc/GeoIP.conf.md
+	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' doc/GeoIP.conf.md > $(BUILDDIR)/GeoIP.conf.md
 
-build/geoipupdate.md: build doc/geoipupdate.md
-	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' doc/geoipupdate.md > build/geoipupdate.md
+$(BUILDDIR)/geoipupdate.md: $(BUILDDIR) doc/geoipupdate.md
+	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' doc/geoipupdate.md > $(BUILDDIR)/geoipupdate.md
 
 clean:
-	rm -rf build
+	rm -rf $(BUILDDIR)/GeoIP.conf \
+		   $(BUILDDIR)/GeoIP.conf.md \
+		   $(BUILDDIR)/geoipupdate \
+		   $(BUILDDIR)/geoipupdate.md
