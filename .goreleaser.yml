@@ -1,0 +1,17 @@
+archive:
+  wrap_in_directory: true
+  replacements:
+    darwin: 'Darwin'
+    linux: 'Linux'
+    386: 'i386'
+    amd64: 'x86_64'
+  files:
+    - 'CHANGELOG.md'
+    - 'LICENSE-APACHE'
+    - 'LICENSE-MIT'
+    - 'README.md'
+build:
+  binary: 'geoipupdate'
+  main: './cmd/geoipupdate'
+checksum:
+  name_template: 'checksums.txt'
