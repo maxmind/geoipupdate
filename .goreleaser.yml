@@ -1,3 +1,4 @@
+project_name: 'geoipupdate'
 archive:
   wrap_in_directory: true
   replacements:
