@@ -48,5 +48,6 @@ nfpm:
     'GeoIP.conf': '/etc/GeoIP.conf'
 release:
   # We disable the release as there is no way to disable the creation of
-  # the archive version and we don't want to upload those.
+  # the archive version and we don't want to upload those. We also can
+  # only do one release.
   disable: true
