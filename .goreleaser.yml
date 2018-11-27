@@ -15,18 +15,43 @@ archive:
 builds:
 - main: './cmd/geoipupdate'
   binary: 'geoipupdate'
+  goarch:
+    - 'amd64'
   goos:
     - 'darwin'
-    - 'linux'
   hooks:
-    pre: 'make clean BUILDDIR=.'
-    post: 'make data BUILDDIR=.'
+    post: 'make data BUILDDIR=dist/darwin_amd64'
 - main: './cmd/geoipupdate'
   binary: 'geoipupdate'
+  goarch:
+    - '386'
+  goos:
+    - 'linux'
+  hooks:
+    post: 'make data BUILDDIR=dist/linux_386'
+- main: './cmd/geoipupdate'
+  binary: 'geoipupdate'
+  goarch:
+    - 'amd64'
+  goos:
+    - 'linux'
+  hooks:
+    post: 'make data BUILDDIR=dist/linux_amd64'
+- main: './cmd/geoipupdate'
+  binary: 'geoipupdate'
+  goarch:
+    - '386'
   goos:
     - 'windows'
   hooks:
-    pre: 'make clean BUILDDIR=.'
-    post: 'make data OS=Windows_NT BUILDDIR=.'
+    post: 'make data OS=Windows_NT BUILDDIR=dist/windows_386'
+- main: './cmd/geoipupdate'
+  binary: 'geoipupdate'
+  goarch:
+    - 'amd64'
+  goos:
+    - 'windows'
+  hooks:
+    post: 'make data OS=Windows_NT BUILDDIR=dist/windows_amd64'
 checksum:
   name_template: 'checksums.txt'
