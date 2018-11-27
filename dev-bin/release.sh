@@ -4,6 +4,12 @@ set -eu -o pipefail
 
 changelog=$(cat CHANGELOG.md)
 
+
+if [[ -z ${GITHUB_TOKEN:-} ]]; then
+    echo 'GITHUB_TOKEN must be set for goreleaser!'
+    exit 1
+fi
+
 regex='
 ## ([0-9]+\.[0-9]+\.[0-9]+) \(([0-9]{4}-[0-9]{2}-[0-9]{2})\)
 
