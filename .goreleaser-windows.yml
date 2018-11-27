@@ -9,6 +9,7 @@ archive:
     - 'GeoIP.conf'
     - 'GeoIP.conf.md'
     - 'geoipupdate.md'
+  format: zip
 builds:
 - main: './cmd/geoipupdate'
   binary: 'geoipupdate'
@@ -16,9 +17,8 @@ builds:
     - '386'
     - 'amd64'
   goos:
-    - 'darwin'
-    - 'linux'
+    - 'windows'
   hooks:
-    post: 'make data BUILDDIR=.'
+    post: 'make data OS=Windows_NT BUILDDIR=.'
 checksum:
-  name_template: 'checksums-darwin-linux.txt'
+  name_template: 'checksums-windows.txt'
