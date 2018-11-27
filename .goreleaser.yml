@@ -1,12 +1,6 @@
 project_name: 'geoipupdate'
 archive:
   wrap_in_directory: true
-  replacements:
-    darwin: 'Darwin'
-    linux: 'Linux'
-    386: 'i386'
-    amd64: 'x86_64'
-    windows: 'Windows'
   files:
     - 'CHANGELOG.md'
     - 'LICENSE-APACHE'
