@@ -7,8 +7,6 @@ archive:
     - 'LICENSE-MIT'
     - 'README.md'
     - 'GeoIP.conf'
-    - 'GeoIP.conf.md'
-    - 'geoipupdate.md'
   format_overrides:
     - goos: windows
       format: zip
@@ -55,3 +53,25 @@ builds:
     post: 'make data OS=Windows_NT BUILDDIR=dist/windows_amd64'
 checksum:
   name_template: 'checksums.txt'
+nfpm:
+  vendor: 'MaxMind, Inc.'
+  homepage: https://www.maxmind.com/
+  maintainer: 'MaxMind, Inc. <support@maxmind.com>'
+  description: Program to perform automatic updates of GeoIP2 and GeoIP Legacy binary databases.
+  license: Apache 2.0 or MIT
+  formats:
+    - deb
+    - rpm
+  bindir: /usr/bin
+  empty_folders:
+  - /usr/share/GeoIP
+  files:
+    'CHANGELOG.md': '/usr/share/doc/geoipupdate/CHANGELOG.md'
+    'LICENSE-APACHE': '/usr/share/doc/geoipupdate/LICENSE-APACHE'
+    'LICENSE-MIT': '/usr/share/doc/geoipupdate/LICENSE-MIT'
+    'README.md': '/usr/share/doc/geoipupdate/README.md'
+    'GeoIP.conf': '/usr/share/doc/geoipupdate/GeoIP.conf'
+    'GeoIP.conf.md': '/usr/share/doc/geoipupdate/GeoIP.conf.md'
+    'geoipupdate.md': '/usr/share/doc/geoipupdate/geoipupdate.md'
+  config_files:
+    'GeoIP.conf': '/etc/GeoIP.conf'
