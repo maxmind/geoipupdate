@@ -19,8 +19,8 @@ import (
 	flock "github.com/theckman/go-flock"
 )
 
-// Version is the program's version number.
-const Version = "0.0.1"
+// version is the program's version number.
+var version = "unknown"
 
 func main() {
 	log.SetFlags(0)

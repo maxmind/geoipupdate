@@ -39,7 +39,7 @@ func getArgs() *Args {
 		printUsage()
 	}
 	if *version {
-		log.Printf("geoipupdate %s", Version)
+		log.Printf("geoipupdate %s", version)
 		os.Exit(0)
 	}
 
