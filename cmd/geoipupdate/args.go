@@ -31,14 +31,14 @@ func getArgs() *Args {
 	help := flag.BoolP("help", "h", false, "Display help and exit")
 	stackTrace := flag.Bool("stack-trace", false, "Show a stack trace along with any error message.")
 	verbose := flag.BoolP("verbose", "v", false, "Use verbose output")
-	version := flag.BoolP("version", "V", false, "Display the version and exit")
+	displayVersion := flag.BoolP("version", "V", false, "Display the version and exit")
 
 	flag.Parse()
 
 	if *help {
 		printUsage()
 	}
-	if *version {
+	if *displayVersion {
 		log.Printf("geoipupdate %s", version)
 		os.Exit(0)
 	}
