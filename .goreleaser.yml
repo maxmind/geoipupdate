@@ -1,0 +1,24 @@
+project_name: 'geoipupdate'
+archive:
+  wrap_in_directory: true
+  files:
+    - 'CHANGELOG.md'
+    - 'LICENSE-APACHE'
+    - 'LICENSE-MIT'
+    - 'README.md'
+    - 'GeoIP.conf'
+    - 'GeoIP.conf.md'
+    - 'geoipupdate.md'
+builds:
+- main: './cmd/geoipupdate'
+  binary: 'geoipupdate'
+  goarch:
+    - '386'
+    - 'amd64'
+  goos:
+    - 'darwin'
+    - 'linux'
+  hooks:
+    post: 'make data BUILDDIR=.'
+checksum:
+  name_template: 'checksums-darwin-linux.txt'
