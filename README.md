@@ -5,11 +5,75 @@
 The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP Legacy
 binary databases. CSV databases are _not_ supported.
 
-This is the new version of GeoIP Update. If for some reason you need the
-legacy C version, you can find it
-[here](https://github.com/maxmind/geoipupdate).
+## Installation
 
-## Installation from source or Git
+We provide releases for Linux, macOS (darwin), and Windows. Please see the
+[Releases](https://github.com/maxmind/geoipupdate2/releases) tab for the
+latest release.
+
+After you install geoipupdate, please refer to our
+[documentation](https://dev.maxmind.com/geoip/geoipupdate/) for information
+about configuration.
+
+If you're upgrading from geoipupdate 3.x, please see our [upgrade
+guide](https://dev.maxmind.com/geoip/geoipupdate/upgrading-to-geoipupdate-4-x/).
+
+### Installing on Linux via the tarball
+
+Download and extract the appropriate tarball for your system. You will end
+up with a directory named something like `geoipupdate_4.0.0_linux_amd64`
+depending on the version and architecture.
+
+Copy `geoipupdate` to where you want it to live. To install it to
+`/usr/local/bin/geoipupdate`, run the equivalent of `sudo cp
+geoipupdate_4.0.0_linux_amd64/geoipupdate /usr/local/bin`.
+
+`geoipupdate` looks for the config file `/usr/local/etc/GeoIP.conf` by
+default.
+
+### Installing on Ubuntu or Debian via the deb
+
+You can also use the tarball.
+
+Download the appropriate .deb for your system.
+
+Run `dpkg -i path/to/geoipupdate_4.0.0_linux_amd64.deb` (replacing the
+version number and architecture as necessary). You will need to be root.
+For Ubuntu you can prefix the command with `sudo`. This will install
+`geoipupdate` to `/usr/bin/geoipupdate`.
+
+`geoipupdate` looks for the config file `/etc/GeoIP.conf` by default.
+
+### Installing on RedHat or CentOS via the rpm
+
+You can also use the tarball.
+
+Download the appropriate .rpm for your system.
+
+Run `rpm -i path/to/geoipupdate_4.0.0_linux_amd64.rpm` (replacing the
+version number and architecture as necessary). You will need to be root.
+This will install `geoipupdate` to `/usr/bin/geoipupdate`.
+
+`geoipupdate` looks for the config file `/etc/GeoIP.conf` by default.
+
+### Installing on macOS (darwin)
+
+This is the same as installing on Linux via the tarball, except choose a
+tarball with "darwin" in the name.
+
+### Installing on Windows
+
+Download and extract the appropriate zip for your system. You will end up
+with a directory named something like `geoipupdate_4.0.0_windows_amd64`
+depending on the version and architecture.
+
+Copy `geoipupdate.exe` to where you want it to live.
+
+`geoipupdate` looks for the config file
+`\ProgramData\MaxMind/GeoIPUpdate\GeoIP.conf` on your system drive by
+default.
+
+### Installation from source or Git
 
 You need the Go compiler (1.8+). You can get it at the [Go
 website](https://golang.org).
@@ -18,7 +82,7 @@ The easiest way is via `go get`:
 
     $ go get -u github.com/maxmind/geoipupdate2/cmd/geoipupdate
 
-The program will be installed to `$GOPATH/bin/geoipupdate`.
+This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 
 # Configuring
 
@@ -46,7 +110,7 @@ https://github.com/maxmind/geoipupdate2/issues
 
 # Copyright and License
 
-This software is Copyright (c) 2018 by MaxMind, Inc.
+This software is Copyright (c) 2018 - 2019 by MaxMind, Inc.
 
 This is free software, licensed under the [Apache License, Version
 2.0](LICENSE-APACHE) or the [MIT License](LICENSE-MIT), at your option.
