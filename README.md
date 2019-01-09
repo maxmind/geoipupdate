@@ -69,7 +69,7 @@ depending on the version and architecture.
 
 Copy `geoipupdate.exe` to where you want it to live.
 
-`geoiupdate` looks for the config file
+`geoipupdate` looks for the config file
 `\ProgramData\MaxMind/GeoIPUpdate\GeoIP.conf` on your system drive by
 default.
 
