@@ -7,7 +7,7 @@ binary databases. CSV databases are _not_ supported.
 
 ## Installation
 
-We provide releases for Linux, OSX, and Windows. Please see the
+We provide releases for Linux, macOS (darwin), and Windows. Please see the
 [Releases](https://github.com/maxmind/geoipupdate2/releases) tab for the
 latest release.
 
@@ -56,9 +56,10 @@ This will install `geoipupdate` to `/usr/bin/geoipupdate`.
 
 `geoipupdate` looks for the config file `/etc/GeoIP.conf` by default.
 
-### Installing on OSX
+### Installing on macOS (darwin)
 
-This is the same as installing on Linux via the tarball.
+This is the same as installing on Linux via the tarball, except choose a
+tarball with "darwin" in the name.
 
 ### Installing on Windows
 
