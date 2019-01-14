@@ -49,12 +49,12 @@ installed such as `--prefix`, etc. See `./configure --help` for details.
 To install from Git, you will need automake, autoconf, and libtool installed.
 
 Our public git repository is hosted on GitHub at
-https://github.com/maxmind/geoipupdate
+https://github.com/maxmind/geoipupdate-legacy
 
 You can clone this repository and bootstrap it by running:
 
-    $ git clone https://github.com/maxmind/geoipupdate
-    $ cd geoipupdate
+    $ git clone https://github.com/maxmind/geoipupdate-legacy
+    $ cd geoipupdate-legacy
     $ ./bootstrap
 
 Then follow the instructions above for "Installing From Source Files".
@@ -67,7 +67,7 @@ directions on how to configure GeoIP Update.
 # Bug Reports
 
 Please report bugs by filing an issue with our GitHub issue tracker at
-https://github.com/maxmind/geoipupdate/issues
+https://github.com/maxmind/geoipupdate-legacy/issues
 
 # License
 
