@@ -1,6 +1,6 @@
 # GeoIP Update
 
-[![Build Status](https://travis-ci.com/maxmind/geoipupdate2.svg?branch=master)](https://travis-ci.com/maxmind/geoipupdate2)
+[![Build Status](https://travis-ci.com/maxmind/geoipupdate.svg?branch=master)](https://travis-ci.com/maxmind/geoipupdate)
 
 The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP Legacy
 binary databases. CSV databases are _not_ supported.
@@ -12,7 +12,7 @@ legacy C version, you can find it
 ## Installation
 
 We provide releases for Linux, macOS (darwin), and Windows. Please see the
-[Releases](https://github.com/maxmind/geoipupdate2/releases) tab for the
+[Releases](https://github.com/maxmind/geoipupdate/releases) tab for the
 latest release.
 
 After you install geoipupdate, please refer to our
@@ -84,7 +84,7 @@ website](https://golang.org).
 
 The easiest way is via `go get`:
 
-    $ go get -u github.com/maxmind/geoipupdate2/cmd/geoipupdate
+    $ go get -u github.com/maxmind/geoipupdate/cmd/geoipupdate
 
 This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 
@@ -110,7 +110,7 @@ time using flags:
 # Bug Reports
 
 Please report bugs by filing an issue with our GitHub issue tracker at
-https://github.com/maxmind/geoipupdate2/issues
+https://github.com/maxmind/geoipupdate/issues
 
 # Copyright and License
 
