@@ -5,6 +5,10 @@
 The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP Legacy
 binary databases. CSV databases are _not_ supported.
 
+This is the new version of GeoIP Update. If for some reason you need the
+legacy C version, you can find it
+[here](https://github.com/maxmind/geoipupdate-legacy).
+
 ## Installation
 
 We provide releases for Linux, macOS (darwin), and Windows. Please see the
