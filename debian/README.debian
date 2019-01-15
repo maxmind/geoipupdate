@@ -1,0 +1,5 @@
+geoipupdate for Debian
+----------------------
+
+In order to use this package, edit /etc/GeoIP.conf or pass another
+configuration file to geoipupdate using the -f flag.

@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+override_dh_auto_install:
+	dh_auto_install -- --no-source
+
+%:
+	dh $@ --buildsystem=golang --with=golang
+
+override_dh_installchangelogs:
+	dh_installchangelogs CHANGELOG.md
