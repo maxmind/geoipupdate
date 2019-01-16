@@ -1,0 +1,77 @@
+geoipupdate (4.0.0-0+maxmind1) cosmic; urgency=low
+
+  * New upstream release.
+
+ -- William Storey <wstorey@maxmind.com>  Wed, 16 Jan 2019 15:19:12 -0800
+
+geoipupdate (3.1.0-0+maxmind1) bionic; urgency=medium
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Thu, 16 Aug 2018 07:52:51 -0700
+
+geoipupdate (3.0.1-0+maxmind1) bionic; urgency=medium
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Tue, 14 Aug 2018 08:51:16 -0700
+
+geoipupdate (3.0.0-0+maxmind1) bionic; urgency=medium
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Mon, 13 Aug 2018 13:34:06 -0700
+
+geoipupdate (2.5.0-0+maxmind1) artful; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Mon, 30 Oct 2017 07:45:42 -0700
+
+geoipupdate (2.4.0-0+maxmind1) zesty; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Thu, 25 May 2017 13:17:24 -0700
+
+geoipupdate (2.3.1-0+maxmind1) yakkety; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Wed, 04 Jan 2017 17:22:52 -0800
+
+geoipupdate (2.3.0-0+maxmind1) yakkety; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Wed, 04 Jan 2017 13:54:19 -0800
+
+geoipupdate (2.2.2-0+maxmind1) wily; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Thu, 21 Jan 2016 11:21:05 -0800
+
+geoipupdate (2.2.1-0+maxmind1~utopic) utopic; urgency=medium
+
+  * New release to fix PPA packages with missing binaries.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Wed, 25 Feb 2015 19:58:12 -0800
+
+geoipupdate (2.2.0-0+maxmind1~utopic) utopic; urgency=medium
+
+  * New release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Wed, 25 Feb 2015 15:07:16 -0800
+
+geoipupdate (2.1.0-0+maxmind2) trusty; urgency=low
+
+  * Add zlib1g-dev to build-depends and change CFLAGS.
+
+ -- Greg Oschwald <goschwald@maxmind.com>  Mon, 10 Nov 2014 15:53:32 -0800
+
+geoipupdate (2.1.0-0+maxmind1) trusty; urgency=low
+
+  * Initial release of MaxMind package
+
+ -- Greg Oschwald <goschwald@maxmind.com>  Fri, 07 Nov 2014 14:16:41 -0800
