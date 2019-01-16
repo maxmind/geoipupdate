@@ -35,6 +35,21 @@ geoipupdate_4.0.0_linux_amd64/geoipupdate /usr/local/bin`.
 `geoipupdate` looks for the config file `/usr/local/etc/GeoIP.conf` by
 default.
 
+### Installing on Ubuntu via PPA
+
+MaxMind provides a PPA for recent versions of Ubuntu. To add the PPA to
+your sources, run:
+
+```
+$ sudo add-apt-repository ppa:maxmind/ppa
+```
+
+Then install `geoipupdate` by running:
+
+```
+$ sudo apt install geoipupdate
+```
+
 ### Installing on Ubuntu or Debian via the deb
 
 You can also use the tarball.
