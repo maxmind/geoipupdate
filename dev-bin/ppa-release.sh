@@ -9,7 +9,7 @@ DISTS=( cosmic bionic xenial trusty )
 VERSION=$(perl -MFile::Slurp::Tiny=read_file -MDateTime <<EOF
 use v5.16;
 my \$log = read_file(q{CHANGELOG.md});
-\$log =~ /\n(\d+\.\d+\.\d+) \((\d{4}-\d{2}-\d{2})\)\n/;
+\$log =~ /\n## (\d+\.\d+\.\d+) \((\d{4}-\d{2}-\d{2})\)\n/;
 die 'Release time is not today!' unless DateTime->now->ymd eq \$2;
 say \$1;
 EOF
@@ -20,8 +20,11 @@ SRC=/tmp/geoipupdate-$VERSION/
 ORIG_NAME="geoipupdate_$VERSION.orig.tar.gz"
 RESULTS=/tmp/build-geoipupdate-results/
 
-tar xfvz "$SRCDIST" -C /tmp
-cp -a debian "$SRC"
+rm -rf "$SRCDIST" "$RESULTS" cmd/geoipupdate/geoipupdate build
+
+make clean
+cp -a . "$SRC"
+tar --exclude=.git --exclude='*.swp' -C /tmp -czvf "$SRCDIST" "geoipupdate-$VERSION"
 
 mkdir -p $RESULTS
 
