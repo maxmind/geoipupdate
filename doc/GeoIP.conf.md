@@ -54,9 +54,8 @@ The following are deprecated and will be ignored if present:
 
 ## FILES
 
-* [`GeoIP.conf`](../conf/GeoIP.conf.default) - Default `geoipupdate`
-  configuration file.
+* `GeoIP.conf` - Default `geoipupdate` configuration file.
 
 ## SEE ALSO
 
-[geoipupdate](geoipupdate.md)
+`geoipupdate`(1)

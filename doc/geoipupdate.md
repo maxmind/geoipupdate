@@ -25,9 +25,9 @@ open.
 * `-d`, `--database-directory` - Install databases to a custom directory.
   This is optional. If provided, it overrides any `DatabaseDirectory` set
   in the configuration file.
-* `-f`, `--config-file` - The configuration file to use. See
-  [GeoIP.conf](GeoIP.conf.md) for more information. This is optional. It
-  defaults to CONFFILE.
+* `-f`, `--config-file` - The configuration file to use. See GeoIP.conf an
+  its documentation for more information. This is optional. It defaults to
+  CONFFILE.
 * `-h`, `--help` - Display help and exit.
 * `--stack-trace` - Show a stack trace on any error message. This is
   primarily useful for debugging.
@@ -63,7 +63,7 @@ variable.
 ## FILES
 
 * `GeoIP.conf` - Configuration file for GeoIP Update. See the
-  [`GeoIP.conf` documentation](GeoIP.conf.md) for more information.
+  `GeoIP.conf` documentation for more information.
 
 ## AUTHOR
 
@@ -75,11 +75,10 @@ Report bugs to [support@maxmind.com](mailto:support@maxmind.com).
 
 ## COPYRIGHT
 
-This software is Copyright (c) 2018 by MaxMind, Inc.
+This software is Copyright (c) 2018-2019 by MaxMind, Inc.
 
-This is free software, licensed under the [Apache License, Version
-2.0](../LICENSE-APACHE) or the [MIT License](../LICENSE-MIT), at your
-option.
+This is free software, licensed under the Apache License, Version 2.0 or
+the MIT License, at your option.
 
 ## MORE INFORMATION
 
@@ -89,4 +88,4 @@ for a subscription.
 
 ## SEE ALSO
 
-[`GeoIP.conf`](GeoIP.conf.md)
+`GeoIP.conf`(5)

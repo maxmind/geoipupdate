@@ -25,7 +25,9 @@ all: \
 data: \
 	$(BUILDDIR)/GeoIP.conf \
 	$(BUILDDIR)/GeoIP.conf.md \
-	$(BUILDDIR)/geoipupdate.md
+	$(BUILDDIR)/geoipupdate.md \
+	$(BUILDDIR)/GeoIP.conf.5 \
+	$(BUILDDIR)/geoipupdate.1
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
@@ -43,8 +45,16 @@ $(BUILDDIR)/GeoIP.conf.md: $(BUILDDIR) doc/GeoIP.conf.md
 $(BUILDDIR)/geoipupdate.md: $(BUILDDIR) doc/geoipupdate.md
 	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' doc/geoipupdate.md > $(BUILDDIR)/geoipupdate.md
 
+$(BUILDDIR)/GeoIP.conf.5:
+	dev-bin/make-man-pages.pl
+
+$(BUILDDIR)/geoipupdate.1:
+	dev-bin/make-man-pages.pl
+
 clean:
 	rm -rf $(BUILDDIR)/GeoIP.conf \
 		   $(BUILDDIR)/GeoIP.conf.md \
 		   $(BUILDDIR)/geoipupdate \
-		   $(BUILDDIR)/geoipupdate.md
+		   $(BUILDDIR)/geoipupdate.md \
+		   $(BUILDDIR)/GeoIP.conf.5 \
+		   $(BUILDDIR)/geoipupdate.1
