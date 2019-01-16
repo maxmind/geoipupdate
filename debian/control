@@ -5,13 +5,12 @@ Maintainer: William Storey <wstorey@maxmind.com>
 Build-Depends: debhelper (>= 11),
                dh-golang,
                golang-any,
-               golang-github-pkg-errors-dev,
-               golang-github-spf13-pflag-dev,
-               golang-github-stretchr-testify-dev
+               perl
 Standards-Version: 4.2.1
 Homepage: https://github.com/maxmind/geoipupdate
 Vcs-Browser: https://github.com/maxmind/geoipupdate
 Vcs-Git: https://github.com/maxmind/geoipupdate.git
+XS-Go-Import-Path: github.com/maxmind/geoipupdate
 
 Package: geoipupdate
 Architecture: any

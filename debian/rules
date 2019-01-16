@@ -1,5 +1,11 @@
 #!/usr/bin/make -f
 
+override_dh_auto_build:
+	make CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP data
+	@# Hack! Rather than use dh_auto_build's build step that would come
+	@# from dh_golang, we do something similar in order to pass ldflags.
+	dev-bin/deb-build.pl
+
 override_dh_auto_install:
 	dh_auto_install -- --no-source
 
