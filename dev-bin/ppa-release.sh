@@ -20,11 +20,12 @@ SRC=/tmp/geoipupdate-$VERSION/
 ORIG_NAME="geoipupdate_$VERSION.orig.tar.gz"
 RESULTS=/tmp/build-geoipupdate-results/
 
-rm -rf "$SRCDIST" "$RESULTS" cmd/geoipupdate/geoipupdate build
+rm -rf "$SRCDIST" "$RESULTS" cmd/geoipupdate/geoipupdate build *.gz
 
 make clean
 cp -a . "$SRC"
-tar --exclude=.git --exclude='*.swp' -C /tmp -czvf "$SRCDIST" "geoipupdate-$VERSION"
+rm -f "$SRC/*gz"
+tar --exclude=.git --exclude='*.swp' --exclude='*.gz' -C /tmp -czvf "$SRCDIST" "geoipupdate-$VERSION"
 
 mkdir -p $RESULTS
 
@@ -34,6 +35,11 @@ for dist in "${DISTS[@]}"; do
     cp "$SRCDIST" "$distdir/$ORIG_NAME"
     pushd "$distdir/geoipupdate-$VERSION/"
     dch -v "$VERSION-0+maxmind1~$dist" -D "$dist" -u low "New upstream release."
+    # If you don't want to include the orig source, such as if you're just
+    # bumping the PPA version (e.g. maxmind1 to maxmind2), replace the -sa flag
+    # here with -sd. Note you will have to download the orig.tar.gz from
+    # Launchpad to do this or it will reject the package saying it's different.
+    # You can find the orig.tar.gz on the list of packages page on Launchpad.
     debuild -S -sa -rfakeroot
     popd
     ls "$distdir"

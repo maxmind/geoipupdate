@@ -6,10 +6,20 @@ use warnings;
 use Cwd qw( cwd );
 use Debian::Debhelper::Buildsystem::golang ();
 
+$ENV{PATH} = '/usr/lib/go-1.10/bin:' . $ENV{PATH};
+
 # See build() in the D::D::B::golang for what we're replicating.
 my $b = Debian::Debhelper::Buildsystem::golang->new;
 $ENV{GOPATH} = cwd() . '/' . $b->get_builddir;
 chdir $b->get_builddir || die $!;
+
+# Hack! xenial fails with an error about missing this file for some reason
+# at this stage. Create it to make it happy.
+mkdir 'debian' || die $!;
+open my $fh, '>', 'debian/compat' || die $!;
+print { $fh } "9\n" || die $!;
+close $fh || die $!;
+
 system(
     'go',
     'install',
