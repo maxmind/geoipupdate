@@ -20,7 +20,7 @@ After you install geoipupdate, please refer to our
 about configuration.
 
 If you're upgrading from geoipupdate 3.x, please see our [upgrade
-guide](https://dev.maxmind.com/geoip/geoipupdate/upgrading-to-geoipupdate-4-x/).
+guide](https://dev.maxmind.com/geoip/geoipupdate/upgrading-to-geoip-update-4-x/).
 
 ### Installing on Linux via the tarball
 
