@@ -20,11 +20,11 @@ SRC=/tmp/geoipupdate-$VERSION/
 ORIG_NAME="geoipupdate_$VERSION.orig.tar.gz"
 RESULTS=/tmp/build-geoipupdate-results/
 
-rm -rf "$SRCDIST" "$RESULTS" cmd/geoipupdate/geoipupdate build *.gz
+rm -rf "$RESULTS" cmd/geoipupdate/geoipupdate build
 
 make clean
 cp -a . "$SRC"
-rm -f "$SRC/*gz"
+rm -f "$SRC"/*gz
 tar --exclude=.git --exclude='*.swp' --exclude='*.gz' -C /tmp -czvf "$SRCDIST" "geoipupdate-$VERSION"
 
 mkdir -p $RESULTS
