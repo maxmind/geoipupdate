@@ -47,6 +47,7 @@ $ sudo add-apt-repository ppa:maxmind/ppa
 Then install `geoipupdate` by running:
 
 ```
+$ sudo apt update
 $ sudo apt install geoipupdate
 ```
 
