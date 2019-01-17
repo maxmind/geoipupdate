@@ -20,7 +20,7 @@ After you install geoipupdate, please refer to our
 about configuration.
 
 If you're upgrading from geoipupdate 3.x, please see our [upgrade
-guide](https://dev.maxmind.com/geoip/geoipupdate/upgrading-to-geoipupdate-4-x/).
+guide](https://dev.maxmind.com/geoip/geoipupdate/upgrading-to-geoip-update-4-x/).
 
 ### Installing on Linux via the tarball
 
@@ -34,6 +34,22 @@ geoipupdate_4.0.0_linux_amd64/geoipupdate /usr/local/bin`.
 
 `geoipupdate` looks for the config file `/usr/local/etc/GeoIP.conf` by
 default.
+
+### Installing on Ubuntu via PPA
+
+MaxMind provides a PPA for recent versions of Ubuntu. To add the PPA to
+your sources, run:
+
+```
+$ sudo add-apt-repository ppa:maxmind/ppa
+```
+
+Then install `geoipupdate` by running:
+
+```
+$ sudo apt update
+$ sudo apt install geoipupdate
+```
 
 ### Installing on Ubuntu or Debian via the deb
 

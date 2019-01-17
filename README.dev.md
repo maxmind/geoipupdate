@@ -9,3 +9,11 @@
   [here](https://github.com/settings/tokens/new).
   * If we're not using Go modules yet, the release might fail depending on
     your `GO111MODULE` setting. Consider setting it to `off` if necessary.
+
+Then release to our PPA:
+
+* Switch to the ubuntu-ppa branch. Merge master into it.
+* Set up to release to launchpad. You can see some information about
+  prerequisites for this
+  [here](https://github.com/maxmind/libmaxminddb/blob/master/README.dev.md).
+* Run `dev-bin/ppa-release.sh`
