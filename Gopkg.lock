@@ -10,6 +10,14 @@
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:e5abcb5d4f4cec8b475f2a812a00c3218fb75f0f792cdeee301e265d22a98cb7"
+  name = "github.com/gofrs/flock"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b139a2487364247d91814e4a7c7b8fdc69e342b2"
+  version = "v0.4.0"
+
+[[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
@@ -34,7 +42,7 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:befd7181c2f92c9f05abf17cd7e15538919f19cf7871d794cacc45a4fb99c135"
+  digest = "1:c40d65817cdd41fac9aa7af8bed56927bb2d6d47e4fea566a74880f5c2b1c41e"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
@@ -44,23 +52,15 @@
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
   version = "v1.2.2"
 
-[[projects]]
-  digest = "1:e5abcb5d4f4cec8b475f2a812a00c3218fb75f0f792cdeee301e265d22a98cb7"
-  name = "github.com/theckman/go-flock"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "b139a2487364247d91814e4a7c7b8fdc69e342b2"
-  version = "v0.4.0"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/gofrs/flock",
     "github.com/pkg/errors",
     "github.com/spf13/pflag",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
-    "github.com/theckman/go-flock",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

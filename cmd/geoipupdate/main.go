@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	flock "github.com/theckman/go-flock"
+	"github.com/gofrs/flock"
 )
 
 // version is the program's version number.
