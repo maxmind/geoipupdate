@@ -10,12 +10,12 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:e5abcb5d4f4cec8b475f2a812a00c3218fb75f0f792cdeee301e265d22a98cb7"
+  digest = "1:70f34ee6d1b188cbd2dfcde62b0e2c600262eb5a03c8a3f3435ecf7c74790470"
   name = "github.com/gofrs/flock"
   packages = ["."]
   pruneopts = "UT"
-  revision = "b139a2487364247d91814e4a7c7b8fdc69e342b2"
-  version = "v0.4.0"
+  revision = "7f43ea2e6a643ad441fc12d0ecc0d3388b300c53"
+  version = "v0.7.0"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"

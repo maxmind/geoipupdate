@@ -76,7 +76,7 @@ func setup(
 		return nil, err
 	}
 
-	lock := flock.NewFlock(config.LockFile)
+	lock := flock.New(config.LockFile)
 	ok, err := lock.TryLock()
 	if err != nil {
 		return nil, errors.Wrap(err, "error acquiring a lock")
