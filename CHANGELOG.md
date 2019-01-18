@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 4.0.2 (2019-01-18)
+
+* Fix dependency in `Makefile`.
+
 ## 4.0.1 (2019-01-17)
 
 * Improve documentation.
