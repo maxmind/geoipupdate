@@ -76,10 +76,19 @@ This will install `geoipupdate` to `/usr/bin/geoipupdate`.
 
 `geoipupdate` looks for the config file `/etc/GeoIP.conf` by default.
 
-### Installing on macOS (darwin)
+### Installing on macOS (darwin) via the tarball
 
 This is the same as installing on Linux via the tarball, except choose a
 tarball with "darwin" in the name.
+
+### Installing on macOS via Homebrew
+
+If you are on macOS and you have [Homebrew](http://brew.sh/) you can install
+`geoipupdate` via `brew`
+
+```
+$ brew install geoipupdate
+```
 
 ### Installing on Windows
 
