@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.0.3
+
+* Update flock dependency from `theckman/go-flock` to `gofrs/flock`. Pull
+  request by Paul Howarth. GitHub #22.
+
 ## 4.0.2 (2019-01-18)
 
 * Fix dependency in `Makefile`.
