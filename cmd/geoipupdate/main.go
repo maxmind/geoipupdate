@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/gofrs/flock"
+	"github.com/pkg/errors"
 )
 
 // version is the program's version number.
