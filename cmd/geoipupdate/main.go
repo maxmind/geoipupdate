@@ -12,17 +12,22 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/gofrs/flock"
+	"github.com/pkg/errors"
 )
 
 // version is the program's version number.
 var version = "unknown"
 
 func main() {
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "(devel)" {
+		version = info.Main.Version
+	}
+
 	log.SetFlags(0)
 
 	args := getArgs()
