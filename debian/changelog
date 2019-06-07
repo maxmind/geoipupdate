@@ -1,3 +1,9 @@
+geoipupdate (4.0.3-0+maxmind1) cosmic; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Fri, 07 Jun 2019 08:01:37 -0700
+
 geoipupdate (4.0.0-0+maxmind1) cosmic; urgency=low
 
   * New upstream release.
