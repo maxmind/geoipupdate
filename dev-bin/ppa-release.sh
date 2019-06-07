@@ -4,7 +4,7 @@ set -e
 set -x
 set -u
 
-DISTS=( cosmic bionic xenial trusty )
+DISTS=( disco cosmic bionic xenial trusty )
 
 VERSION=$(perl -MFile::Slurp::Tiny=read_file -MDateTime <<EOF
 use v5.16;
