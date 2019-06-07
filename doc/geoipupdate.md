@@ -25,7 +25,7 @@ open.
 * `-d`, `--database-directory` - Install databases to a custom directory.
   This is optional. If provided, it overrides any `DatabaseDirectory` set
   in the configuration file.
-* `-f`, `--config-file` - The configuration file to use. See GeoIP.conf an
+* `-f`, `--config-file` - The configuration file to use. See GeoIP.conf and
   its documentation for more information. This is optional. It defaults to
   CONFFILE.
 * `-h`, `--help` - Display help and exit.

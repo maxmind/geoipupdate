@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 4.0.3 (2019-06-07)
+
+* Update flock dependency from `theckman/go-flock` to `gofrs/flock`. Pull
+  request by Paul Howarth. GitHub #22.
+* Switch to Go modules and update dependencies.
+* Fix version output on Ubuntu PPA and Homebrew releases.
+
+## 4.0.2 (2019-01-18)
+
+* Fix dependency in `Makefile`.
+
+## 4.0.1 (2019-01-17)
+
+* Improve documentation.
+* Add script to generate man pages to `Makefile`.
+
 ## 4.0.0 (2019-01-14)
 
 * Expand installation instructions.

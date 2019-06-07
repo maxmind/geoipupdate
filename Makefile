@@ -18,6 +18,10 @@ DATADIR=/usr/local/share/GeoIP
 endif
 endif
 
+ifndef VERSION
+VERSION=unknown
+endif
+
 all: \
 	$(BUILDDIR)/geoipupdate \
 	data
@@ -33,7 +37,7 @@ $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
 $(BUILDDIR)/geoipupdate: $(BUILDDIR)
-	(cd cmd/geoipupdate && go build -ldflags '-X main.defaultConfigFile=$(CONFFILE) -X main.defaultDatabaseDirectory=$(DATADIR)')
+	(cd cmd/geoipupdate && go build -ldflags '-X main.defaultConfigFile=$(CONFFILE) -X main.defaultDatabaseDirectory=$(DATADIR) -X "main.version=$(VERSION)"')
 	cp cmd/geoipupdate/geoipupdate $(BUILDDIR)
 
 $(BUILDDIR)/GeoIP.conf: $(BUILDDIR) conf/GeoIP.conf.default
@@ -45,11 +49,10 @@ $(BUILDDIR)/GeoIP.conf.md: $(BUILDDIR) doc/GeoIP.conf.md
 $(BUILDDIR)/geoipupdate.md: $(BUILDDIR) doc/geoipupdate.md
 	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' doc/geoipupdate.md > $(BUILDDIR)/geoipupdate.md
 
-$(BUILDDIR)/GeoIP.conf.5:
+$(BUILDDIR)/GeoIP.conf.5: $(BUILDDIR)/GeoIP.conf.md  $(BUILDDIR)/geoipupdate.md
 	dev-bin/make-man-pages.pl
 
-$(BUILDDIR)/geoipupdate.1:
-	dev-bin/make-man-pages.pl
+$(BUILDDIR)/geoipupdate.1: $(BUILDDIR)/GeoIP.conf.5
 
 clean:
 	rm -rf $(BUILDDIR)/GeoIP.conf \

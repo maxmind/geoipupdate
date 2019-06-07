@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofrs/flock"
 	"github.com/pkg/errors"
-	flock "github.com/theckman/go-flock"
 )
 
 // version is the program's version number.
@@ -76,7 +76,7 @@ func setup(
 		return nil, err
 	}
 
-	lock := flock.NewFlock(config.LockFile)
+	lock := flock.New(config.LockFile)
 	ok, err := lock.TryLock()
 	if err != nil {
 		return nil, errors.Wrap(err, "error acquiring a lock")

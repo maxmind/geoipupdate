@@ -20,7 +20,7 @@ After you install geoipupdate, please refer to our
 about configuration.
 
 If you're upgrading from geoipupdate 3.x, please see our [upgrade
-guide](https://dev.maxmind.com/geoip/geoipupdate/upgrading-to-geoipupdate-4-x/).
+guide](https://dev.maxmind.com/geoip/geoipupdate/upgrading-to-geoip-update-4-x/).
 
 ### Installing on Linux via the tarball
 
@@ -76,10 +76,19 @@ This will install `geoipupdate` to `/usr/bin/geoipupdate`.
 
 `geoipupdate` looks for the config file `/etc/GeoIP.conf` by default.
 
-### Installing on macOS (darwin)
+### Installing on macOS (darwin) via the tarball
 
 This is the same as installing on Linux via the tarball, except choose a
 tarball with "darwin" in the name.
+
+### Installing on macOS via Homebrew
+
+If you are on macOS and you have [Homebrew](http://brew.sh/) you can install
+`geoipupdate` via `brew`
+
+```
+$ brew install geoipupdate
+```
 
 ### Installing on Windows
 

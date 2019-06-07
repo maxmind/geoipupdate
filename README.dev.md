@@ -17,3 +17,11 @@ Then release to our PPA:
   prerequisites for this
   [here](https://github.com/maxmind/libmaxminddb/blob/master/README.dev.md).
 * Run `dev-bin/ppa-release.sh`
+
+Finally release to Homebrew:
+
+* Go to https://github.com/Homebrew/homebrew-core/blob/master/Formula/geoipupdate.rb
+* Edit the file to update the url and sha256. You can get the sha256 for the
+  tarball with the `sha256sum` command line utility.
+* Make a commit with the summary `geoipupdate <VERSION>`
+* Submit a PR with the changes you just made.
