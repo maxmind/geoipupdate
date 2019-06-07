@@ -12,10 +12,11 @@
 
 Then release to our PPA:
 
-* Switch to the ubuntu-ppa branch. Merge master into it.
+* Switch to the ubuntu-ppa branch. Merge the released tag into it.
 * Set up to release to launchpad. You can see some information about
   prerequisites for this
   [here](https://github.com/maxmind/libmaxminddb/blob/master/README.dev.md).
+* Delete `dist` directory.
 * Run `dev-bin/ppa-release.sh`
 
 Finally release to Homebrew:
