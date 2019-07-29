@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -422,8 +423,10 @@ func writeAndCheck(
 		}
 	}()
 
-	if err := dh.Sync(); err != nil {
-		return errors.Wrap(err, "error syncing database directory")
+	if runtime.GOOS != "windows" {
+		if err := dh.Sync(); err != nil {
+			return errors.Wrap(err, "error syncing database directory")
+		}
 	}
 
 	if verbose {
