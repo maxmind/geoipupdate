@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 4.0.4
+
+* Do not try to sync the database directory when running on Windows.
+  Syncing this way is not supported there and would lead to an error. Pull
+  request by Nicholi. GitHub #32.
+
 ## 4.0.3 (2019-06-07)
 
 * Update flock dependency from `theckman/go-flock` to `gofrs/flock`. Pull
