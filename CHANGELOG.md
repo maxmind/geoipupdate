@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.0.4
+## 4.0.4 (2019-08-30)
 
 * Do not try to sync the database directory when running on Windows.
   Syncing this way is not supported there and would lead to an error. Pull
