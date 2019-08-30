@@ -56,9 +56,6 @@ $notes"
 
 git tag -a -m "$message" "$tag"
 
-git push
-git push --tags
-
 # goreleaser's `--rm-dist' should clear out `dist', but it didn't work for me.
 rm -rf dist
 goreleaser release --rm-dist -f .goreleaser.yml --release-notes <(echo "$message")
@@ -75,6 +72,10 @@ make clean BUILDDIR=.
 
 rm -rf dist
 goreleaser release --rm-dist -f .goreleaser-packages.yml --skip-publish
+
+git push
+git push --tags
+
 hub release edit -m "$message" \
     -a dist/checksums-dpkg-rpm.txt \
     -a "dist/geoipupdate_${version}_linux_386.deb" \
