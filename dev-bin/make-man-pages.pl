@@ -2,31 +2,34 @@
 use strict;
 use warnings;
 
+use File::Temp qw( tempfile );
+
 sub main {
+    my $build_dir = $ARGV[0] // 'build';
+
     _make_man(
         'geoipupdate',
         1,
-        'build/geoipupdate.md',
-        'build/geoipupdate.1',
+        "$build_dir/geoipupdate.md",
+        "$build_dir/geoipupdate.1",
     );
     _make_man(
         'GeoIP.conf',
         5,
-        'build/GeoIP.conf.md',
-        'build/GeoIP.conf.5',
+        "$build_dir/GeoIP.conf.md",
+        "$build_dir/GeoIP.conf.5",
     );
     return 1;
 }
 
 sub _make_man {
-    my ($name, $section, $input, $output) = @_;
+    my ( $name, $section, $input, $output ) = @_;
 
-    my $tmp = 'build/tmp';
-    open my $fh, '>', $tmp or die $!;
+    my ( $fh, $tmp ) = tempfile();
     binmode $fh or die $!;
-    print { $fh } "% $name($section)\n\n" or die $!;
+    print {$fh} "% $name($section)\n\n" or die $!;
     my $contents = _read($input);
-    print { $fh } $contents or die $!;
+    print {$fh} $contents or die $!;
     close $fh or die $!;
 
     system(
@@ -38,8 +41,6 @@ sub _make_man {
         '-o', $output,
     ) == 0 or die 'pandoc failed';
 
-    unlink $tmp or die $!;
-
     return;
 }
 
@@ -48,7 +49,7 @@ sub _read {
     open my $fh, '<', $file or die $!;
     binmode $fh or die $!;
     my $contents = '';
-    while (!eof($fh)) {
+    while ( !eof($fh) ) {
         my $line = <$fh>;
         die 'error reading' unless defined $line;
         $contents .= $line;
@@ -57,4 +58,4 @@ sub _read {
     return $contents;
 }
 
-exit(main() ? 0 : 1);
+exit( main() ? 0 : 1 );
