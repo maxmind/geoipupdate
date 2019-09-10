@@ -280,7 +280,7 @@ func TestUpdateEdition(t *testing.T) {
 		if test.DatabaseAfter != "" {
 			buf, err := ioutil.ReadFile(currentDatabasePath)
 			require.NoError(t, err, test.Description)
-			assert.Equal(t, string(test.DatabaseAfter), string(buf))
+			assert.Equal(t, test.DatabaseAfter, string(buf))
 		}
 
 		if !test.ExpectedTime.IsZero() {

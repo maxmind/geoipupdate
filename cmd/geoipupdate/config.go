@@ -26,7 +26,7 @@ type Config struct {
 }
 
 // NewConfig parses the configuration file.
-func NewConfig(
+func NewConfig( // nolint: gocyclo
 	file,
 	databaseDirectory string,
 ) (*Config, error) {
@@ -195,7 +195,7 @@ func parseProxy(
 		return nil, errors.Wrap(err, "error parsing proxy URL")
 	}
 
-	if strings.Index(u.Host, ":") == -1 {
+	if !strings.Contains(u.Host, ":") {
 		u.Host += ":1080" // The 1080 default historically came from cURL.
 	}
 
