@@ -28,3 +28,8 @@
     "vet",
     "vetshadow",
   ]
+
+# This goes off for MD5 usage, which we use heavily
+[[issues.exclude-rules]]
+text = "weak cryptographic primitive"
+linters = ["gosec"]
