@@ -68,9 +68,7 @@ func setup(
 	config *Config,
 	verbose bool,
 ) (*flock.Flock, error) {
-	if err := maybeSetProxy(config, verbose); err != nil {
-		return nil, err
-	}
+	maybeSetProxy(config, verbose)
 
 	if err := checkEnvironment(config); err != nil {
 		return nil, err
@@ -99,17 +97,15 @@ var client = &http.Client{}
 func maybeSetProxy(
 	config *Config,
 	verbose bool,
-) error {
+) {
 	if config.Proxy == nil {
-		return nil
+		return
 	}
 
 	if verbose {
 		log.Printf("Using proxy: %s", config.Proxy)
 	}
 	http.DefaultTransport.(*http.Transport).Proxy = http.ProxyURL(config.Proxy)
-
-	return nil
 }
 
 func checkEnvironment(
