@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -423,11 +422,9 @@ func writeAndCheck(
 		}
 	}()
 
-	if runtime.GOOS != "windows" {
-		if err := dh.Sync(); err != nil {
-			return errors.Wrap(err, "error syncing database directory")
-		}
-	}
+	// We ignore Sync errors as they primarily happen on file systems that do
+	// not support sync.
+	_ = dh.Sync()
 
 	if verbose {
 		log.Printf("Updated %s", target)
