@@ -131,7 +131,7 @@ func TestUpdateEdition(t *testing.T) {
 			FilenameBody:   "GeoIP2-City.mmdb",
 			DownloadStatus: http.StatusOK,
 			DownloadBody:   "new database goes here",
-			Err:            `error updating: error creating file: open \S+GeoIP2-City\.mmdb\.test: no such file or directory`,
+			Err:            `error updating: error creating file: open \S+GeoIP2-City\.mmdb\.test: (?:no such file or directory|The system cannot find the path specified)`,
 		},
 		{
 			Description:     "Download fails because provided checksum does not match",
