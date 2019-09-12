@@ -74,7 +74,7 @@ func NewConfig( // nolint: gocyclo
 			keysSeen["AccountID"] = struct{}{}
 			keysSeen["UserId"] = struct{}{}
 		case "DatabaseDirectory":
-			config.DatabaseDirectory = value
+			config.DatabaseDirectory = filepath.Clean(value)
 		case "EditionIDs", "ProductIds":
 			config.EditionIDs = strings.Fields(value)
 			keysSeen["EditionIDs"] = struct{}{}
@@ -84,7 +84,7 @@ func NewConfig( // nolint: gocyclo
 		case "LicenseKey":
 			config.LicenseKey = value
 		case "LockFile":
-			config.LockFile = value
+			config.LockFile = filepath.Clean(value)
 		case "PreserveFileTimes":
 			if value != "0" && value != "1" {
 				return nil, errors.New("`PreserveFileTimes' must be 0 or 1")
@@ -132,11 +132,11 @@ func NewConfig( // nolint: gocyclo
 
 	// Argument takes precedence.
 	if databaseDirectory != "" {
-		config.DatabaseDirectory = databaseDirectory
+		config.DatabaseDirectory = filepath.Clean(databaseDirectory)
 	}
 
 	if config.DatabaseDirectory == "" {
-		config.DatabaseDirectory = defaultDatabaseDirectory
+		config.DatabaseDirectory = filepath.Clean(defaultDatabaseDirectory)
 	}
 
 	if host == "" {
