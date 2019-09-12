@@ -18,6 +18,10 @@ DATADIR=/usr/local/share/GeoIP
 endif
 endif
 
+ifeq ($(OS),Windows_NT)
+MAYBE_CR=\r
+endif
+
 ifndef VERSION
 VERSION=unknown
 endif
@@ -41,13 +45,13 @@ $(BUILDDIR)/geoipupdate: $(BUILDDIR)
 	cp cmd/geoipupdate/geoipupdate $(BUILDDIR)
 
 $(BUILDDIR)/GeoIP.conf: $(BUILDDIR) conf/GeoIP.conf.default
-	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' conf/GeoIP.conf.default > $(BUILDDIR)/GeoIP.conf
+	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' -e 's|$$|$(MAYBE_CR)|g' conf/GeoIP.conf.default > $(BUILDDIR)/GeoIP.conf
 
 $(BUILDDIR)/GeoIP.conf.md: $(BUILDDIR) doc/GeoIP.conf.md
-	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' doc/GeoIP.conf.md > $(BUILDDIR)/GeoIP.conf.md
+	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' -e 's|$$|$(MAYBE_CR)|g' doc/GeoIP.conf.md > $(BUILDDIR)/GeoIP.conf.md
 
 $(BUILDDIR)/geoipupdate.md: $(BUILDDIR) doc/geoipupdate.md
-	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' doc/geoipupdate.md > $(BUILDDIR)/geoipupdate.md
+	sed -e 's|CONFFILE|$(CONFFILE)|g' -e 's|DATADIR|$(DATADIR)|g' -e 's|$$|$(MAYBE_CR)|g' doc/geoipupdate.md > $(BUILDDIR)/geoipupdate.md
 
 $(BUILDDIR)/GeoIP.conf.5: $(BUILDDIR)/GeoIP.conf.md  $(BUILDDIR)/geoipupdate.md
 	dev-bin/make-man-pages.pl "$(BUILDDIR)"
