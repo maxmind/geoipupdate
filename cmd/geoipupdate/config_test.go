@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -60,9 +61,9 @@ EditionIDs GeoLite2-Country GeoLite2-City
 # LockFile DATADIR/.geoipupdate.lock
 `,
 			Output: &Config{
-				DatabaseDirectory: "/tmp",
+				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
-				LockFile:          "/tmp/.geoipupdate.lock",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 			},
 		},
@@ -109,9 +110,9 @@ ProductIds GeoLite2-Country GeoLite2-City
 # LockFile DATADIR/.geoipupdate.lock
 `,
 			Output: &Config{
-				DatabaseDirectory: "/tmp",
+				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
-				LockFile:          "/tmp/.geoipupdate.lock",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 			},
 		},
@@ -159,10 +160,10 @@ LockFile /usr/lock
 `,
 			Output: &Config{
 				AccountID:         1234,
-				DatabaseDirectory: "/tmp", // Argument takes precedence
+				DatabaseDirectory: filepath.Clean("/tmp"), // Argument takes precedence
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City", "GeoIP2-City"},
 				LicenseKey:        "abcdefghi",
-				LockFile:          "/usr/lock",
+				LockFile:          filepath.Clean("/usr/lock"),
 				Proxy: &url.URL{
 					Scheme: "http",
 					User:   url.UserPassword("username", "password"),
@@ -237,9 +238,9 @@ EditionIDs GeoIP2-City`,
 LicenseKey 000000000000
 EditionIDs GeoIP2-City`,
 			Output: &Config{
-				DatabaseDirectory: "/tmp",
+				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoIP2-City"},
-				LockFile:          "/tmp/.geoipupdate.lock",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 			},
 		},
@@ -249,9 +250,9 @@ EditionIDs GeoIP2-City`,
 LicenseKey 000000000000
 EditionIDs GeoIP2-City`,
 			Output: &Config{
-				DatabaseDirectory: "/tmp",
+				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoIP2-City"},
-				LockFile:          "/tmp/.geoipupdate.lock",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 			},
 		},
@@ -262,10 +263,10 @@ LicenseKey abcd
 EditionIDs GeoIP2-City`,
 			Output: &Config{
 				AccountID:         999999,
-				DatabaseDirectory: "/tmp",
+				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "abcd",
-				LockFile:          "/tmp/.geoipupdate.lock",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 			},
 		},
@@ -280,10 +281,10 @@ SkipPeerVerification 1
 `,
 			Output: &Config{
 				AccountID:         123,
-				DatabaseDirectory: "/tmp",
+				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "abcd",
-				LockFile:          "/tmp/.geoipupdate.lock",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 			},
 		},
@@ -292,10 +293,10 @@ SkipPeerVerification 1
 			Input:       "AccountID 123\r\nLicenseKey 123\r\nEditionIDs GeoIP2-City\r\n",
 			Output: &Config{
 				AccountID:         123,
-				DatabaseDirectory: "/tmp",
+				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "123",
-				LockFile:          "/tmp/.geoipupdate.lock",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 			},
 		},
@@ -312,10 +313,10 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 `,
 			Output: &Config{
 				AccountID:         123,
-				DatabaseDirectory: "/tmp",
+				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoLite2-City", "GeoLite2-Country"},
 				LicenseKey:        "456",
-				LockFile:          "/tmp/.geoipupdate.lock",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 			},
 		},
@@ -324,10 +325,10 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 			Input:       "AccountID\t123\nLicenseKey\t\t456\nEditionIDs\t\t\tGeoLite2-City\t\t\t\tGeoLite2-Country\t\t\t\t\n",
 			Output: &Config{
 				AccountID:         123,
-				DatabaseDirectory: "/tmp",
+				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoLite2-City", "GeoLite2-Country"},
 				LicenseKey:        "456",
-				LockFile:          "/tmp/.geoipupdate.lock",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 			},
 		},

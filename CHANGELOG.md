@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 4.0.5 (2019-09-13)
+
+* Ignore errors when syncing file system. These errors were primarily due
+  to the file system not supporting the sync call. Reported by devkappa.
+  GitHub #37.
+* Use CRLF line endings on Windows for text files.
+* Fix tests on Windows.
+
 ## 4.0.4 (2019-08-30)
 
 * Do not try to sync the database directory when running on Windows.

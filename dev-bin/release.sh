@@ -74,7 +74,6 @@ rm -rf dist
 goreleaser release --rm-dist -f .goreleaser-packages.yml --skip-publish
 
 git push
-git push --tags
 
 hub release edit -m "$message" \
     -a dist/checksums-dpkg-rpm.txt \

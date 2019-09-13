@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -69,9 +68,7 @@ func setup(
 	config *Config,
 	verbose bool,
 ) (*flock.Flock, error) {
-	if err := maybeSetProxy(config, verbose); err != nil {
-		return nil, err
-	}
+	maybeSetProxy(config, verbose)
 
 	if err := checkEnvironment(config); err != nil {
 		return nil, err
@@ -100,17 +97,15 @@ var client = &http.Client{}
 func maybeSetProxy(
 	config *Config,
 	verbose bool,
-) error {
+) {
 	if config.Proxy == nil {
-		return nil
+		return
 	}
 
 	if verbose {
 		log.Printf("Using proxy: %s", config.Proxy)
 	}
 	http.DefaultTransport.(*http.Transport).Proxy = http.ProxyURL(config.Proxy)
-
-	return nil
 }
 
 func checkEnvironment(
@@ -423,11 +418,9 @@ func writeAndCheck(
 		}
 	}()
 
-	if runtime.GOOS != "windows" {
-		if err := dh.Sync(); err != nil {
-			return errors.Wrap(err, "error syncing database directory")
-		}
-	}
+	// We ignore Sync errors as they primarily happen on file systems that do
+	// not support sync.
+	_ = dh.Sync()
 
 	if verbose {
 		log.Printf("Updated %s", target)

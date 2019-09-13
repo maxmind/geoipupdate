@@ -1,0 +1,35 @@
+[run]
+  deadline = "10m"
+  tests = true
+
+[linters]
+  disable-all = true
+  enable = [
+    "deadcode",
+    "depguard",
+    "errcheck",
+    "goconst",
+    "gocyclo",
+    "gocritic",
+    "gofmt",
+    "golint",
+    "gosec",
+    "gosimple",
+    "ineffassign",
+    "maligned",
+    "misspell",
+    "nakedret",
+    "staticcheck",
+    "structcheck",
+    "typecheck",
+    "unconvert",
+    "unparam",
+    "varcheck",
+    "vet",
+    "vetshadow",
+  ]
+
+# This goes off for MD5 usage, which we use heavily
+[[issues.exclude-rules]]
+text = "weak cryptographic primitive"
+linters = ["gosec"]

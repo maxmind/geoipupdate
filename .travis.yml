@@ -1,12 +1,28 @@
 language: go
 
-matrix:
-  include:
-    - go: "1.10.x"
-    - go: "1.11.x"
-    - go: "1.12.x"
+os:
+  - linux
+  - osx
+  - windows
+
+go:
+  - "1.10.x"
+  - "1.11.x"
+  - "1.12.x"
+  - "1.13.x"
 
 install:
   - go get -t ./...
 
-script: go test -v ./...
+before_script:
+  - |
+    if [[ $TRAVIS_GO_VERSION == '1.13.x' && $TRAVIS_OS_NAME == 'linux' ]]; then
+      curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin
+    fi
+
+script:
+  - go test -v -race ./...
+  - |
+    if [[ $TRAVIS_GO_VERSION == '1.13.x' && $TRAVIS_OS_NAME == 'linux' ]]; then
+      golangci-lint run
+    fi
