@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.0.5
+## 4.0.5 (2019-09-13)
 
 * Ignore errors when syncing file system. These errors were primarily due
   to the file system not supporting the sync call. Reported by devkappa.
