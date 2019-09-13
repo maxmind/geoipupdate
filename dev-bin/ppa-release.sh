@@ -23,6 +23,9 @@ RESULTS=/tmp/build-geoipupdate-results/
 rm -rf "$RESULTS" cmd/geoipupdate/geoipupdate build
 
 make clean
+
+go mod vendor
+
 cp -a . "$SRC"
 rm -f "$SRC"/*gz
 tar --exclude=.git --exclude='*.swp' --exclude='*.gz' -C /tmp -czvf "$SRCDIST" "geoipupdate-$VERSION"
