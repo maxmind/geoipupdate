@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 4.0.6 (2019-09-13)
+
+* Re-release of 4.0.5 to fix Ubuntu PPA release issue. No code changes.
+
 ## 4.0.5 (2019-09-13)
 
 * Ignore errors when syncing file system. These errors were primarily due
@@ -7,6 +11,9 @@
   GitHub #37.
 * Use CRLF line endings on Windows for text files.
 * Fix tests on Windows.
+* Improve man page formatting. Reported by Faidon Liambotis. GitHub #38.
+* Dependencies are no longer vendored. Reported by Faidon Liambotis. GitHub
+  #39.
 
 ## 4.0.4 (2019-08-30)
 
