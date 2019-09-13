@@ -2,6 +2,12 @@ geoipupdate (4.0.5-0+maxmind1) disco; urgency=low
 
   * New upstream release.
 
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Fri, 13 Sep 2019 09:17:26 -0700
+
+geoipupdate (4.0.5-0+maxmind1) disco; urgency=low
+
+  * New upstream release.
+
  -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Fri, 13 Sep 2019 09:05:31 -0700
 
 geoipupdate (4.0.5-0+maxmind1) disco; urgency=low
