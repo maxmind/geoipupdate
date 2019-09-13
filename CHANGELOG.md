@@ -7,6 +7,9 @@
   GitHub #37.
 * Use CRLF line endings on Windows for text files.
 * Fix tests on Windows.
+* Improve man page formatting. Reported by Faidon Liambotis. GitHub #38.
+* Dependencies are no longer vendored. Reported by Faidon Liambotis. GitHub
+  #39.
 
 ## 4.0.4 (2019-08-30)
 
