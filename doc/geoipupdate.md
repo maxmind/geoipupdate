@@ -4,7 +4,7 @@ geoipupdate - GeoIP2, GeoLite2, and GeoIP Legacy Update Program
 
 # SYNOPSIS
 
-    geoipupdate [-Vvh] [-f CONFIG_FILE] [-d TARGET_DIRECTORY]
+**geoipupdate** [-Vvh] [-f *CONFIG_FILE*] [-d *TARGET_DIRECTORY*]
 
 # DESCRIPTION
 
@@ -17,7 +17,6 @@ If you are using a firewall, you must have the DNS and HTTPS ports
 open.
 
 # OPTIONS
-
 
 `-d`, `--database-directory`
 
@@ -46,7 +45,11 @@ open.
 
 :   Enable verbose mode. Prints out the steps that `geoipupdate` takes.
 
-# USAGE
+# EXIT STATUS
+
+`geoipupdate` returns 0 on success and 1 on error.
+
+# NOTES
 
 Typically you should run `geoipupdate` weekly. On most Unix-like systems,
 this can be achieved by using cron. Below is a sample crontab file that
@@ -65,24 +68,13 @@ To use with a proxy server, update your `GeoIP.conf` file as specified
 in the `GeoIP.conf` man page or set the `http_proxy` environment
 variable.
 
-# RETURN CODES
-
-`geoipupdate` returns 0 on success and 1 on error.
-
-# FILES
-
-* `GeoIP.conf` - Configuration file for GeoIP Update. See the
-  `GeoIP.conf` documentation for more information.
-
-# AUTHOR
-
-Written by William Storey.
-
-# REPORTING BUGS
+# BUGS
 
 Report bugs to [support@maxmind.com](mailto:support@maxmind.com).
 
-# COPYRIGHT
+# AUTHORS
+
+Written by William Storey.
 
 This software is Copyright (c) 2018-2019 by MaxMind, Inc.
 
