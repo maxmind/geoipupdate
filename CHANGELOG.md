@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.0.7
+
+* Improve man page formatting. Pull request by Faidon Liambotis. GitHub
+  #44.
+
 ## 4.0.6 (2019-09-13)
 
 * Re-release of 4.0.5 to fix Ubuntu PPA release issue. No code changes.
