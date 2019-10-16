@@ -1,10 +1,11 @@
-package main
+package geoipupdate
 
 import (
 	"bytes"
 	"compress/gzip"
 	"crypto/md5"
 	"fmt"
+	"github.com/maxmind/geoipupdate/pkg/geoipupdate/database"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -77,31 +78,6 @@ func TestUpdateEdition(t *testing.T) {
 			ExpectedTime: time.Date(2018, 7, 24, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Description:     "Get filename fails",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "database goes here",
-			FilenameStatus:  http.StatusBadRequest,
-			Err:             "error retrieving filename: unexpected HTTP status code: 400 Bad Request",
-		},
-		{
-			Description:     "Get filename is missing body",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "database goes here",
-			FilenameStatus:  http.StatusOK,
-			Err:             "error retrieving filename: response body is empty",
-		},
-		{
-			Description:     "Get filename has newlines",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "bad\nfilename",
-			Err:             "error retrieving filename: invalid characters in filename",
-		},
-		{
 			Description:     "Download request fails",
 			CreateDirectory: true,
 			DatabaseBefore:  "database goes here",
@@ -124,14 +100,6 @@ func TestUpdateEdition(t *testing.T) {
 				"X-Database-MD5": "",
 			},
 			Err: "error updating: no X-Database-MD5 header found",
-		},
-		{
-			Description:    "Download fails because database directory does not exist",
-			FilenameStatus: http.StatusOK,
-			FilenameBody:   "GeoIP2-City.mmdb",
-			DownloadStatus: http.StatusOK,
-			DownloadBody:   "new database goes here",
-			Err:            `error updating: error creating file: open \S+GeoIP2-City\.mmdb\.test: (?:no such file or directory|The system cannot find the path specified)`,
 		},
 		{
 			Description:     "Download fails because provided checksum does not match",
@@ -244,7 +212,6 @@ func TestUpdateEdition(t *testing.T) {
 			LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
 			URL:               server.URL,
 		}
-		verbose := false
 		if !test.ExpectedTime.IsZero() {
 			config.PreserveFileTimes = true
 		}
@@ -267,7 +234,17 @@ func TestUpdateEdition(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		err := updateEdition(config, verbose, config.EditionIDs[0])
+		client := buildClient(config)
+		dbReader := &database.HttpDatabaseReader{
+			Client:     client,
+			URL:        config.URL,
+			LicenseKey: config.LicenseKey,
+			AccountId:  config.AccountID,
+			Verbose:    config.Verbose,
+		}
+		dbWriter, err := database.NewLocalFileDatabaseWriter(currentDatabasePath, config.LockFile, config.Verbose)
+		assert.NoError(t, err, test.Description)
+		err = UpdateEdition(dbReader, dbWriter, config, config.EditionIDs[0])
 		if test.Err == "" {
 			assert.NoError(t, err, test.Description)
 		} else {
@@ -296,24 +273,72 @@ func TestUpdateEdition(t *testing.T) {
 	}
 }
 
-func TestGetCurrentMD5(t *testing.T) {
+func TestGetFileName(t *testing.T) {
+
+	tests := []struct {
+		Description    string
+		FilenameStatus int
+		FilenameBody   string
+		Err            string
+	}{
+		{
+			Description:    "Get filename fails",
+			FilenameStatus: http.StatusBadRequest,
+			Err:            "unexpected HTTP status code: 400 Bad Request: ",
+		},
+		{
+			Description:    "Get filename is missing body",
+			FilenameStatus: http.StatusOK,
+			Err:            "response body is empty",
+		},
+		{
+			Description:    "Get filename has newlines",
+			FilenameStatus: http.StatusOK,
+			FilenameBody:   "bad\nfilename",
+			Err:            "invalid characters in filename",
+		},
+	}
+
 	tempDir, err := ioutil.TempDir("", "gutest-")
 	require.NoError(t, err)
 	defer func() {
-		err := os.RemoveAll(tempDir)
+		err = os.RemoveAll(tempDir)
 		require.NoError(t, err)
 	}()
 
-	config := &Config{
-		DatabaseDirectory: tempDir,
+	for _, test := range tests {
+		server := httptest.NewServer(
+			http.HandlerFunc(
+				func(rw http.ResponseWriter, r *http.Request) {
+					if r.URL.Path == "/app/update_getfilename" {
+						rw.WriteHeader(test.FilenameStatus)
+						_, err := rw.Write([]byte(test.FilenameBody))
+						require.NoError(t, err)
+						return
+					}
+					if r.URL.Path == "/go-here" {
+						rw.WriteHeader(http.StatusNotModified)
+						return
+					}
+					rw.WriteHeader(http.StatusBadRequest)
+				},
+			),
+		)
+
+		config := &Config{
+			AccountID:         123,
+			DatabaseDirectory: tempDir,
+			EditionIDs:        []string{"GeoIP2-City"},
+			LicenseKey:        "testing",
+			LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
+			URL:               server.URL,
+		}
+		client := buildClient(config)
+		_, err := getFileName(config, config.EditionIDs[0], client)
+
+		require.Error(t, err, test.Description)
+		assert.Equal(t, test.Err, err.Error(), test.Description)
+
 	}
 
-	dirFile := filepath.Join(tempDir, "mydir")
-	err = os.Mkdir(dirFile, 0755)
-	require.NoError(t, err)
-
-	verbose := false
-	md5, err := getCurrentMD5(config, verbose, "mydir")
-	assert.EqualError(t, err, "not a regular file")
-	assert.Equal(t, "", md5)
 }

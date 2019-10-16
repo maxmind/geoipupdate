@@ -2,3 +2,4 @@
 /build
 /cmd/geoipupdate/geoipupdate
 /vendor
+.idea
