@@ -16,12 +16,12 @@ import (
 type Config struct {
 	AccountID         int
 	DatabaseDirectory string
-	EditionIDs        []string
 	LicenseKey        string
 	LockFile          string
-	PreserveFileTimes bool
 	URL               string
+	EditionIDs        []string
 	Proxy             *url.URL
+	PreserveFileTimes bool
 	Verbose           bool
 }
 

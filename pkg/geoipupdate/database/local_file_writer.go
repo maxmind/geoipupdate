@@ -44,7 +44,7 @@ func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) 
 		defer func() {
 			err := file.Close()
 			if err != nil {
-				log.Println(errors.Wrap(err, "Error closing current datbase file "+filePath))
+				log.Println(errors.Wrap(err, "Error closing current database file "+filePath))
 			}
 		}()
 		hash := md5.New()
