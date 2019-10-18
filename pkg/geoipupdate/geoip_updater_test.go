@@ -235,11 +235,11 @@ func TestUpdateEdition(t *testing.T) {
 		}
 
 		client := buildClient(config)
-		dbReader := &database.HttpDatabaseReader{
+		dbReader := &database.HTTPDatabaseReader{
 			Client:     client,
 			URL:        config.URL,
 			LicenseKey: config.LicenseKey,
-			AccountId:  config.AccountID,
+			AccountID:  config.AccountID,
 			Verbose:    config.Verbose,
 		}
 		dbWriter, err := database.NewLocalFileDatabaseWriter(currentDatabasePath, config.LockFile, config.Verbose)

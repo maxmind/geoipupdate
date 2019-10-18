@@ -13,15 +13,16 @@ import (
 	"path/filepath"
 )
 
+//Run takes the information from a Config and copies all of the provided EditionIDs from a database.Reader to a database.Writer
 func Run(
 	config *Config,
 ) error {
 	client := buildClient(config)
-	dbReader := &database.HttpDatabaseReader{
+	dbReader := &database.HTTPDatabaseReader{
 		Client:     client,
 		URL:        config.URL,
 		LicenseKey: config.LicenseKey,
-		AccountId:  config.AccountID,
+		AccountID:  config.AccountID,
 		Verbose:    config.Verbose,
 	}
 	for _, editionID := range config.EditionIDs {
@@ -98,6 +99,7 @@ func getFileName(
 	return string(buf), nil
 }
 
+//UpdateEdition copies the contents of a database.Reader to a single database.Writer
 func UpdateEdition(dbReader database.Reader, dbWriter database.Writer, config *Config, editionID string) error {
 	if err := dbReader.Get(dbWriter, editionID); err != nil {
 		return errors.Wrap(err, "error updating")

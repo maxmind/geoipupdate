@@ -15,6 +15,7 @@ import (
 
 const zeroMD5 = "00000000000000000000000000000000"
 
+//LocalFileDatabaseWriter is a database.Writer that stores the database to the local file system
 type LocalFileDatabaseWriter struct {
 	filePath   string
 	lockFile   string
@@ -25,6 +26,8 @@ type LocalFileDatabaseWriter struct {
 	swapFile   *os.File
 }
 
+//NewLocalFileDatabaseWriter create a new LocalFileDatabaseWriter, creating necessary lock and swap files to protect
+// the database from concurrent writes
 func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) (*LocalFileDatabaseWriter, error) {
 	dbWriter := &LocalFileDatabaseWriter{
 		filePath: filePath,
@@ -86,17 +89,21 @@ func (writer *LocalFileDatabaseWriter) lockDirectory() error {
 	return nil
 }
 
+//Write writes data to swap file
 func (writer *LocalFileDatabaseWriter) Write(p []byte) (n int, err error) {
 	return writer.swapFile.Write(p)
 }
 
+//Close closes the swap file
 func (writer *LocalFileDatabaseWriter) Close() (err error) {
 	return writer.swapFile.Close()
 }
 
+//ValidHash checks that the swap file's MD5 matches the expectedHash
 func (writer *LocalFileDatabaseWriter) ValidHash(expectedHash string) error {
 	md5Writer := md5.New()
 	reader, err := os.Open(writer.swapFile.Name())
+	defer reader.Close()
 	if err != nil {
 		return errors.Wrap(err, "swap file was unable to be opened")
 	}
@@ -110,6 +117,7 @@ func (writer *LocalFileDatabaseWriter) ValidHash(expectedHash string) error {
 	return nil
 }
 
+//SetFileModificationTime explicitly sets the database's file write time to the provided time
 func (writer *LocalFileDatabaseWriter) SetFileModificationTime(lastModified time.Time) error {
 	if err := os.Chtimes(writer.filePath, lastModified, lastModified); err != nil {
 		return errors.Wrap(err, "error setting times on file")
@@ -117,6 +125,7 @@ func (writer *LocalFileDatabaseWriter) SetFileModificationTime(lastModified time
 	return nil
 }
 
+//Commit renames the swap file to the name of the database file before syncing the directory
 func (writer *LocalFileDatabaseWriter) Commit() error {
 	if err := os.Rename(writer.swapFile.Name(), writer.filePath); err != nil {
 		return errors.Wrap(err, "Error moving database into place")
@@ -142,6 +151,7 @@ func (writer *LocalFileDatabaseWriter) Commit() error {
 	return nil
 }
 
+//GetHash returns the hash of the current database file
 func (writer *LocalFileDatabaseWriter) GetHash() (string, error) {
 	return writer.oldHash, nil
 }

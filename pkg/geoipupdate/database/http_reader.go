@@ -12,16 +12,19 @@ import (
 	"time"
 )
 
-type HttpDatabaseReader struct {
+//HTTPDatabaseReader is a database.Reader that uses an HTTP Client to retrieve the database data
+type HTTPDatabaseReader struct {
 	*http.Client
 	URL        string
 	LicenseKey string
-	AccountId  int
+	AccountID  int
 	Verbose    bool
 	response   *http.Response
 }
 
-func (reader *HttpDatabaseReader) Get(destination Writer, editionID string) error {
+//Get retrieves the data for a given editionID using an HTTP client to MaxMind, writes it to database.Writer,
+// and validates the associated hash before committing
+func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) error {
 	lastHash, err := destination.GetHash()
 	if err != nil {
 		return errors.Wrap(err, "Unable to get previous hash")
@@ -37,8 +40,8 @@ func (reader *HttpDatabaseReader) Get(destination Writer, editionID string) erro
 	if err != nil {
 		return errors.Wrap(err, "error creating request")
 	}
-	if reader.AccountId != 0 {
-		req.SetBasicAuth(fmt.Sprintf("%d", reader.AccountId), reader.LicenseKey)
+	if reader.AccountID != 0 {
+		req.SetBasicAuth(fmt.Sprintf("%d", reader.AccountID), reader.LicenseKey)
 	}
 
 	if reader.Verbose {
@@ -98,7 +101,8 @@ func (reader *HttpDatabaseReader) Get(destination Writer, editionID string) erro
 	return nil
 }
 
-func (reader *HttpDatabaseReader) LastModified() (time.Time, error) {
+//LastModified retrieves the date that the MaxMind database was last modified
+func (reader *HTTPDatabaseReader) LastModified() (time.Time, error) {
 	if reader.response == nil {
 		return time.Time{}, errors.New("Request hasn't been made yet for data")
 	}
