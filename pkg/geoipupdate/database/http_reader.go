@@ -25,6 +25,11 @@ type HTTPDatabaseReader struct {
 //Get retrieves the data for a given editionID using an HTTP client to MaxMind, writes it to database.Writer,
 // and validates the associated hash before committing
 func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) error {
+	defer func() {
+		if err := destination.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
 	lastHash, err := destination.GetHash()
 	if err != nil {
 		return errors.Wrap(err, "Unable to get previous hash")
@@ -84,10 +89,6 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 
 	if _, err = io.Copy(destination, gzReader); err != nil {
 		return errors.Wrap(err, "Encountered an error writing out MaxMind's response")
-	}
-
-	if err := destination.Close(); err != nil {
-		return errors.Wrap(err, "Unable to close database writer")
 	}
 
 	if err := destination.ValidHash(newMD5); err != nil {

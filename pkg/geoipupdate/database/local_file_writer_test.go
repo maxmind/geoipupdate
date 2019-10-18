@@ -10,12 +10,6 @@ import (
 )
 
 func TestNewDatabaseWriter(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "gutest-")
-	require.NoError(t, err)
-	defer func() {
-		err = os.RemoveAll(tempDir)
-		require.NoError(t, err)
-	}()
 
 	tests := []struct {
 		Description   string
@@ -31,20 +25,18 @@ func TestNewDatabaseWriter(t *testing.T) {
 		},
 		{
 			Description:   "Database should fail to build with bad file path",
-			FilePath:      "bad/file/path/GeoIP2-City.mmdb",
-			LockFilePath:  ".geoipupdate.lock",
-			ExpectedError: `Encountered an error creating file.*no such file or directory`,
-		},
-		{
-			Description:   "Database should fail to build with bad file path",
 			FilePath:      "GeoIP2-City.mmdb",
 			LockFilePath:  "bad/file/path.geoipupdate.lock",
-			ExpectedError: `error acquiring a lock.*no such file or directory`,
+			ExpectedError: `database directory is not available`,
 		},
 	}
 
 	for _, test := range tests {
-		_, err := NewLocalFileDatabaseWriter(filepath.Join(tempDir, test.FilePath),
+		tempDir, err := ioutil.TempDir("", "gutest-")
+		require.NoError(t, err)
+		err = os.RemoveAll(tempDir)
+		require.NoError(t, err)
+		_, err = NewLocalFileDatabaseWriter(filepath.Join(tempDir, test.FilePath),
 			filepath.Join(tempDir, test.LockFilePath), false)
 		if err != nil {
 			// regex because some errors have filenames.

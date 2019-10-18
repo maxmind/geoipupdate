@@ -26,8 +26,6 @@ func TestUpdateEdition(t *testing.T) {
 		CreateDirectory bool
 		DatabaseBefore  string
 		DatabaseAfter   string
-		FilenameStatus  int
-		FilenameBody    string
 		DownloadStatus  int
 		DownloadBody    string
 		DownloadHeaders map[string]string
@@ -38,8 +36,6 @@ func TestUpdateEdition(t *testing.T) {
 			Description:     "Initial download, success",
 			CreateDirectory: true,
 			DatabaseAfter:   "database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "GeoIP2-City.mmdb",
 			DownloadStatus:  http.StatusOK,
 			DownloadBody:    "database goes here",
 		},
@@ -48,8 +44,6 @@ func TestUpdateEdition(t *testing.T) {
 			CreateDirectory: true,
 			DatabaseBefore:  "database goes here",
 			DatabaseAfter:   "database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "GeoIP2-City.mmdb",
 			DownloadStatus:  http.StatusNotModified,
 			DownloadBody:    "database goes here",
 		},
@@ -58,8 +52,6 @@ func TestUpdateEdition(t *testing.T) {
 			CreateDirectory: true,
 			DatabaseBefore:  "database goes here",
 			DatabaseAfter:   "new database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "GeoIP2-City.mmdb",
 			DownloadStatus:  http.StatusOK,
 			DownloadBody:    "new database goes here",
 		},
@@ -68,8 +60,6 @@ func TestUpdateEdition(t *testing.T) {
 			CreateDirectory: true,
 			DatabaseBefore:  "new database goes here",
 			DatabaseAfter:   "newer database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "GeoIP2-City.mmdb",
 			DownloadStatus:  http.StatusOK,
 			DownloadBody:    "newer database goes here",
 			DownloadHeaders: map[string]string{
@@ -82,8 +72,6 @@ func TestUpdateEdition(t *testing.T) {
 			CreateDirectory: true,
 			DatabaseBefore:  "database goes here",
 			DatabaseAfter:   "database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "GeoIP2-City.mmdb",
 			DownloadStatus:  http.StatusBadRequest,
 			Err:             "error updating: unexpected HTTP status code: 400 Bad Request",
 		},
@@ -92,8 +80,6 @@ func TestUpdateEdition(t *testing.T) {
 			CreateDirectory: true,
 			DatabaseBefore:  "database goes here",
 			DatabaseAfter:   "database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "GeoIP2-City.mmdb",
 			DownloadStatus:  http.StatusOK,
 			DownloadBody:    "new database goes here",
 			DownloadHeaders: map[string]string{
@@ -106,8 +92,6 @@ func TestUpdateEdition(t *testing.T) {
 			CreateDirectory: true,
 			DatabaseBefore:  "database goes here",
 			DatabaseAfter:   "database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "GeoIP2-City.mmdb",
 			DownloadStatus:  http.StatusOK,
 			DownloadBody:    "new database goes here",
 			DownloadHeaders: map[string]string{
@@ -120,8 +104,6 @@ func TestUpdateEdition(t *testing.T) {
 			CreateDirectory: true,
 			DatabaseBefore:  "database goes here",
 			DatabaseAfter:   "database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "GeoIP2-City.mmdb",
 			DownloadStatus:  http.StatusMovedPermanently,
 			DownloadHeaders: map[string]string{
 				"Location": "/go-here",
@@ -132,8 +114,6 @@ func TestUpdateEdition(t *testing.T) {
 			CreateDirectory: true,
 			DatabaseBefore:  "database goes here",
 			DatabaseAfter:   "new database goes here",
-			FilenameStatus:  http.StatusOK,
-			FilenameBody:    "GeoIP2-City.mmdb",
 			DownloadStatus:  http.StatusOK,
 			DownloadBody:    "new database goes here",
 			DownloadHeaders: map[string]string{
@@ -153,13 +133,6 @@ func TestUpdateEdition(t *testing.T) {
 		server := httptest.NewServer(
 			http.HandlerFunc(
 				func(rw http.ResponseWriter, r *http.Request) {
-					if r.URL.Path == "/app/update_getfilename" {
-						rw.WriteHeader(test.FilenameStatus)
-						_, err := rw.Write([]byte(test.FilenameBody))
-						require.NoError(t, err)
-						return
-					}
-
 					if updateRE.MatchString(r.URL.Path) {
 						buf := &bytes.Buffer{}
 						gzWriter := gzip.NewWriter(buf)

@@ -17,13 +17,12 @@ const zeroMD5 = "00000000000000000000000000000000"
 
 //LocalFileDatabaseWriter is a database.Writer that stores the database to the local file system
 type LocalFileDatabaseWriter struct {
-	filePath   string
-	lockFile   string
-	verbose    bool
-	lock       *flock.Flock
-	oldHash    string
-	targetFile *os.File
-	swapFile   *os.File
+	filePath string
+	lockFile string
+	verbose  bool
+	lock     *flock.Flock
+	oldHash  string
+	swapFile *os.File
 }
 
 //NewLocalFileDatabaseWriter create a new LocalFileDatabaseWriter, creating necessary lock and swap files to protect
@@ -38,14 +37,16 @@ func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) 
 	if err != nil {
 		if os.IsNotExist(err) {
 			dbWriter.oldHash = zeroMD5
-			dbWriter.targetFile, err = os.Create(filePath)
-			if err != nil {
-				return nil, errors.Wrap(err, "Encountered an error creating file "+filePath)
-			}
 		} else {
 			return nil, errors.Wrap(err, "Received an unexpected error attempting to open file "+filePath)
 		}
 	} else {
+		defer func() {
+			err := file.Close()
+			if err != nil {
+				log.Println(errors.Wrap(err, "Error closing current datbase file "+filePath))
+			}
+		}()
 		hash := md5.New()
 		if _, err := io.Copy(hash, file); err != nil {
 			return nil, errors.Wrap(err, "Encountered an error while createing hash for file "+filePath)
@@ -96,14 +97,24 @@ func (writer *LocalFileDatabaseWriter) Write(p []byte) (n int, err error) {
 
 //Close closes the swap file
 func (writer *LocalFileDatabaseWriter) Close() (err error) {
-	return writer.swapFile.Close()
+	_ = writer.swapFile.Close()
+	_ = os.Remove(writer.swapFile.Name())
+	if err := writer.lock.Unlock(); err != nil {
+		return errors.Wrap(err, "error releasing lock file")
+	}
+	return nil
 }
 
 //ValidHash checks that the swap file's MD5 matches the expectedHash
 func (writer *LocalFileDatabaseWriter) ValidHash(expectedHash string) error {
+	_, _ = writer.swapFile.Seek(0, 0)
 	md5Writer := md5.New()
 	reader, err := os.Open(writer.swapFile.Name())
-	defer reader.Close()
+	defer func() {
+		if err := reader.Close(); err != nil {
+			log.Println(errors.Wrap(err, "Encountered an error closing swap file after validating its hash"))
+		}
+	}()
 	if err != nil {
 		return errors.Wrap(err, "swap file was unable to be opened")
 	}
@@ -127,11 +138,10 @@ func (writer *LocalFileDatabaseWriter) SetFileModificationTime(lastModified time
 
 //Commit renames the swap file to the name of the database file before syncing the directory
 func (writer *LocalFileDatabaseWriter) Commit() error {
+	_ = writer.swapFile.Close()
 	if err := os.Rename(writer.swapFile.Name(), writer.filePath); err != nil {
 		return errors.Wrap(err, "Error moving database into place")
 	}
-
-	_ = os.Remove(writer.swapFile.Name())
 
 	// fsync the directory. http://austingroupbugs.net/view.php?id=672
 	dh, err := os.Open(filepath.Dir(writer.filePath))
@@ -147,7 +157,6 @@ func (writer *LocalFileDatabaseWriter) Commit() error {
 	// We ignore Sync errors as they primarily happen on file systems that do
 	// not support sync.
 	_ = dh.Sync()
-	_ = writer.lock.Unlock()
 	return nil
 }
 
