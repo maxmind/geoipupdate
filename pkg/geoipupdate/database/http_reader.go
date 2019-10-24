@@ -3,6 +3,7 @@ package database
 import (
 	"compress/gzip"
 	"fmt"
+	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
@@ -12,14 +13,25 @@ import (
 	"time"
 )
 
-//HTTPDatabaseReader is a database.Reader that uses an HTTP Client to retrieve the database data
+//HTTPDatabaseReader is a database.Reader that uses an HTTP client to retrieve the database data
 type HTTPDatabaseReader struct {
-	*http.Client
-	URL        string
-	LicenseKey string
-	AccountID  int
-	Verbose    bool
-	response   *http.Response
+	client            *http.Client
+	url               string
+	licenseKey        string
+	accountID         int
+	preserveFileTimes bool
+	verbose           bool
+}
+
+func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Reader {
+	return &HTTPDatabaseReader{
+		client:            client,
+		url:               config.URL,
+		licenseKey:        config.LicenseKey,
+		accountID:         config.AccountID,
+		preserveFileTimes: config.PreserveFileTimes,
+		verbose:           config.Verbose,
+	}
 }
 
 //Get retrieves the data for a given editionID using an HTTP client to MaxMind, writes it to database.Writer,
@@ -32,63 +44,68 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	}()
 	lastHash, err := destination.GetHash()
 	if err != nil {
-		return errors.Wrap(err, "Unable to get previous hash")
+		return errors.Wrap(err, "unable to get previous hash")
 	}
-	url := fmt.Sprintf(
+	maxMindURL := fmt.Sprintf(
 		"%s/geoip/databases/%s/update?db_md5=%s",
-		reader.URL,
+		reader.url,
 		url.PathEscape(editionID),
 		url.QueryEscape(lastHash),
 	)
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil)
 	if err != nil {
 		return errors.Wrap(err, "error creating request")
 	}
-	if reader.AccountID != 0 {
-		req.SetBasicAuth(fmt.Sprintf("%d", reader.AccountID), reader.LicenseKey)
+	if reader.accountID != 0 {
+		req.SetBasicAuth(fmt.Sprintf("%d", reader.accountID), reader.licenseKey)
 	}
 
-	if reader.Verbose {
-		log.Printf("Performing update request to %s", url)
+	if reader.verbose {
+		log.Printf("Performing update request to %s", maxMindURL)
 	}
-	reader.response, err = reader.Client.Do(req)
+	response, err := reader.client.Do(req)
 	if err != nil {
 		return errors.Wrap(err, "error performing HTTP request")
 	}
 	defer func() {
-		if err := reader.response.Body.Close(); err != nil {
+		if err := response.Body.Close(); err != nil {
 			log.Fatalf("Error closing response body: %+v", errors.Wrap(err, "closing body"))
 		}
 	}()
 
-	if reader.response.StatusCode == http.StatusNotModified {
-		if reader.Verbose {
+	if response.StatusCode == http.StatusNotModified {
+		if reader.verbose {
 			log.Printf("No new updates available for %s", editionID)
 		}
 		return nil
 	}
 
-	if reader.response.StatusCode != http.StatusOK {
-		buf, err := ioutil.ReadAll(io.LimitReader(reader.response.Body, 256))
+	if response.StatusCode != http.StatusOK {
+		buf, err := ioutil.ReadAll(io.LimitReader(response.Body, 256))
 		if err == nil {
-			return errors.Errorf("unexpected HTTP status code: %s: %s", reader.response.Status, buf)
+			return errors.Errorf("unexpected HTTP status code: %s: %s", response.Status, buf)
 		}
-		return errors.Errorf("unexpected HTTP status code: %s", reader.response.Status)
+		return errors.Errorf("unexpected HTTP status code: %s", response.Status)
 	}
 
-	newMD5 := reader.response.Header.Get("X-Database-MD5")
+	newMD5 := response.Header.Get("X-Database-MD5")
 	if newMD5 == "" {
 		return errors.New("no X-Database-MD5 header found")
 	}
 
-	gzReader, err := gzip.NewReader(reader.response.Body)
+	gzReader, err := gzip.NewReader(response.Body)
+	defer func() {
+		if err := gzReader.Close(); err != nil {
+			log.Printf("error closing gzip reader: %s", err)
+		}
+	}()
 	if err != nil {
-		return errors.Wrap(err, "Encounter an error created GZIP reader")
+		return errors.Wrap(err, "encountered an error creating GZIP reader")
 	}
 
 	if _, err = io.Copy(destination, gzReader); err != nil {
-		return errors.Wrap(err, "Encountered an error writing out MaxMind's response")
+		return errors.Wrap(err, "encountered an error writing out MaxMind's response")
 	}
 
 	if err := destination.ValidHash(newMD5); err != nil {
@@ -96,23 +113,30 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	}
 
 	if err := destination.Commit(); err != nil {
-		return errors.Wrap(err, "Encountered an issue committing database update")
+		return errors.Wrap(err, "encountered an issue committing database update")
+	}
+
+	if reader.preserveFileTimes {
+		modificationTime, err := lastModified(response.Header.Get("Last-Modified"))
+		if err != nil {
+			return errors.Wrap(err, "unable to get last modified time")
+		}
+		err = destination.SetFileModificationTime(modificationTime)
+		if err != nil {
+			return errors.Wrap(err, "unable to set modification time")
+		}
 	}
 
 	return nil
 }
 
 //LastModified retrieves the date that the MaxMind database was last modified
-func (reader *HTTPDatabaseReader) LastModified() (time.Time, error) {
-	if reader.response == nil {
-		return time.Time{}, errors.New("Request hasn't been made yet for data")
-	}
-	lastModifiedStr := reader.response.Header.Get("Last-Modified")
-	if lastModifiedStr == "" {
+func lastModified(lastModified string) (time.Time, error) {
+	if lastModified == "" {
 		return time.Time{}, errors.New("no Last-Modified header found")
 	}
 
-	t, err := time.ParseInLocation(time.RFC1123, lastModifiedStr, time.UTC)
+	t, err := time.ParseInLocation(time.RFC1123, lastModified, time.UTC)
 	if err != nil {
 		return time.Time{}, errors.Wrap(err, "error parsing time")
 	}

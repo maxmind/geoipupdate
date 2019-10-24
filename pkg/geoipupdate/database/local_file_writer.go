@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gofrs/flock"
 	"github.com/pkg/errors"
+	"hash"
 	"io"
 	"log"
 	"os"
@@ -17,15 +18,17 @@ const zeroMD5 = "00000000000000000000000000000000"
 
 //LocalFileDatabaseWriter is a database.Writer that stores the database to the local file system
 type LocalFileDatabaseWriter struct {
-	filePath string
-	lockFile string
-	verbose  bool
-	lock     *flock.Flock
-	oldHash  string
-	swapFile *os.File
+	filePath      string
+	lockFile      string
+	verbose       bool
+	lock          *flock.Flock
+	oldHash       string
+	fileWriter    io.Writer
+	temporaryFile *os.File
+	md5Writer     hash.Hash
 }
 
-//NewLocalFileDatabaseWriter create a new LocalFileDatabaseWriter, creating necessary lock and swap files to protect
+//NewLocalFileDatabaseWriter create a new LocalFileDatabaseWriter, creating necessary lock and temporary files to protect
 // the database from concurrent writes
 func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) (*LocalFileDatabaseWriter, error) {
 	dbWriter := &LocalFileDatabaseWriter{
@@ -33,51 +36,51 @@ func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) 
 		lockFile: lockFile,
 		verbose:  verbose,
 	}
-	file, err := os.Open(filePath)
+	temporaryFile, err := os.Open(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			dbWriter.oldHash = zeroMD5
 		} else {
-			return nil, errors.Wrap(err, "Received an unexpected error attempting to open file "+filePath)
+			return nil, errors.Wrap(err, "received an unexpected error attempting to open temporaryFile "+filePath)
 		}
 	} else {
 		defer func() {
-			err := file.Close()
+			err := temporaryFile.Close()
 			if err != nil {
-				log.Println(errors.Wrap(err, "Error closing current database file "+filePath))
+				log.Println(errors.Wrap(err, "error closing current database temporaryFile "+filePath))
 			}
 		}()
-		hash := md5.New()
-		if _, err := io.Copy(hash, file); err != nil {
-			return nil, errors.Wrap(err, "Encountered an error while createing hash for file "+filePath)
+		oldHash := md5.New()
+		if _, err := io.Copy(oldHash, temporaryFile); err != nil {
+			return nil, errors.Wrap(err, "encountered an error while creating oldHash for temporaryFile "+filePath)
 		}
-		dbWriter.oldHash = fmt.Sprintf("%x", hash.Sum(nil))
+		dbWriter.oldHash = fmt.Sprintf("%x", oldHash.Sum(nil))
 		if verbose {
 			log.Printf("Calculated MD5 sum for %s: %s", filePath, dbWriter.oldHash)
 		}
 	}
-	if err := dbWriter.lockDirectory(); err != nil {
+	if err := dbWriter.createLockFile(); err != nil {
 		return nil, err
 	}
 
-	dbWriter.swapFile, err = os.Create(fmt.Sprintf("%s.swap", dbWriter.filePath))
+	temporaryFilename := fmt.Sprintf("%s.temporary", dbWriter.filePath)
+	dbWriter.temporaryFile, err = os.OpenFile(temporaryFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error creating swap file")
+		return nil, errors.Wrap(err, "error creating temporary temporaryFile")
 	}
+	dbWriter.md5Writer = md5.New()
+	dbWriter.fileWriter = io.MultiWriter(dbWriter.md5Writer, dbWriter.temporaryFile)
 
 	return dbWriter, nil
 }
 
-func (writer *LocalFileDatabaseWriter) lockDirectory() error {
+func (writer *LocalFileDatabaseWriter) createLockFile() error {
 	fi, err := os.Stat(filepath.Dir(writer.filePath))
 	if err != nil {
 		return errors.Wrap(err, "database directory is not available")
 	}
 	if !fi.IsDir() {
 		return errors.New("database directory is not a directory")
-	}
-	if writer.verbose {
-		log.Printf("Acquired lock file lock (%s)", writer.lockFile)
 	}
 	writer.lock = flock.New(writer.lockFile)
 	ok, err := writer.lock.TryLock()
@@ -87,43 +90,36 @@ func (writer *LocalFileDatabaseWriter) lockDirectory() error {
 	if !ok {
 		return errors.Errorf("could not acquire lock on %s", writer.lockFile)
 	}
+	if writer.verbose {
+		log.Printf("Acquired lock file lock (%s)", writer.lockFile)
+	}
 	return nil
 }
 
-//Write writes data to swap file
-func (writer *LocalFileDatabaseWriter) Write(p []byte) (n int, err error) {
-	return writer.swapFile.Write(p)
+//Write writes data to temporary file
+func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
+	return writer.fileWriter.Write(p)
 }
 
-//Close closes the swap file
-func (writer *LocalFileDatabaseWriter) Close() (err error) {
-	_ = writer.swapFile.Close()
-	_ = os.Remove(writer.swapFile.Name())
+//Close closes the temporary file
+func (writer *LocalFileDatabaseWriter) Close() error {
+	if err := writer.temporaryFile.Close(); err != nil && err != os.ErrClosed {
+		return errors.Wrap(err, "error closing temporary file")
+	}
+	if err := os.Remove(writer.temporaryFile.Name()); err != nil && err != os.ErrNotExist {
+		return errors.Wrap(err, "error removing temporary file")
+	}
 	if err := writer.lock.Unlock(); err != nil {
 		return errors.Wrap(err, "error releasing lock file")
 	}
 	return nil
 }
 
-//ValidHash checks that the swap file's MD5 matches the expectedHash
+//ValidHash checks that the temporary file's MD5 matches the expectedHash
 func (writer *LocalFileDatabaseWriter) ValidHash(expectedHash string) error {
-	_, _ = writer.swapFile.Seek(0, 0)
-	md5Writer := md5.New()
-	reader, err := os.Open(writer.swapFile.Name())
-	defer func() {
-		if err := reader.Close(); err != nil {
-			log.Println(errors.Wrap(err, "Encountered an error closing swap file after validating its hash"))
-		}
-	}()
-	if err != nil {
-		return errors.Wrap(err, "swap file was unable to be opened")
-	}
-	if _, err := io.Copy(md5Writer, reader); err != nil {
-		return errors.Wrap(err, "no X-Database-MD5 header found")
-	}
-	hash := fmt.Sprintf("%x", md5Writer.Sum(nil))
-	if !strings.EqualFold(hash, expectedHash) {
-		return errors.Errorf("MD5 of new database (%s) does not match expected MD5 (%s)", hash, expectedHash)
+	actualHash := fmt.Sprintf("%x", writer.md5Writer.Sum(nil))
+	if !strings.EqualFold(actualHash, expectedHash) {
+		return errors.Errorf("md5 of new database (%s) does not match expected md5 (%s)", actualHash, expectedHash)
 	}
 	return nil
 }
@@ -136,11 +132,16 @@ func (writer *LocalFileDatabaseWriter) SetFileModificationTime(lastModified time
 	return nil
 }
 
-//Commit renames the swap file to the name of the database file before syncing the directory
+//Commit renames the temporary file to the name of the database file before syncing the directory
 func (writer *LocalFileDatabaseWriter) Commit() error {
-	_ = writer.swapFile.Close()
-	if err := os.Rename(writer.swapFile.Name(), writer.filePath); err != nil {
-		return errors.Wrap(err, "Error moving database into place")
+	if err := writer.temporaryFile.Sync(); err != nil {
+		return errors.Wrap(err, "error syncing temporary file")
+	}
+	if err := writer.temporaryFile.Close(); err != nil {
+		return errors.Wrap(err, "error closing temporary file")
+	}
+	if err := os.Rename(writer.temporaryFile.Name(), writer.filePath); err != nil {
+		return errors.Wrap(err, "error moving database into place")
 	}
 
 	// fsync the directory. http://austingroupbugs.net/view.php?id=672

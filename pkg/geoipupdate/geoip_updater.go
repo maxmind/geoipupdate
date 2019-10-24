@@ -3,78 +3,48 @@ package geoipupdate
 import (
 	"bytes"
 	"fmt"
-	"github.com/maxmind/geoipupdate/pkg/geoipupdate/database"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-	"path/filepath"
 )
 
-//Run takes the information from a Config and copies all of the provided EditionIDs from a database.Reader to a database.Writer
-func Run(
-	config *Config,
-) error {
-	client := buildClient(config)
-	dbReader := &database.HTTPDatabaseReader{
-		Client:     client,
-		URL:        config.URL,
-		LicenseKey: config.LicenseKey,
-		AccountID:  config.AccountID,
-		Verbose:    config.Verbose,
-	}
-	for _, editionID := range config.EditionIDs {
-		filename, err := getFileName(config, editionID, client)
-		if err != nil {
-			return errors.Wrap(err, "error retrieving filename")
-		}
-		filePath := filepath.Join(config.DatabaseDirectory, filename)
-		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, config.LockFile, config.Verbose)
-		if err != nil {
-			return errors.Wrap(err, "Error create database writer")
-		}
-		if err := UpdateEdition(dbReader, dbWriter, config, editionID); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func buildClient(
+func BuildClient(
 	config *Config,
 ) *http.Client {
 	var client *http.Client
+	transport := http.DefaultTransport
 	if config.Proxy != nil {
-		client = &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(config.Proxy)}}
-	} else {
-		client = &http.Client{}
+		proxy := http.ProxyURL(config.Proxy)
+		transport.(*http.Transport).Proxy = proxy
 	}
+	client = &http.Client{Transport: transport}
 	return client
 }
 
-func getFileName(
+func GetFileName(
 	config *Config,
 	editionID string,
 	client *http.Client,
 ) (string, error) {
-	url := fmt.Sprintf(
+	maxMindURL := fmt.Sprintf(
 		"%s/app/update_getfilename?product_id=%s",
 		config.URL,
 		url.QueryEscape(editionID),
 	)
 
 	if config.Verbose {
-		log.Printf("Performing get filename request to %s", url)
+		log.Printf("Performing get filename request to %s", maxMindURL)
 	}
-	res, err := client.Get(url)
+	res, err := client.Get(maxMindURL)
 	if err != nil {
 		return "", errors.Wrap(err, "error performing HTTP request")
 	}
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			log.Fatalf("Error closing response body: %+v", errors.Wrap(err, "closing body"))
+			log.Fatalf("error closing response body: %+v", errors.Wrap(err, "closing body"))
 		}
 	}()
 
@@ -97,22 +67,4 @@ func getFileName(
 	}
 
 	return string(buf), nil
-}
-
-//UpdateEdition copies the contents of a database.Reader to a single database.Writer
-func UpdateEdition(dbReader database.Reader, dbWriter database.Writer, config *Config, editionID string) error {
-	if err := dbReader.Get(dbWriter, editionID); err != nil {
-		return errors.Wrap(err, "error updating")
-	}
-	if config.PreserveFileTimes {
-		modificationTime, err := dbReader.LastModified()
-		if err != nil {
-			return errors.Wrap(err, "Unable to get last modified time")
-		}
-		err = dbWriter.SetFileModificationTime(modificationTime)
-		if err != nil {
-			return errors.Wrap(err, "Unable to set modification time")
-		}
-	}
-	return nil
 }

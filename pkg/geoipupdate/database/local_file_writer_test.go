@@ -36,14 +36,16 @@ func TestNewDatabaseWriter(t *testing.T) {
 		require.NoError(t, err)
 		err = os.RemoveAll(tempDir)
 		require.NoError(t, err)
-		_, err = NewLocalFileDatabaseWriter(filepath.Join(tempDir, test.FilePath),
-			filepath.Join(tempDir, test.LockFilePath), false)
-		if err != nil {
-			// regex because some errors have filenames.
-			assert.Regexp(t, test.ExpectedError, err.Error(), test.Description)
-		} else {
-			require.Equal(t, test.ExpectedError, "", test.Description)
-		}
+		t.Run(test.Description, func(t *testing.T) {
+			_, err = NewLocalFileDatabaseWriter(filepath.Join(tempDir, test.FilePath),
+				filepath.Join(tempDir, test.LockFilePath), false)
+			if err != nil {
+				// regex because some errors have filenames.
+				assert.Regexp(t, test.ExpectedError, err.Error(), test.Description)
+			} else {
+				require.Equal(t, test.ExpectedError, "", test.Description)
+			}
+		})
 	}
 
 }
