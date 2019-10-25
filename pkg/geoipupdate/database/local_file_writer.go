@@ -103,10 +103,10 @@ func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
 
 //Close closes the temporary file
 func (writer *LocalFileDatabaseWriter) Close() error {
-	if err := writer.temporaryFile.Close(); err != nil && err != os.ErrClosed {
+	if err := writer.temporaryFile.Close(); err != nil && errors.Cause(err) == os.ErrClosed {
 		return errors.Wrap(err, "error closing temporary file")
 	}
-	if err := os.Remove(writer.temporaryFile.Name()); err != nil && err != os.ErrNotExist {
+	if err := os.Remove(writer.temporaryFile.Name()); err != nil && errors.Cause(err) == os.ErrNotExist {
 		return errors.Wrap(err, "error removing temporary file")
 	}
 	if err := writer.lock.Unlock(); err != nil {
