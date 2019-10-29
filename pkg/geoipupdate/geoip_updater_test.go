@@ -78,10 +78,10 @@ func TestGetFileName(t *testing.T) {
 			LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
 			URL:               server.URL,
 		}
-		client := BuildClient(config)
+		client := NewClient(config)
 		t.Run(test.Description, func(t *testing.T) {
 
-			actualOutput, actualError := GetFileName(config, config.EditionIDs[0], client)
+			actualOutput, actualError := GetFilename(config, config.EditionIDs[0], client)
 
 			assert.Equal(t, test.ExpectedOutput, actualOutput, test.Description)
 			if test.ExpectedError != "" {

@@ -206,7 +206,7 @@ func TestHTTPDatabaseReader(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		client := geoipupdate.BuildClient(config)
+		client := geoipupdate.NewClient(config)
 		dbReader := NewHTTPDatabaseReader(client, config)
 		dbWriter, err := NewLocalFileDatabaseWriter(currentDatabasePath, config.LockFile, config.Verbose)
 		assert.NoError(t, err, test.Description)

@@ -43,18 +43,18 @@ func main() {
 func run(
 	config *geoipupdate.Config,
 ) error {
-	client := geoipupdate.BuildClient(config)
+	client := geoipupdate.NewClient(config)
 	dbReader := database.NewHTTPDatabaseReader(client, config)
 
 	for _, editionID := range config.EditionIDs {
-		filename, err := geoipupdate.GetFileName(config, editionID, client)
+		filename, err := geoipupdate.GetFilename(config, editionID, client)
 		if err != nil {
 			return errors.Wrap(err, "error retrieving filename")
 		}
 		filePath := filepath.Join(config.DatabaseDirectory, filename)
 		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, config.LockFile, config.Verbose)
 		if err != nil {
-			return errors.Wrap(err, "error create database writer")
+			return errors.Wrap(err, "error creating database writer")
 		}
 		if err := dbReader.Get(dbWriter, editionID); err != nil {
 			return err

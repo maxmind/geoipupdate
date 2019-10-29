@@ -11,7 +11,7 @@ import (
 	"net/url"
 )
 
-func BuildClient(
+func NewClient(
 	config *Config,
 ) *http.Client {
 	var client *http.Client
@@ -24,7 +24,7 @@ func BuildClient(
 	return client
 }
 
-func GetFileName(
+func GetFilename(
 	config *Config,
 	editionID string,
 	client *http.Client,

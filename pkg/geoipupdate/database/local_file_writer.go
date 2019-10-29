@@ -36,42 +36,50 @@ func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) 
 		lockFile: lockFile,
 		verbose:  verbose,
 	}
-	temporaryFile, err := os.Open(filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			dbWriter.oldHash = zeroMD5
-		} else {
-			return nil, errors.Wrap(err, "received an unexpected error attempting to open temporaryFile "+filePath)
-		}
-	} else {
-		defer func() {
-			err := temporaryFile.Close()
-			if err != nil {
-				log.Println(errors.Wrap(err, "error closing current database temporaryFile "+filePath))
-			}
-		}()
-		oldHash := md5.New()
-		if _, err := io.Copy(oldHash, temporaryFile); err != nil {
-			return nil, errors.Wrap(err, "encountered an error while creating oldHash for temporaryFile "+filePath)
-		}
-		dbWriter.oldHash = fmt.Sprintf("%x", oldHash.Sum(nil))
-		if verbose {
-			log.Printf("Calculated MD5 sum for %s: %s", filePath, dbWriter.oldHash)
-		}
+	if err := dbWriter.createOldMD5Hash(); err != nil {
+		return nil, err
 	}
 	if err := dbWriter.createLockFile(); err != nil {
 		return nil, err
 	}
 
+	var err error
 	temporaryFilename := fmt.Sprintf("%s.temporary", dbWriter.filePath)
 	dbWriter.temporaryFile, err = os.OpenFile(temporaryFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		return nil, errors.Wrap(err, "error creating temporary temporaryFile")
+		return nil, errors.Wrap(err, "error creating temporary file")
 	}
 	dbWriter.md5Writer = md5.New()
 	dbWriter.fileWriter = io.MultiWriter(dbWriter.md5Writer, dbWriter.temporaryFile)
 
 	return dbWriter, nil
+}
+
+func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
+	currentDatabaseFile, err := os.Open(writer.filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			writer.oldHash = zeroMD5
+			return nil
+		}
+		return errors.Wrap(err, "received an unexpected error attempting to open temporaryFile "+writer.filePath)
+	}
+
+	defer func() {
+		err := currentDatabaseFile.Close()
+		if err != nil {
+			log.Println(errors.Wrap(err, "error closing current database temporaryFile "+writer.filePath))
+		}
+	}()
+	oldHash := md5.New()
+	if _, err := io.Copy(oldHash, currentDatabaseFile); err != nil {
+		return errors.Wrap(err, "encountered an error while creating oldHash for temporaryFile "+writer.filePath)
+	}
+	writer.oldHash = fmt.Sprintf("%x", oldHash.Sum(nil))
+	if writer.verbose {
+		log.Printf("Calculated MD5 sum for %s: %s", writer.filePath, writer.oldHash)
+	}
+	return nil
 }
 
 func (writer *LocalFileDatabaseWriter) createLockFile() error {

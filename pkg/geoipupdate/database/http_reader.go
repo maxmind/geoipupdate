@@ -95,14 +95,14 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	}
 
 	gzReader, err := gzip.NewReader(response.Body)
+	if err != nil {
+		return errors.Wrap(err, "encountered an error creating GZIP reader")
+	}
 	defer func() {
 		if err := gzReader.Close(); err != nil {
 			log.Printf("error closing gzip reader: %s", err)
 		}
 	}()
-	if err != nil {
-		return errors.Wrap(err, "encountered an error creating GZIP reader")
-	}
 
 	if _, err = io.Copy(destination, gzReader); err != nil {
 		return errors.Wrap(err, "encountered an error writing out MaxMind's response")
