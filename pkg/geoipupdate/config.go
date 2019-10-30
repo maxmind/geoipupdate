@@ -1,7 +1,8 @@
-package main
+package geoipupdate
 
 import (
 	"bufio"
+	"github.com/pkg/errors"
 	"log"
 	"net/url"
 	"os"
@@ -9,26 +10,27 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // Config is a parsed configuration file.
 type Config struct {
 	AccountID         int
 	DatabaseDirectory string
-	EditionIDs        []string
 	LicenseKey        string
 	LockFile          string
-	PreserveFileTimes bool
-	Proxy             *url.URL
 	URL               string
+	EditionIDs        []string
+	Proxy             *url.URL
+	PreserveFileTimes bool
+	Verbose           bool
 }
 
 // NewConfig parses the configuration file.
 func NewConfig( // nolint: gocyclo
 	file,
+	defaultDatabaseDirectory,
 	databaseDirectory string,
+	verbose bool,
 ) (*Config, error) {
 	fh, err := os.Open(file)
 	if err != nil {
@@ -139,6 +141,8 @@ func NewConfig( // nolint: gocyclo
 		config.DatabaseDirectory = filepath.Clean(defaultDatabaseDirectory)
 	}
 
+	config.Verbose = verbose
+
 	if host == "" {
 		host = "updates.maxmind.com"
 	}
@@ -149,11 +153,10 @@ func NewConfig( // nolint: gocyclo
 
 	config.URL = "https://" + host
 
-	proxyURL, err := parseProxy(proxy, proxyUserPassword)
+	config.Proxy, err = parseProxy(proxy, proxyUserPassword)
 	if err != nil {
 		return nil, err
 	}
-	config.Proxy = proxyURL
 
 	// We used to recommend using 999999 / 000000000000 for free downloads and
 	// many people still use this combination. We need to check for the
