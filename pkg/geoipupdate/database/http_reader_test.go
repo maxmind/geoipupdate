@@ -5,9 +5,6 @@ import (
 	"compress/gzip"
 	"crypto/md5"
 	"fmt"
-	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -17,6 +14,10 @@ import (
 	"regexp"
 	"testing"
 	"time"
+
+	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHTTPDatabaseReader(t *testing.T) {
@@ -189,7 +190,7 @@ func TestHTTPDatabaseReader(t *testing.T) {
 		}
 
 		if test.CreateDirectory {
-			err := os.Mkdir(config.DatabaseDirectory, 0755)
+			err := os.Mkdir(config.DatabaseDirectory, 0755) //nolint:gosec
 			require.NoError(t, err)
 		}
 
@@ -223,7 +224,7 @@ func TestHTTPDatabaseReader(t *testing.T) {
 			server.Close()
 
 			if test.DatabaseAfter != "" {
-				buf, err := ioutil.ReadFile(currentDatabasePath)
+				buf, err := ioutil.ReadFile(filepath.Clean(currentDatabasePath))
 				require.NoError(t, err, test.Description)
 				assert.Equal(t, test.DatabaseAfter, string(buf))
 			}

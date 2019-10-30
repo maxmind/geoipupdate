@@ -3,14 +3,16 @@ package geoipupdate
 import (
 	"bytes"
 	"fmt"
-	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/pkg/errors"
 )
 
+// NewClient creates an *http.Client for use in updating.
 func NewClient(
 	config *Config,
 ) *http.Client {
@@ -24,6 +26,7 @@ func NewClient(
 	return client
 }
 
+// GetFilename looks up the filename for the given edition ID.
 func GetFilename(
 	config *Config,
 	editionID string,
