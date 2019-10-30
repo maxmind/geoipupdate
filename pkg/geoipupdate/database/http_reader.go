@@ -108,7 +108,7 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	}()
 
 	if _, err = io.Copy(destination, gzReader); err != nil {
-		return errors.Wrap(err, "encountered an error writing out MaxMind's response")
+		return errors.Wrap(err, "error writing response")
 	}
 
 	if err := destination.ValidHash(newMD5); err != nil {

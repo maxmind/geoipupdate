@@ -67,18 +67,18 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 			writer.oldHash = zeroMD5
 			return nil
 		}
-		return errors.Wrap(err, "received an unexpected error attempting to open temporaryFile "+writer.filePath)
+		return errors.Wrap(err, "error opening database")
 	}
 
 	defer func() {
 		err := currentDatabaseFile.Close()
 		if err != nil {
-			log.Println(errors.Wrap(err, "error closing current database temporaryFile "+writer.filePath))
+			log.Println(errors.Wrap(err, "error closing database"))
 		}
 	}()
 	oldHash := md5.New()
 	if _, err := io.Copy(oldHash, currentDatabaseFile); err != nil {
-		return errors.Wrap(err, "encountered an error while creating oldHash for temporaryFile "+writer.filePath)
+		return errors.Wrap(err, "error calculating database hash")
 	}
 	writer.oldHash = fmt.Sprintf("%x", oldHash.Sum(nil))
 	if writer.verbose {
