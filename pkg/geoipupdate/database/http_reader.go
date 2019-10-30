@@ -3,17 +3,19 @@ package database
 import (
 	"compress/gzip"
 	"fmt"
-	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
-	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
+	"github.com/pkg/errors"
 )
 
-//HTTPDatabaseReader is a database.Reader that uses an HTTP client to retrieve the database data
+// HTTPDatabaseReader is a Reader that uses an HTTP client to retrieve
+// databases.
 type HTTPDatabaseReader struct {
 	client            *http.Client
 	url               string
@@ -23,6 +25,8 @@ type HTTPDatabaseReader struct {
 	verbose           bool
 }
 
+// NewHTTPDatabaseReader creates a Reader that downloads database updates via
+// HTTP.
 func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Reader {
 	return &HTTPDatabaseReader{
 		client:            client,
@@ -34,8 +38,8 @@ func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Read
 	}
 }
 
-//Get retrieves the data for a given editionID using an HTTP client to MaxMind, writes it to database.Writer,
-// and validates the associated hash before committing
+// Get retrieves the given edition ID using an HTTP client, writes it to the
+// Writer, and validates the hash before committing.
 func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) error {
 	defer func() {
 		if err := destination.Close(); err != nil {
@@ -89,11 +93,6 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		return errors.Errorf("unexpected HTTP status code: %s", response.Status)
 	}
 
-	newMD5 := response.Header.Get("X-Database-MD5")
-	if newMD5 == "" {
-		return errors.New("no X-Database-MD5 header found")
-	}
-
 	gzReader, err := gzip.NewReader(response.Body)
 	if err != nil {
 		return errors.Wrap(err, "encountered an error creating GZIP reader")
@@ -105,9 +104,13 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	}()
 
 	if _, err = io.Copy(destination, gzReader); err != nil {
-		return errors.Wrap(err, "encountered an error writing out MaxMind's response")
+		return errors.Wrap(err, "error writing response")
 	}
 
+	newMD5 := response.Header.Get("X-Database-MD5")
+	if newMD5 == "" {
+		return errors.New("no X-Database-MD5 header found")
+	}
 	if err := destination.ValidHash(newMD5); err != nil {
 		return err
 	}
@@ -130,7 +133,7 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	return nil
 }
 
-//LastModified retrieves the date that the MaxMind database was last modified
+// LastModified retrieves the date that the MaxMind database was last modified.
 func lastModified(lastModified string) (time.Time, error) {
 	if lastModified == "" {
 		return time.Time{}, errors.New("no Last-Modified header found")
