@@ -2,7 +2,6 @@ package geoipupdate
 
 import (
 	"bufio"
-	"github.com/pkg/errors"
 	"log"
 	"net/url"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // Config is a parsed configuration file.
@@ -32,7 +33,7 @@ func NewConfig( // nolint: gocyclo
 	databaseDirectory string,
 	verbose bool,
 ) (*Config, error) {
-	fh, err := os.Open(file)
+	fh, err := os.Open(filepath.Clean(file))
 	if err != nil {
 		return nil, errors.Wrap(err, "error opening file")
 	}

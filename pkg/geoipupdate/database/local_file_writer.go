@@ -3,8 +3,6 @@ package database
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/gofrs/flock"
-	"github.com/pkg/errors"
 	"hash"
 	"io"
 	"log"
@@ -12,6 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/gofrs/flock"
+	"github.com/pkg/errors"
 )
 
 const zeroMD5 = "00000000000000000000000000000000"
@@ -45,7 +46,11 @@ func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) 
 
 	var err error
 	temporaryFilename := fmt.Sprintf("%s.temporary", dbWriter.filePath)
-	dbWriter.temporaryFile, err = os.OpenFile(temporaryFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	dbWriter.temporaryFile, err = os.OpenFile( //nolint:gosec
+		temporaryFilename,
+		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+		0644,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating temporary file")
 	}

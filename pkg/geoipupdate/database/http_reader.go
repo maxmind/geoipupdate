@@ -3,14 +3,15 @@ package database
 import (
 	"compress/gzip"
 	"fmt"
-	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
-	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
+	"github.com/pkg/errors"
 )
 
 //HTTPDatabaseReader is a database.Reader that uses an HTTP client to retrieve the database data
@@ -23,6 +24,8 @@ type HTTPDatabaseReader struct {
 	verbose           bool
 }
 
+// NewHTTPDatabaseReader creates a Reader that downloads database updates via
+// HTTP.
 func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Reader {
 	return &HTTPDatabaseReader{
 		client:            client,

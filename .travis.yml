@@ -22,5 +22,5 @@ script:
   - go test -v -race ./...
   - |
     if [[ $TRAVIS_GO_VERSION == '1.13.x' && $TRAVIS_OS_NAME == 'linux' ]]; then
-      golangci-lint run
+      golangci-lint run --exclude-use-default=false
     fi
