@@ -42,7 +42,7 @@ $(BUILDDIR):
 
 $(BUILDDIR)/geoipupdate: $(BUILDDIR)
 	go fmt ./...
-	golangci-lint run --exclude-use-default=false
+	golangci-lint run
 	go test ./...
 	(cd cmd/geoipupdate && go build -ldflags '-X main.defaultConfigFile=$(CONFFILE) -X main.defaultDatabaseDirectory=$(DATADIR) -X "main.version=$(VERSION)"')
 	cp cmd/geoipupdate/geoipupdate $(BUILDDIR)
