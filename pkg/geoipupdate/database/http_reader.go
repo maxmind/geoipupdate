@@ -93,11 +93,6 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		return errors.Errorf("unexpected HTTP status code: %s", response.Status)
 	}
 
-	newMD5 := response.Header.Get("X-Database-MD5")
-	if newMD5 == "" {
-		return errors.New("no X-Database-MD5 header found")
-	}
-
 	gzReader, err := gzip.NewReader(response.Body)
 	if err != nil {
 		return errors.Wrap(err, "encountered an error creating GZIP reader")
@@ -112,6 +107,10 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		return errors.Wrap(err, "error writing response")
 	}
 
+	newMD5 := response.Header.Get("X-Database-MD5")
+	if newMD5 == "" {
+		return errors.New("no X-Database-MD5 header found")
+	}
 	if err := destination.ValidHash(newMD5); err != nil {
 		return err
 	}
