@@ -14,7 +14,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-//HTTPDatabaseReader is a database.Reader that uses an HTTP client to retrieve the database data
+// HTTPDatabaseReader is a Reader that uses an HTTP client to retrieve
+// databases.
 type HTTPDatabaseReader struct {
 	client            *http.Client
 	url               string
@@ -37,8 +38,8 @@ func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Read
 	}
 }
 
-//Get retrieves the data for a given editionID using an HTTP client to MaxMind, writes it to database.Writer,
-// and validates the associated hash before committing
+// Get retrieves the given edition ID using an HTTP client, writes it to the
+// Writer, and validates the hash before committing.
 func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) error {
 	defer func() {
 		if err := destination.Close(); err != nil {
@@ -133,7 +134,7 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	return nil
 }
 
-//LastModified retrieves the date that the MaxMind database was last modified
+// LastModified retrieves the date that the MaxMind database was last modified.
 func lastModified(lastModified string) (time.Time, error) {
 	if lastModified == "" {
 		return time.Time{}, errors.New("no Last-Modified header found")

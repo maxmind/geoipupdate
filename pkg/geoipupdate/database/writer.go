@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-//Writer provides an interface for writing MaxMind a database to a target location
+// Writer provides an interface for writing the database to a target location.
 type Writer interface {
 	io.WriteCloser
 	ValidHash(expectedHash string) error

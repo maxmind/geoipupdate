@@ -17,7 +17,8 @@ import (
 
 const zeroMD5 = "00000000000000000000000000000000"
 
-//LocalFileDatabaseWriter is a database.Writer that stores the database to the local file system
+// LocalFileDatabaseWriter is a Writer that stores the database to the local
+// file system.
 type LocalFileDatabaseWriter struct {
 	filePath      string
 	lockFile      string
@@ -29,8 +30,9 @@ type LocalFileDatabaseWriter struct {
 	md5Writer     hash.Hash
 }
 
-//NewLocalFileDatabaseWriter create a new LocalFileDatabaseWriter, creating necessary lock and temporary files to protect
-// the database from concurrent writes
+// NewLocalFileDatabaseWriter create a LocalFileDatabaseWriter. It creates the
+// necessary lock and temporary files to protect the database from concurrent
+// writes.
 func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) (*LocalFileDatabaseWriter, error) {
 	dbWriter := &LocalFileDatabaseWriter{
 		filePath: filePath,
@@ -109,12 +111,12 @@ func (writer *LocalFileDatabaseWriter) createLockFile() error {
 	return nil
 }
 
-//Write writes data to temporary file
+// Write writes data to the temporary file.
 func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
 	return writer.fileWriter.Write(p)
 }
 
-//Close closes the temporary file
+// Close closes the temporary file.
 func (writer *LocalFileDatabaseWriter) Close() error {
 	if err := writer.temporaryFile.Close(); err != nil && errors.Cause(err) == os.ErrClosed {
 		return errors.Wrap(err, "error closing temporary file")
@@ -128,7 +130,7 @@ func (writer *LocalFileDatabaseWriter) Close() error {
 	return nil
 }
 
-//ValidHash checks that the temporary file's MD5 matches the expectedHash
+// ValidHash checks that the temporary file's MD5 matches the given hash.
 func (writer *LocalFileDatabaseWriter) ValidHash(expectedHash string) error {
 	actualHash := fmt.Sprintf("%x", writer.md5Writer.Sum(nil))
 	if !strings.EqualFold(actualHash, expectedHash) {
@@ -137,7 +139,8 @@ func (writer *LocalFileDatabaseWriter) ValidHash(expectedHash string) error {
 	return nil
 }
 
-//SetFileModificationTime explicitly sets the database's file write time to the provided time
+// SetFileModificationTime sets the database's file access and modified times
+// to the given time.
 func (writer *LocalFileDatabaseWriter) SetFileModificationTime(lastModified time.Time) error {
 	if err := os.Chtimes(writer.filePath, lastModified, lastModified); err != nil {
 		return errors.Wrap(err, "error setting times on file")
@@ -145,7 +148,8 @@ func (writer *LocalFileDatabaseWriter) SetFileModificationTime(lastModified time
 	return nil
 }
 
-//Commit renames the temporary file to the name of the database file before syncing the directory
+// Commit renames the temporary file to the name of the database file and syncs
+// the directory.
 func (writer *LocalFileDatabaseWriter) Commit() error {
 	if err := writer.temporaryFile.Sync(); err != nil {
 		return errors.Wrap(err, "error syncing temporary file")
@@ -174,7 +178,7 @@ func (writer *LocalFileDatabaseWriter) Commit() error {
 	return nil
 }
 
-//GetHash returns the hash of the current database file
+// GetHash returns the hash of the current database file.
 func (writer *LocalFileDatabaseWriter) GetHash() (string, error) {
 	return writer.oldHash, nil
 }
