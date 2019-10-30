@@ -16,7 +16,11 @@ import (
 	"time"
 )
 
+//DateModifiedTag is the name of the tag on an S3 bucket for storing the modified date information received from
+//	the MaxMind servers
 const DateModifiedTag = "DateOfSourceDatabaseModification"
+
+//Encryption is the default encryption attached the S3 bucket where the date GeoIpUpdate data is stored
 const Encryption = "AES256"
 
 //S3DatabaseWriter is a databaseWriter that stores the database to a target s3 bucket and key
@@ -52,7 +56,11 @@ func NewS3DatabaseWriter(s3Client *s3.S3, s3Bucket, s3Key, lockFile string, verb
 
 	keyPath := strings.Split(s3Key, "/")
 	temporaryFilename := fmt.Sprintf("%s/%s.temporary", os.TempDir(), keyPath[len(keyPath)-1])
-	dbWriter.temporaryFile, err = os.OpenFile(temporaryFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	dbWriter.temporaryFile, err = os.OpenFile( //nolint:gosec
+		temporaryFilename,
+		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+		0644,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating temporary file")
 	}

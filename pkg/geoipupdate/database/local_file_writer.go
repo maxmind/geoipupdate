@@ -36,7 +36,7 @@ func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) 
 		lockFile: lockFile,
 		verbose:  verbose,
 	}
-  
+
 	var err error
 	if err = dbWriter.createOldMD5Hash(); err != nil {
 		return nil, err
@@ -153,7 +153,6 @@ func (writer *LocalFileDatabaseWriter) Commit() error {
 	_ = dh.Sync()
 	return nil
 }
-
 
 //GetHash returns the hash of the current database file
 func (writer *LocalFileDatabaseWriter) GetHash() string {
