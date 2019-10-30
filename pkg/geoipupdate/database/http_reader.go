@@ -42,15 +42,12 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 			log.Println(err)
 		}
 	}()
-	lastHash, err := destination.GetHash()
-	if err != nil {
-		return errors.Wrap(err, "unable to get previous hash")
-	}
+
 	maxMindURL := fmt.Sprintf(
 		"%s/geoip/databases/%s/update?db_md5=%s",
 		reader.url,
 		url.PathEscape(editionID),
-		url.QueryEscape(lastHash),
+		url.QueryEscape(destination.GetHash()),
 	)
 
 	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil)

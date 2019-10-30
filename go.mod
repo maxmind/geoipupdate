@@ -3,6 +3,7 @@ module github.com/maxmind/geoipupdate
 go 1.12
 
 require (
+	github.com/aws/aws-sdk-go v1.25.22
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gofrs/flock v0.7.1
 	github.com/kr/pretty v0.1.0 // indirect
