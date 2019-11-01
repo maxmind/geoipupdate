@@ -23,7 +23,7 @@ func TestCreateLockFile(t *testing.T) {
 		{
 			Description:   "Database should fail to build with bad file path",
 			LockFilename:  "bad/file/path.geoipupdate.lock",
-			ExpectedError: `database directory is not available.*no such file or directory`,
+			ExpectedError: `database directory is not available`,
 		},
 	}
 
