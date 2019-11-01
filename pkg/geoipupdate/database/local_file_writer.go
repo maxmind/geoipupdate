@@ -15,13 +15,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-const zeroMD5 = "00000000000000000000000000000000"
-
-// LocalFileDatabaseWriter is a Writer that stores the database to the local
-// file system.
+//LocalFileDatabaseWriter is a database.Writer that stores the database to the local file system
 type LocalFileDatabaseWriter struct {
 	filePath      string
-	lockFile      string
+	lockFilePath  string
 	verbose       bool
 	lock          *flock.Flock
 	oldHash       string
@@ -33,20 +30,21 @@ type LocalFileDatabaseWriter struct {
 // NewLocalFileDatabaseWriter create a LocalFileDatabaseWriter. It creates the
 // necessary lock and temporary files to protect the database from concurrent
 // writes.
-func NewLocalFileDatabaseWriter(filePath string, lockFile string, verbose bool) (*LocalFileDatabaseWriter, error) {
+func NewLocalFileDatabaseWriter(filePath string, lockFilePath string, verbose bool) (*LocalFileDatabaseWriter, error) {
 	dbWriter := &LocalFileDatabaseWriter{
-		filePath: filePath,
-		lockFile: lockFile,
-		verbose:  verbose,
-	}
-	if err := dbWriter.createLockFile(); err != nil {
-		return nil, err
-	}
-	if err := dbWriter.createOldMD5Hash(); err != nil {
-		return nil, err
+		filePath:     filePath,
+		lockFilePath: lockFilePath,
+		verbose:      verbose,
 	}
 
 	var err error
+	if err = dbWriter.createOldMD5Hash(); err != nil {
+		return nil, err
+	}
+	if dbWriter.lock, err = CreateLockFile(lockFilePath, verbose); err != nil {
+		return nil, err
+	}
+
 	temporaryFilename := fmt.Sprintf("%s.temporary", dbWriter.filePath)
 	dbWriter.temporaryFile, err = os.OpenFile( //nolint:gosec
 		temporaryFilename,
@@ -66,7 +64,7 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 	currentDatabaseFile, err := os.Open(writer.filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			writer.oldHash = zeroMD5
+			writer.oldHash = ZeroMD5
 			return nil
 		}
 		return errors.Wrap(err, "error opening database")
@@ -89,34 +87,12 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 	return nil
 }
 
-func (writer *LocalFileDatabaseWriter) createLockFile() error {
-	fi, err := os.Stat(filepath.Dir(writer.filePath))
-	if err != nil {
-		return errors.Wrap(err, "database directory is not available")
-	}
-	if !fi.IsDir() {
-		return errors.New("database directory is not a directory")
-	}
-	writer.lock = flock.New(writer.lockFile)
-	ok, err := writer.lock.TryLock()
-	if err != nil {
-		return errors.Wrap(err, "error acquiring a lock")
-	}
-	if !ok {
-		return errors.Errorf("could not acquire lock on %s", writer.lockFile)
-	}
-	if writer.verbose {
-		log.Printf("Acquired lock file lock (%s)", writer.lockFile)
-	}
-	return nil
-}
-
-// Write writes data to the temporary file.
+//Write writes data to temporary file
 func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
 	return writer.fileWriter.Write(p)
 }
 
-// Close closes the temporary file.
+//Close closes the temporary file and releases the file lock
 func (writer *LocalFileDatabaseWriter) Close() error {
 	if err := writer.temporaryFile.Close(); err != nil && errors.Cause(err) == os.ErrClosed {
 		return errors.Wrap(err, "error closing temporary file")
@@ -178,7 +154,7 @@ func (writer *LocalFileDatabaseWriter) Commit() error {
 	return nil
 }
 
-// GetHash returns the hash of the current database file.
-func (writer *LocalFileDatabaseWriter) GetHash() (string, error) {
-	return writer.oldHash, nil
+//GetHash returns the hash of the current database file
+func (writer *LocalFileDatabaseWriter) GetHash() string {
+	return writer.oldHash
 }
