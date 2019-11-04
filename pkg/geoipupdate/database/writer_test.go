@@ -9,24 +9,20 @@ import (
 	"testing"
 )
 
-func TestNewDatabaseWriter(t *testing.T) {
-
+func TestCreateLockFile(t *testing.T) {
 	tests := []struct {
 		Description   string
-		FilePath      string
-		LockFilePath  string
+		LockFilename  string
 		ExpectedError string
 	}{
 		{
 			Description:   "Database shouldn't have errors with good file paths",
-			FilePath:      "GeoIP2-City.mmdb",
-			LockFilePath:  ".geoipupdate.lock",
+			LockFilename:  ".geoipupdate.lock",
 			ExpectedError: "",
 		},
 		{
 			Description:   "Database should fail to build with bad file path",
-			FilePath:      "GeoIP2-City.mmdb",
-			LockFilePath:  "bad/file/path.geoipupdate.lock",
+			LockFilename:  "bad/file/path.geoipupdate.lock",
 			ExpectedError: `database directory is not available`,
 		},
 	}
@@ -37,8 +33,7 @@ func TestNewDatabaseWriter(t *testing.T) {
 		err = os.RemoveAll(tempDir)
 		require.NoError(t, err)
 		t.Run(test.Description, func(t *testing.T) {
-			_, err = NewLocalFileDatabaseWriter(filepath.Join(tempDir, test.FilePath),
-				filepath.Join(tempDir, test.LockFilePath), false)
+			_, err := CreateLockFile(filepath.Join(tempDir, test.LockFilename), false)
 			if err != nil {
 				// regex because some errors have filenames.
 				assert.Regexp(t, test.ExpectedError, err.Error(), test.Description)
@@ -47,5 +42,4 @@ func TestNewDatabaseWriter(t *testing.T) {
 			}
 		})
 	}
-
 }
