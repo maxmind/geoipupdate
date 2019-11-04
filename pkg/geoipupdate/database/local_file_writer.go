@@ -38,10 +38,10 @@ func NewLocalFileDatabaseWriter(filePath string, lockFilePath string, verbose bo
 	}
 
 	var err error
-	if err = dbWriter.createOldMD5Hash(); err != nil {
+	if dbWriter.lock, err = CreateLockFile(lockFilePath, verbose); err != nil {
 		return nil, err
 	}
-	if dbWriter.lock, err = CreateLockFile(lockFilePath, verbose); err != nil {
+	if err = dbWriter.createOldMD5Hash(); err != nil {
 		return nil, err
 	}
 
