@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.1.0
+## 4.1.0 (2019-11-07)
 
 * Improve man page formatting and organization. Pull request by Faidon
   Liambotis. GitHub #44.
