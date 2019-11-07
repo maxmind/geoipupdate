@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 4.1.2 (2019-11-07)
+
+* Re-release of 4.1.1 to fix Ubuntu PPA release issue. No code changes.
+
+## 4.1.1 (2019-11-07)
+
+* Re-release of 4.1.0 to fix Ubuntu PPA release issue. No code changes.
+
 ## 4.1.0 (2019-11-07)
 
 * Improve man page formatting and organization. Pull request by Faidon
