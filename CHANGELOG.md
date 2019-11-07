@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 4.1.0 (2019-11-07)
+
+* Improve man page formatting and organization. Pull request by Faidon
+  Liambotis. GitHub #44.
+* Provide update functionality as an importable package as well as a
+  standalone program. Pull request by amzhughe. GitHub #48.
+
 ## 4.0.6 (2019-09-13)
 
 * Re-release of 4.0.5 to fix Ubuntu PPA release issue. No code changes.

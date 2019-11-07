@@ -1,4 +1,4 @@
-package main
+package geoipupdate
 
 import (
 	"io/ioutil"
@@ -344,7 +344,7 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 
 	for _, test := range tests {
 		require.NoError(t, ioutil.WriteFile(tempName, []byte(test.Input), 0600))
-		config, err := NewConfig(tempName, "/tmp")
+		config, err := NewConfig(tempName, DefaultDatabaseDirectory, "/tmp", false)
 		if test.Err == "" {
 			assert.NoError(t, err, test.Description)
 		} else {

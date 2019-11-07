@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
 	"log"
 	"os"
 
@@ -19,7 +20,7 @@ func getArgs() *Args {
 	configFile := flag.StringP(
 		"config-file",
 		"f",
-		defaultConfigFile,
+		geoipupdate.DefaultConfigFile,
 		"Configuration file",
 	)
 	databaseDirectory := flag.StringP(

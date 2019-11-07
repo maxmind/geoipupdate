@@ -74,12 +74,6 @@ The following are deprecated and will be ignored if present:
 
 `SkipHostnameVerification`
 
-# FILES
-
-`GeoIP.conf`
-
-:   Default `geoipupdate` configuration file.
-
 # SEE ALSO
 
 `geoipupdate`(1)

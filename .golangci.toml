@@ -33,3 +33,6 @@
 [[issues.exclude-rules]]
 text = "weak cryptographic primitive"
 linters = ["gosec"]
+
+[issues]
+exclude-use-default = false
