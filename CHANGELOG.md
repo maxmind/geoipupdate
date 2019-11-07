@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.1.3
+## 4.1.3 (2019-11-07)
 
 * Remove formatting, linting, and testing from the geoipupdate target in
   the Makefile.
