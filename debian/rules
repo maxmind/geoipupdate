@@ -1,5 +1,10 @@
 #!/usr/bin/make -f
 
+# eoan builds failed with:
+# failed to initialize build cache at /sbuild-nonexistent/.cache/go-build:
+# mkdir /sbuild-nonexistent: permission denied
+export GOCACHE := $(CURDIR)/.go-cache
+
 override_dh_auto_build:
 	make CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP data
 	@# Hack! Rather than use dh_auto_build's build step that would come
