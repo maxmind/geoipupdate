@@ -25,10 +25,13 @@ open my $fh, '>', 'debian/compat' || die $!;
 print { $fh } "9\n" || die $!;
 close $fh || die $!;
 
+# eoan builds fail trying to download Go modules. We vendor them, so use
+# -mod=vendor.
 system(
     'go',
     'install',
 	'-ldflags', "-X main.defaultConfigFile=/etc/GeoIP.conf -X main.defaultDatabaseDirectory=/usr/share/GeoIP -X 'main.version=$version (ubuntu-ppa)'",
+    '-mod=vendor',
     'github.com/maxmind/geoipupdate/...',
 ) == 0 || die 'error building geoipupdate';
 
