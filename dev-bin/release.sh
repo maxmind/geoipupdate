@@ -56,6 +56,10 @@ $notes"
 
 git tag -a -m "$message" "$tag"
 
+# It's important to push before running any hub commands as hub works off
+# what's pushed.
+git push
+
 # goreleaser's `--rm-dist' should clear out `dist', but it didn't work for me.
 rm -rf dist
 goreleaser release --rm-dist -f .goreleaser.yml --release-notes <(echo "$message")
@@ -72,8 +76,6 @@ make clean BUILDDIR=.
 
 rm -rf dist
 goreleaser release --rm-dist -f .goreleaser-packages.yml --skip-publish
-
-git push
 
 hub release edit -m "$message" \
     -a dist/checksums-dpkg-rpm.txt \
