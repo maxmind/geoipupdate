@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.1.3
+
+* Remove formatting, linting, and testing from the geoipupdate target in
+  the Makefile.
+
 ## 4.1.2 (2019-11-07)
 
 * Re-release of 4.1.1 to fix Ubuntu PPA release issue. No code changes.
