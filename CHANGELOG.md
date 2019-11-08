@@ -4,10 +4,9 @@
 
 * Respect the defaultConfigFile and defaultDatabaseDirectory variables in
   the main package again. They were ignored in 4.1.0 through 4.1.4. If not
-  specified, these GitHub and PPA releases looked for the config in
-  /usr/local/etc/GeoIP.conf and the database directory in
-  /usr/local/share/GeoIP, where these should have been /etc/GeoIP.conf and
-  /usr/share/GeoIP.
+  specified, the GitHub and PPA releases for these versions used the config
+  /usr/local/etc/GeoIP.conf instead of /etc/GeoIP.conf and the database
+  directory /usr/local/share/GeoIP instead of /usr/share/GeoIP.
 
 ## 4.1.4 (2019-11-07)
 
