@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## 4.1.5 (2019-11-08)
+
+* Respect the defaultConfigFile and defaultDatabaseDirectory variables in
+  the main package again. They were ignored in 4.1.0 through 4.1.4. If not
+  specified, the GitHub and PPA releases for these versions used the config
+  /usr/local/etc/GeoIP.conf instead of /etc/GeoIP.conf and the database
+  directory /usr/local/share/GeoIP instead of /usr/share/GeoIP.
+
+## 4.1.4 (2019-11-07)
+
+* Re-release of 4.1.3 as two commits were missing. No changes.
+
+## 4.1.3 (2019-11-07)
+
+* Remove formatting, linting, and testing from the geoipupdate target in
+  the Makefile.
+
+## 4.1.2 (2019-11-07)
+
+* Re-release of 4.1.1 to fix Ubuntu PPA release issue. No code changes.
+
+## 4.1.1 (2019-11-07)
+
+* Re-release of 4.1.0 to fix Ubuntu PPA release issue. No code changes.
+
 ## 4.1.0 (2019-11-07)
 
 * Improve man page formatting and organization. Pull request by Faidon
