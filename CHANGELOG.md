@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.1.5
+## 4.1.5 (2019-11-08)
 
 * Respect the defaultConfigFile and defaultDatabaseDirectory variables in
   the main package again. They were ignored in 4.1.0 through 4.1.4. If not
