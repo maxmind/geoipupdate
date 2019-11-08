@@ -26,12 +26,24 @@ print { $fh } "9\n" || die $!;
 close $fh || die $!;
 
 # eoan builds fail trying to download Go modules. We vendor them, so use
-# -mod=vendor.
+# -mod=vendor. However, that flag is only supported on Go 1.11+, and versions
+# older than eoan use Go 1.10.
+my @extra_flags;
+my $go_version_raw = `go version`;
+chomp $go_version_raw;
+my $go_minor_version;
+if ($go_version_raw =~ /\Ago version go1\.([0-9]+)(?:\.[0-9]+)?/) {
+    $go_minor_version = $1;
+}
+if (!$go_minor_version || $go_minor_version >= 11) {
+    push @extra_flags, '-mod=vendor';
+}
+
 system(
     'go',
     'install',
 	'-ldflags', "-X main.defaultConfigFile=/etc/GeoIP.conf -X main.defaultDatabaseDirectory=/usr/share/GeoIP -X 'main.version=$version (ubuntu-ppa)'",
-    '-mod=vendor',
+    @extra_flags,
     'github.com/maxmind/geoipupdate/...',
 ) == 0 || die 'error building geoipupdate';
 
