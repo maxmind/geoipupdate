@@ -1,3 +1,9 @@
+geoipupdate (4.1.5-0+maxmind1) eoan; urgency=low
+
+  * New upstream release.
+
+ -- William Storey <wstorey@maxmind.com>  Fri, 08 Nov 2019 18:16:53 +0000
+
 geoipupdate (4.1.2-0+maxmind1) eoan; urgency=low
 
   * New upstream release.
