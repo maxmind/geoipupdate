@@ -10,11 +10,21 @@ import (
 	"path/filepath"
 )
 
-// version is the program's version number.
-var version = "unknown"
+var (
+	version                  = "unknown"
+	defaultConfigFile        string
+	defaultDatabaseDirectory string
+)
 
 func main() {
 	log.SetFlags(0)
+
+	if defaultConfigFile == "" {
+		defaultConfigFile = geoipupdate.DefaultConfigFile
+	}
+	if defaultDatabaseDirectory == "" {
+		defaultDatabaseDirectory = geoipupdate.DefaultDatabaseDirectory
+	}
 
 	args := getArgs()
 	fatalLogger := func(message string, err error) {
@@ -26,7 +36,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	config, err := geoipupdate.NewConfig(args.ConfigFile, geoipupdate.DefaultDatabaseDirectory, args.DatabaseDirectory, args.Verbose)
+	config, err := geoipupdate.NewConfig(args.ConfigFile, defaultDatabaseDirectory, args.DatabaseDirectory, args.Verbose)
 	if err != nil {
 		fatalLogger("error loading configuration file", err)
 	}
