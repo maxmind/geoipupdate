@@ -27,8 +27,8 @@ func TestNewConfig(t *testing.T) {
 # Enter your account ID and license key below. These are available from
 # https://www.maxmind.com/en/my_license_key. If you are only using free
 # GeoLite databases, you may leave the 0 values.
-AccountID 0
-LicenseKey 000000000000
+AccountID 42
+LicenseKey 000000000001
 
 # Enter the edition IDs of the databases you would like to update.
 # Multiple edition IDs are separated by spaces.
@@ -61,6 +61,8 @@ EditionIDs GeoLite2-Country GeoLite2-City
 # LockFile DATADIR/.geoipupdate.lock
 `,
 			Output: &Config{
+				AccountID:         42,
+				LicenseKey:        "000000000001",
 				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
@@ -76,8 +78,8 @@ EditionIDs GeoLite2-Country GeoLite2-City
 # Enter your account ID and license key below. These are available from
 # https://www.maxmind.com/en/my_license_key. If you are only using free
 # GeoLite databases, you may leave the 0 values.
-UserId 0
-LicenseKey 000000000000
+UserId 42
+LicenseKey 000000000001
 
 # Enter the edition IDs of the databases you would like to update.
 # Multiple edition IDs are separated by spaces.
@@ -110,6 +112,8 @@ ProductIds GeoLite2-Country GeoLite2-City
 # LockFile DATADIR/.geoipupdate.lock
 `,
 			Output: &Config{
+				AccountID:         42,
+				LicenseKey:        "000000000001",
 				DatabaseDirectory: filepath.Clean("/tmp"),
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
@@ -224,37 +228,27 @@ EditionID GeoIP2-City
 			Input: `LicenseKey abcd
 EditionIDs GeoIP2-City
 `,
-			Err: "the `AccountID` option is required if the `LicenseKey` option is set",
+			Err: "the `AccountID` option is required",
 		},
 		{
 			Description: "AccountID is found but LicenseKey is not",
 			Input: `AccountID 123
 EditionIDs GeoIP2-City`,
-			Err: "the `LicenseKey` option is required if the `AccountID` option is set",
+			Err: "the `LicenseKey` option is required",
 		},
 		{
 			Description: "AccountID 0 with the LicenseKey 000000000000 is treated as no AccountID/LicenseKey",
 			Input: `AccountID 0
 LicenseKey 000000000000
 EditionIDs GeoIP2-City`,
-			Output: &Config{
-				DatabaseDirectory: filepath.Clean("/tmp"),
-				EditionIDs:        []string{"GeoIP2-City"},
-				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
-				URL:               "https://updates.maxmind.com",
-			},
+			Err: "geoipupdate requires a valid AccountID and LicenseKey combination",
 		},
 		{
 			Description: "AccountID 999999 with the LicenseKey 000000000000 is treated as no AccountID/LicenseKey",
 			Input: `AccountID 999999
 LicenseKey 000000000000
 EditionIDs GeoIP2-City`,
-			Output: &Config{
-				DatabaseDirectory: filepath.Clean("/tmp"),
-				EditionIDs:        []string{"GeoIP2-City"},
-				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
-				URL:               "https://updates.maxmind.com",
-			},
+			Err: "geoipupdate requires a valid AccountID and LicenseKey combination",
 		},
 		{
 			Description: "AccountID 999999 with a non-000000000000 LicenseKey is treated normally",
