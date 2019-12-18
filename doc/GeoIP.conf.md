@@ -15,6 +15,14 @@ sensitive.
 
 ## Required settings:
 
+`AccountID`
+
+:   Your MaxMind account ID. This was formerly known as `UserId`.
+
+`LicenseKey`
+
+:   Your case-sensitive MaxMind license key.
+
 `EditionIDs`
 
 :   List of database edition IDs. Edition IDs may consist
@@ -22,10 +30,6 @@ sensitive.
     was formerly called `ProductIds`.
 
 ## Optional settings:
-
-`AccountID`
-
-:   Your MaxMind account ID. This was formerly known as `UserId`.
 
 `DatabaseDirectory`
 
@@ -52,10 +56,6 @@ sensitive.
 
 :   Whether to preserve modification times of files downloaded from the
     server. This option is either `0` or `1`. The default is `0`.
-
-`LicenseKey`
-
-:   Your case-sensitive MaxMind license key.
 
 `LockFile`
 

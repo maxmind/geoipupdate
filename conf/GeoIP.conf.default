@@ -2,11 +2,11 @@
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
-# Enter your account ID and license key below. These are available from
-# https://www.maxmind.com/en/my_license_key. If you are only using free
-# GeoLite databases, you may leave the 0 values.
-AccountID 0
-LicenseKey 000000000000
+# Replace YOUR_ACCOUNT_ID_HERE and YOUR_LICENSE_KEY_HERE with an active account
+# ID and license key combination associated with your MaxMind account. These
+# are available from https://www.maxmind.com/en/my_license_key.
+AccountID YOUR_ACCOUNT_ID_HERE
+LicenseKey YOUR_LICENSE_KEY_HERE
 
 # Enter the edition IDs of the databases you would like to update.
 # Multiple edition IDs are separated by spaces.

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* A valid account ID and license key combination is now required for database
+  downloads, so those configuration options are now required.
+
 ## 4.1.5 (2019-11-08)
 
 * Respect the defaultConfigFile and defaultDatabaseDirectory variables in
