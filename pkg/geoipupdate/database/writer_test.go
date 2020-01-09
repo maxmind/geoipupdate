@@ -28,12 +28,12 @@ func TestCreateLockFile(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		tempDir, err := ioutil.TempDir("", "gutest-")
-		require.NoError(t, err)
-		err = os.RemoveAll(tempDir)
-		require.NoError(t, err)
 		t.Run(test.Description, func(t *testing.T) {
-			_, err := CreateLockFile(filepath.Join(tempDir, test.LockFilename), false)
+			tempDir, err := ioutil.TempDir("", "gutest-")
+			require.NoError(t, err)
+			err = os.RemoveAll(tempDir)
+			require.NoError(t, err)
+			_, err = CreateLockFile(filepath.Join(tempDir, test.LockFilename), false)
 			if err != nil {
 				// regex because some errors have filenames.
 				assert.Regexp(t, test.ExpectedError, err.Error(), test.Description)

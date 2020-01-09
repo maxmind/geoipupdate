@@ -51,34 +51,34 @@ func TestGetFileName(t *testing.T) {
 	}()
 
 	for _, test := range tests {
-		server := httptest.NewServer(
-			http.HandlerFunc(
-				func(rw http.ResponseWriter, r *http.Request) {
-					if r.URL.Path == "/app/update_getfilename" {
-						rw.WriteHeader(test.FilenameStatus)
-						_, err := rw.Write([]byte(test.FilenameBody))
-						require.NoError(t, err)
-						return
-					}
-					if r.URL.Path == "/go-here" {
-						rw.WriteHeader(http.StatusNotModified)
-						return
-					}
-					rw.WriteHeader(http.StatusBadRequest)
-				},
-			),
-		)
-
-		config := &Config{
-			AccountID:         123,
-			DatabaseDirectory: tempDir,
-			EditionIDs:        []string{"GeoIP2-City"},
-			LicenseKey:        "testing",
-			LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
-			URL:               server.URL,
-		}
-		client := NewClient(config)
 		t.Run(test.Description, func(t *testing.T) {
+			server := httptest.NewServer(
+				http.HandlerFunc(
+					func(rw http.ResponseWriter, r *http.Request) {
+						if r.URL.Path == "/app/update_getfilename" {
+							rw.WriteHeader(test.FilenameStatus)
+							_, err := rw.Write([]byte(test.FilenameBody))
+							require.NoError(t, err)
+							return
+						}
+						if r.URL.Path == "/go-here" {
+							rw.WriteHeader(http.StatusNotModified)
+							return
+						}
+						rw.WriteHeader(http.StatusBadRequest)
+					},
+				),
+			)
+
+			config := &Config{
+				AccountID:         123,
+				DatabaseDirectory: tempDir,
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "testing",
+				LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
+				URL:               server.URL,
+			}
+			client := NewClient(config)
 			actualOutput, actualError := GetFilename(config, config.EditionIDs[0], client)
 
 			assert.Equal(t, test.ExpectedOutput, actualOutput, test.Description)
