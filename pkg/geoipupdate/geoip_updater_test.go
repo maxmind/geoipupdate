@@ -12,7 +12,6 @@ import (
 )
 
 func TestGetFileName(t *testing.T) {
-
 	tests := []struct {
 		Description    string
 		FilenameStatus int
@@ -80,7 +79,6 @@ func TestGetFileName(t *testing.T) {
 		}
 		client := NewClient(config)
 		t.Run(test.Description, func(t *testing.T) {
-
 			actualOutput, actualError := GetFilename(config, config.EditionIDs[0], client)
 
 			assert.Equal(t, test.ExpectedOutput, actualOutput, test.Description)
@@ -90,5 +88,4 @@ func TestGetFileName(t *testing.T) {
 			}
 		})
 	}
-
 }
