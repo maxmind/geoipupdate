@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+
 	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
 	"github.com/maxmind/geoipupdate/pkg/geoipupdate/database"
 	"github.com/pkg/errors"
-	"log"
-	"os"
-	"path/filepath"
 )
 
 var (
@@ -45,15 +47,14 @@ func main() {
 		log.Printf("Using database directory %s", config.DatabaseDirectory)
 	}
 
-	if err = run(config); err != nil {
+	client := geoipupdate.NewClient(config)
+
+	if err = run(client, config); err != nil {
 		fatalLogger("error retrieving updates", err)
 	}
 }
 
-func run(
-	config *geoipupdate.Config,
-) error {
-	client := geoipupdate.NewClient(config)
+func run(client *http.Client, config *geoipupdate.Config) error {
 	dbReader := database.NewHTTPDatabaseReader(client, config)
 
 	for _, editionID := range config.EditionIDs {
