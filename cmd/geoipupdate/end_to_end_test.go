@@ -85,11 +85,7 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 	}
 
 	logOutput := &bytes.Buffer{}
-	origWriter := log.Writer()
 	log.SetOutput(logOutput)
-	defer func() {
-		log.SetOutput(origWriter)
-	}()
 
 	err = run(client, config)
 	assert.NoError(t, err, "run successfully")
