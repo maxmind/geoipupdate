@@ -1,6 +1,7 @@
 package geoipupdate
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -337,14 +338,16 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 	}()
 
 	for _, test := range tests {
-		require.NoError(t, ioutil.WriteFile(tempName, []byte(test.Input), 0600))
-		config, err := NewConfig(tempName, DefaultDatabaseDirectory, "/tmp", false)
-		if test.Err == "" {
-			assert.NoError(t, err, test.Description)
-		} else {
-			assert.EqualError(t, err, test.Err, test.Description)
-		}
-		assert.Equal(t, test.Output, config, test.Description)
+		t.Run(test.Description, func(t *testing.T) {
+			require.NoError(t, ioutil.WriteFile(tempName, []byte(test.Input), 0600))
+			config, err := NewConfig(tempName, DefaultDatabaseDirectory, "/tmp", false)
+			if test.Err == "" {
+				assert.NoError(t, err, test.Description)
+			} else {
+				assert.EqualError(t, err, test.Err, test.Description)
+			}
+			assert.Equal(t, test.Output, config, test.Description)
+		})
 	}
 }
 
@@ -419,13 +422,18 @@ func TestParseProxy(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output, err := parseProxy(test.Proxy, test.UserPassword)
-		if test.Err != "" {
-			assert.EqualError(t, err, test.Err)
-			assert.Nil(t, output)
-		} else {
-			assert.NoError(t, err)
-			assert.Equal(t, test.Output, output.String())
-		}
+		t.Run(
+			fmt.Sprintf("%s - %s", test.Proxy, test.UserPassword),
+			func(t *testing.T) {
+				output, err := parseProxy(test.Proxy, test.UserPassword)
+				if test.Err != "" {
+					assert.EqualError(t, err, test.Err)
+					assert.Nil(t, output)
+				} else {
+					assert.NoError(t, err)
+					assert.Equal(t, test.Output, output.String())
+				}
+			},
+		)
 	}
 }
