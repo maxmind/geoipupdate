@@ -1,5 +1,6 @@
 # CHANGELOG
 
+* The minimum Go version is now 1.13.
 * A valid account ID and license key combination is now required for database
   downloads, so those configuration options are now required.
 
