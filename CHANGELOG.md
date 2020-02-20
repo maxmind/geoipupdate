@@ -12,6 +12,10 @@
   ignore errors and, upon upgrading to `github.com/pkg/errors` 0.9.0,
   would fail to ignore expected errors. Reported by Ilya Skrypitsa and
   pgnd. GitHub #69 and #70.
+* The RPM release was previously lacking the correct owner and group on files
+  and directories. Among other things, this caused the package to conflict with
+  the `GeoIP` package in CentOS 7 and `GeoIP-GeoLite-data` in CentOS 8. The
+  files are now owned by `root`. Reported by neonknight. GitHub #76.
 
 ## 4.1.5 (2019-11-08)
 
