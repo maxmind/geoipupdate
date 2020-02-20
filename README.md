@@ -109,7 +109,7 @@ website](https://golang.org).
 
 The easiest way is via `go get`:
 
-    $ go get -u github.com/maxmind/geoipupdate/cmd/geoipupdate
+    $ go get -u github.com/maxmind/geoipupdate/v4/cmd/geoipupdate
 
 This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 

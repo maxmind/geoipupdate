@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.2.0 (2020-02-20)
+
+* The major version of the module is now included at the end of the module
+  path. Previously, it was not possible to import the module in projects that
+  were using Go modules. Reported by Roman Glushko. GitHub #81.
 * The minimum Go version is now 1.13.
 * A valid account ID and license key combination is now required for database
   downloads, so those configuration options are now required.
