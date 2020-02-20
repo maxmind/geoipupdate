@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
 	"github.com/pkg/errors"
 )
 
