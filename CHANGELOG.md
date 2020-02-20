@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 4.2.0 (2020-02-20)
+
+* The major version of the module is now included at the end of the module
+  path. Previously, it was not possible to import the module in projects that
+  were using Go modules. Reported by Roman Glushko. GitHub #81.
+* The minimum Go version is now 1.13.
+* A valid account ID and license key combination is now required for database
+  downloads, so those configuration options are now required.
+* The error handling when closing a local database file would previously
+  ignore errors and, upon upgrading to `github.com/pkg/errors` 0.9.0,
+  would fail to ignore expected errors. Reported by Ilya Skrypitsa and
+  pgnd. GitHub #69 and #70.
+* The RPM release was previously lacking the correct owner and group on files
+  and directories. Among other things, this caused the package to conflict with
+  the `GeoIP` package in CentOS 7 and `GeoIP-GeoLite-data` in CentOS 8. The
+  files are now owned by `root`. Reported by neonknight. GitHub #76.
+
 ## 4.1.5 (2019-11-08)
 
 * Respect the defaultConfigFile and defaultDatabaseDirectory variables in

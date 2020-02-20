@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -130,89 +130,89 @@ func TestHTTPDatabaseReader(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, test := range tests {
-		server := httptest.NewServer(
-			http.HandlerFunc(
-				func(rw http.ResponseWriter, r *http.Request) {
-					if updateRE.MatchString(r.URL.Path) {
-						buf := &bytes.Buffer{}
-						gzWriter := gzip.NewWriter(buf)
-						md5Writer := md5.New()
-						multiWriter := io.MultiWriter(gzWriter, md5Writer)
-						_, err := multiWriter.Write([]byte(test.DownloadBody))
-						require.NoError(t, err)
-						err = gzWriter.Close()
-						require.NoError(t, err)
-
-						rw.Header().Set(
-							"X-Database-MD5",
-							fmt.Sprintf("%x", md5Writer.Sum(nil)),
-						)
-						if test.DownloadStatus == http.StatusOK {
-							rw.Header().Set(
-								"Last-Modified",
-								time.Now().Format(time.RFC1123),
-							)
-						}
-						for k, v := range test.DownloadHeaders {
-							rw.Header().Set(k, v)
-						}
-
-						rw.WriteHeader(test.DownloadStatus)
-
-						if test.DownloadStatus == http.StatusOK {
-							_, err := rw.Write(buf.Bytes())
-							require.NoError(t, err)
-						}
-
-						return
-					}
-
-					if r.URL.Path == "/go-here" {
-						rw.WriteHeader(http.StatusNotModified)
-						return
-					}
-
-					rw.WriteHeader(http.StatusBadRequest)
-				},
-			),
-		)
-
-		config := &geoipupdate.Config{
-			AccountID:         123,
-			DatabaseDirectory: tempDir,
-			EditionIDs:        []string{"GeoIP2-City"},
-			LicenseKey:        "testing",
-			LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
-			URL:               server.URL,
-		}
-		if !test.ExpectedTime.IsZero() {
-			config.PreserveFileTimes = true
-		}
-
-		if test.CreateDirectory {
-			err := os.Mkdir(config.DatabaseDirectory, 0755) //nolint:gosec
-			require.NoError(t, err)
-		}
-
-		currentDatabasePath := filepath.Join(
-			config.DatabaseDirectory,
-			"GeoIP2-City.mmdb",
-		)
-		if test.DatabaseBefore != "" {
-			err := ioutil.WriteFile(
-				currentDatabasePath,
-				[]byte(test.DatabaseBefore),
-				0644,
-			)
-			require.NoError(t, err)
-		}
-
-		client := geoipupdate.NewClient(config)
-		dbReader := NewHTTPDatabaseReader(client, config)
-		dbWriter, err := NewLocalFileDatabaseWriter(currentDatabasePath, config.LockFile, config.Verbose)
-		assert.NoError(t, err, test.Description)
-
 		t.Run(test.Description, func(t *testing.T) {
+			server := httptest.NewServer(
+				http.HandlerFunc(
+					func(rw http.ResponseWriter, r *http.Request) {
+						if updateRE.MatchString(r.URL.Path) {
+							buf := &bytes.Buffer{}
+							gzWriter := gzip.NewWriter(buf)
+							md5Writer := md5.New()
+							multiWriter := io.MultiWriter(gzWriter, md5Writer)
+							_, err := multiWriter.Write([]byte(test.DownloadBody))
+							require.NoError(t, err)
+							err = gzWriter.Close()
+							require.NoError(t, err)
+
+							rw.Header().Set(
+								"X-Database-MD5",
+								fmt.Sprintf("%x", md5Writer.Sum(nil)),
+							)
+							if test.DownloadStatus == http.StatusOK {
+								rw.Header().Set(
+									"Last-Modified",
+									time.Now().Format(time.RFC1123),
+								)
+							}
+							for k, v := range test.DownloadHeaders {
+								rw.Header().Set(k, v)
+							}
+
+							rw.WriteHeader(test.DownloadStatus)
+
+							if test.DownloadStatus == http.StatusOK {
+								_, err := rw.Write(buf.Bytes())
+								require.NoError(t, err)
+							}
+
+							return
+						}
+
+						if r.URL.Path == "/go-here" {
+							rw.WriteHeader(http.StatusNotModified)
+							return
+						}
+
+						rw.WriteHeader(http.StatusBadRequest)
+					},
+				),
+			)
+
+			config := &geoipupdate.Config{
+				AccountID:         123,
+				DatabaseDirectory: tempDir,
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "testing",
+				LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
+				URL:               server.URL,
+			}
+			if !test.ExpectedTime.IsZero() {
+				config.PreserveFileTimes = true
+			}
+
+			if test.CreateDirectory {
+				err := os.Mkdir(config.DatabaseDirectory, 0755) //nolint:gosec
+				require.NoError(t, err)
+			}
+
+			currentDatabasePath := filepath.Join(
+				config.DatabaseDirectory,
+				"GeoIP2-City.mmdb",
+			)
+			if test.DatabaseBefore != "" {
+				err := ioutil.WriteFile(
+					currentDatabasePath,
+					[]byte(test.DatabaseBefore),
+					0644,
+				)
+				require.NoError(t, err)
+			}
+
+			client := geoipupdate.NewClient(config)
+			dbReader := NewHTTPDatabaseReader(client, config)
+			dbWriter, err := NewLocalFileDatabaseWriter(currentDatabasePath, config.LockFile, config.Verbose)
+			assert.NoError(t, err, test.Description)
+
 			err = dbReader.Get(dbWriter, config.EditionIDs[0])
 			if test.Err == "" {
 				assert.NoError(t, err, test.Description)

@@ -15,7 +15,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-//LocalFileDatabaseWriter is a database.Writer that stores the database to the local file system
+// LocalFileDatabaseWriter is a database.Writer that stores the database to the
+// local file system.
 type LocalFileDatabaseWriter struct {
 	filePath      string
 	lockFilePath  string
@@ -87,17 +88,17 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 	return nil
 }
 
-//Write writes data to temporary file
+// Write writes to the temporary file.
 func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
 	return writer.fileWriter.Write(p)
 }
 
-//Close closes the temporary file and releases the file lock
+// Close closes the temporary file and releases the file lock.
 func (writer *LocalFileDatabaseWriter) Close() error {
-	if err := writer.temporaryFile.Close(); err != nil && errors.Cause(err) == os.ErrClosed {
+	if err := writer.temporaryFile.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
 		return errors.Wrap(err, "error closing temporary file")
 	}
-	if err := os.Remove(writer.temporaryFile.Name()); err != nil && errors.Cause(err) == os.ErrNotExist {
+	if err := os.Remove(writer.temporaryFile.Name()); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return errors.Wrap(err, "error removing temporary file")
 	}
 	if err := writer.lock.Unlock(); err != nil {
@@ -154,7 +155,7 @@ func (writer *LocalFileDatabaseWriter) Commit() error {
 	return nil
 }
 
-//GetHash returns the hash of the current database file
+// GetHash returns the hash of the current database file.
 func (writer *LocalFileDatabaseWriter) GetHash() string {
 	return writer.oldHash
 }

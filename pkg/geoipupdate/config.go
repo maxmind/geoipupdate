@@ -114,21 +114,12 @@ func NewConfig( // nolint: gocyclo
 		return nil, errors.Errorf("the `EditionIDs` option is required")
 	}
 
-	{
-		_, LicenseKeySeen := keysSeen["LicenseKey"]
-		_, AccountIDSeen := keysSeen["AccountID"]
+	if _, ok := keysSeen["AccountID"]; !ok {
+		return nil, errors.Errorf("the `AccountID` option is required")
+	}
 
-		if LicenseKeySeen && !AccountIDSeen {
-			return nil, errors.Errorf("the `AccountID` option is required if the `LicenseKey` option is set")
-		}
-
-		if AccountIDSeen && !LicenseKeySeen {
-			return nil, errors.Errorf("the `LicenseKey` option is required if the `AccountID` option is set")
-		}
-
-		if AccountIDSeen && config.AccountID == 0 && LicenseKeySeen && config.LicenseKey != "000000000000" {
-			return nil, errors.New("setting an `AccountID` option of 0 with a `LicenseKey` option other than 000000000000 is disallowed")
-		}
+	if _, ok := keysSeen["LicenseKey"]; !ok {
+		return nil, errors.Errorf("the `LicenseKey` option is required")
 	}
 
 	// Set defaults & post-process.
@@ -159,13 +150,12 @@ func NewConfig( // nolint: gocyclo
 		return nil, err
 	}
 
-	// We used to recommend using 999999 / 000000000000 for free downloads and
-	// many people still use this combination. We need to check for the
-	// 000000000000 license key to ensure that a real AccountID of 999999 will
-	// work in the future.
+	// We used to recommend using 999999 / 000000000000 for free downloads
+	// and many people still use this combination. With a real account id
+	// and license key now being required, we want to give those people a
+	// sensible error message.
 	if (config.AccountID == 0 || config.AccountID == 999999) && config.LicenseKey == "000000000000" {
-		config.AccountID = 0
-		config.LicenseKey = ""
+		return nil, errors.New("geoipupdate requires a valid AccountID and LicenseKey combination")
 	}
 
 	return config, nil

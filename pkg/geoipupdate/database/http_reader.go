@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/maxmind/geoipupdate/pkg/geoipupdate"
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
 	"github.com/pkg/errors"
 )
 
@@ -58,9 +58,7 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	if err != nil {
 		return errors.Wrap(err, "error creating request")
 	}
-	if reader.accountID != 0 {
-		req.SetBasicAuth(fmt.Sprintf("%d", reader.accountID), reader.licenseKey)
-	}
+	req.SetBasicAuth(fmt.Sprintf("%d", reader.accountID), reader.licenseKey)
 
 	if reader.verbose {
 		log.Printf("Performing update request to %s", maxMindURL)

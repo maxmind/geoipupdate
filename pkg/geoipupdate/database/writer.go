@@ -10,10 +10,11 @@ import (
 	"time"
 )
 
-//ZeroMD5 is the default value provided as an MD5 hash for a non-existent database
+// ZeroMD5 is the default value provided as an MD5 hash for a non-existent
+// database.
 const ZeroMD5 = "00000000000000000000000000000000"
 
-//Writer provides an interface for writing MaxMind a database to a target location
+// Writer provides an interface for writing a database to a target location.
 type Writer interface {
 	io.WriteCloser
 	ValidHash(expectedHash string) error
@@ -22,8 +23,9 @@ type Writer interface {
 	Commit() error
 }
 
-// CreateLockFile takes the provided filePath and lockFilePath name to create an flock.  All output errors are wrapped
-//	in more detailed messages for debugging
+// CreateLockFile takes the provided filePath and lockFilePath name to create a
+// file lock. All output errors are wrapped in more detailed messages for
+// debugging.
 func CreateLockFile(lockFilePath string, verbose bool) (*flock.Flock, error) {
 	fi, err := os.Stat(filepath.Dir(lockFilePath))
 	if err != nil {
