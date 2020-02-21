@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.2.1 (2020-02-21)
+
+* The minimum Go version is now 1.10 again as this was needed to build the PPA
+  packages.
+
 ## 4.2.0 (2020-02-20)
 
 * The major version of the module is now included at the end of the module
