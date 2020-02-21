@@ -4,6 +4,7 @@
 # failed to initialize build cache at /sbuild-nonexistent/.cache/go-build:
 # mkdir /sbuild-nonexistent: permission denied
 export GOCACHE := $(CURDIR)/.go-cache
+export DH_GOLANG_INSTALL_EXTRA := go.mod
 
 override_dh_auto_build:
 	make CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP data
