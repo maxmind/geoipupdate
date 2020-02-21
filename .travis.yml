@@ -6,9 +6,16 @@ os:
   - windows
 
 go:
+  - "1.10.x"
+  - "1.11.x"
+  - "1.12.x"
   - "1.13.x"
 
 before_script:
+  - |
+    if [[ $TRAVIS_GO_VERSION == '1.10.x' ]]; then
+      go get -t -u ./...
+    fi
   - |
     if [[ $TRAVIS_GO_VERSION == '1.13.x' && $TRAVIS_OS_NAME == 'linux' ]]; then
       curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin
