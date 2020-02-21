@@ -2,6 +2,12 @@ geoipupdate (4.2.1-0+maxmind1) eoan; urgency=low
 
   * New upstream release.
 
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Fri, 21 Feb 2020 12:08:25 -0800
+
+geoipupdate (4.2.1-0+maxmind1) eoan; urgency=low
+
+  * New upstream release.
+
  -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Fri, 21 Feb 2020 10:42:37 -0800
 
 geoipupdate (4.2.0-0+maxmind1) eoan; urgency=low
