@@ -32,7 +32,7 @@ if [ ! -z "$GEOIPUPDATE_PROXY_USER_PASSWORD" ]; then
 fi
 
 if [ ! -z "$GEOIPUPDATE_PRESERVE_FILE_TIMES" ]; then
-    echo "ProxyUserPassword $GEOIPUPDATE_PRESERVE_FILE_TIMES" >> "$conf_file"
+    echo "PreserveFileTimes $GEOIPUPDATE_PRESERVE_FILE_TIMES" >> "$conf_file"
 fi
 
 if [ "$GEOIPUPDATE_VERBOSE" ]; then
