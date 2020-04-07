@@ -26,6 +26,7 @@ builds:
 dockers:
   - image_templates:
       - maxmind/geoipupdate
+    dockerfile: docker/Dockerfile
     extra_files:
       - docker/entry.sh
 checksum:
