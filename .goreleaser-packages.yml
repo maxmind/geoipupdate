@@ -22,6 +22,8 @@ builds:
       post: 'make data BUILDDIR=. CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP'
     ldflags:
       - '-s -w -X main.version={{.Version}} -X main.defaultConfigFile=/etc/GeoIP.conf -X main.defaultDatabaseDirectory=/usr/share/GeoIP'
+    env:
+      - CGO_ENABLED=0
 checksum:
   name_template: 'checksums-dpkg-rpm.txt'
 nfpms:
