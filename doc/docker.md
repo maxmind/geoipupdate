@@ -38,7 +38,7 @@ individually with the `-e` flag.
 Run the latest image with:
 
 ```
-docker run --env-file <file>  -v <database directory>:/usr/share/GeoIP maxmind/geoipupdate
+docker run --env-file <file> -v <database directory>:/usr/share/GeoIP maxmind/geoipupdate
 ```
 
 `<file>` should be the environment variable file with your configuration.
