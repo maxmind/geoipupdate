@@ -40,8 +40,9 @@ func main() {
 
 	config, err := geoipupdate.NewConfig(args.ConfigFile, defaultDatabaseDirectory, args.DatabaseDirectory, args.Verbose)
 	if err != nil {
-		fatalLogger("error loading configuration file", err)
+		fatalLogger(fmt.Sprintf("error loading configuration file %s", args.ConfigFile), err)
 	}
+
 	if config.Verbose {
 		log.Printf("Using config file %s", args.ConfigFile)
 		log.Printf("Using database directory %s", config.DatabaseDirectory)
