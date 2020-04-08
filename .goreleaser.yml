@@ -16,10 +16,20 @@ builds:
     goarch:
       - '386'
       - 'amd64'
+      - 'arm'
+      - 'arm64'
     goos:
       - 'darwin'
       - 'linux'
     hooks:
       post: 'make data BUILDDIR=.'
+    env:
+      - CGO_ENABLED=0
+dockers:
+  - image_templates:
+      - maxmind/geoipupdate
+    dockerfile: docker/Dockerfile
+    extra_files:
+      - docker/entry.sh
 checksum:
   name_template: 'checksums-darwin-linux.txt'
