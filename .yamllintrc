@@ -1,0 +1,8 @@
+extends: default
+
+rules:
+  braces: disable
+  brackets: disable
+  line-length: disable
+  colons: {max-spaces-before: 0, max-spaces-after: -1}
+  document-start: disable
