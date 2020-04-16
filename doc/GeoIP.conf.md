@@ -25,9 +25,10 @@ sensitive.
 
 `EditionIDs`
 
-:   List of database edition IDs. Edition IDs may consist
-    of letters, digits, and dashes (e.g., "GeoIP2-City", "106"). Note: this
-    was formerly called `ProductIds`.
+:   List of space-separated database edition IDs. Edition IDs may consist
+    of letters, digits, and dashes.  For example, `GeoIP2-City 106` would
+    download the GeoIP2 City database (`GeoIP2-City`) and the GeoIP Legacy
+    Country database (`106`). Note: this was formerly called `ProductIds`.
 
 ## Optional settings:
 

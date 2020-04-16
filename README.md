@@ -102,6 +102,10 @@ Copy `geoipupdate.exe` to where you want it to live.
 `\ProgramData\MaxMind/GeoIPUpdate\GeoIP.conf` on your system drive by
 default.
 
+### Installing via Docker
+
+Please see our [Docker documentation](doc/docker.md).
+
 ### Installation from source or Git
 
 You need the Go compiler (1.8+). You can get it at the [Go
@@ -109,7 +113,7 @@ website](https://golang.org).
 
 The easiest way is via `go get`:
 
-    $ go get -u github.com/maxmind/geoipupdate/v4/cmd/geoipupdate
+    $ env GO111MODULE=on go get -u github.com/maxmind/geoipupdate/v4/cmd/geoipupdate
 
 This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 

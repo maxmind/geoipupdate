@@ -21,6 +21,8 @@ builds:
       - 'windows'
     hooks:
       post: 'make data OS=Windows_NT BUILDDIR=.'
+    env:
+      - CGO_ENABLED=0
 checksum:
   name_template: 'checksums-windows.txt'
 release:
