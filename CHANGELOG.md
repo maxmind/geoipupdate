@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.3.0
+## 4.3.0 (2020-04-16)
 
 * First release to Docker Hub. Requested by Shun Yanaura. GitHub #24.
 * The binary builds are now built with `CGO_ENABLED=0`. Request by CrazyMax.
