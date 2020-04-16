@@ -27,7 +27,10 @@ builds:
       - CGO_ENABLED=0
 dockers:
   - image_templates:
-      - maxmindinc/geoipupdate
+      - "maxmindinc/geoipupdate:{{ .Tag }}"
+      - "maxmindinc/geoipupdate:v{{ .Major }}"
+      - "maxmindinc/geoipupdate:v{{ .Major }}.{{ .Minor }}"
+      - "maxmindinc/geoipupdate:latest"
     dockerfile: docker/Dockerfile
     extra_files:
       - docker/entry.sh
