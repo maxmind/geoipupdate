@@ -27,7 +27,7 @@ builds:
       - CGO_ENABLED=0
 dockers:
   - image_templates:
-      - maxmind/geoipupdate
+      - maxmindinc/geoipupdate
     dockerfile: docker/Dockerfile
     extra_files:
       - docker/entry.sh
