@@ -70,7 +70,7 @@ You can also use the tarball.
 
 Download the appropriate .rpm for your system.
 
-Run `rpm -i path/to/geoipupdate_4.0.0_linux_amd64.rpm` (replacing the
+Run `rpm -Uvhi path/to/geoipupdate_4.0.0_linux_amd64.rpm` (replacing the
 version number and architecture as necessary). You will need to be root.
 This will install `geoipupdate` to `/usr/bin/geoipupdate`.
 
