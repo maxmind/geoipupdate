@@ -1,5 +1,10 @@
 # Docker
 
+## Image information
+
+The image is available on [Docker Hub](https://hub.docker.com/r/maxmindinc/geoipupdate).  
+The source code is available on [GitHub](https://github.com/maxmind/geoipupdate).
+
 ## Configuring
 
 The Docker image is configured by environment variables. The following
@@ -27,13 +32,15 @@ The following are optional:
   of files downloaded from the server. This option is either `0` or `1`. The
   default is `0`.
 * `GEOIPUPDATE_VERBOSE` - Enable verbose mode. Prints out the steps that
-  `geoipupdate` takes.
+  `geoipupdate` takes. Set to **anything** (e.g., `1`) to enable.
 
 The environment variables can be placed in a file with one per line and
 passed in with the `--env-file` flag. Alternatively, you may pass them in
 individually with the `-e` flag.
 
 ## Running
+
+### docker run
 
 Run the latest image with:
 
@@ -44,3 +51,31 @@ docker run --env-file <file> -v <database directory>:/usr/share/GeoIP maxmindinc
 `<file>` should be the environment variable file with your configuration.
 `<database directory>` should be the local directory that you want to download
 the databases to.
+
+### docker-compose
+
+Run the latest image with:
+
+```
+version: '3'
+services:
+  geoipupdate:
+    container_name: geoipupdate
+    image: maxmindinc/geoipupdate
+    restart: unless-stopped
+    environment:
+      - GEOIPUPDATE_ACCOUNT_ID=XXXXXX
+      - GEOIPUPDATE_LICENSE_KEY=XXXXXXXXXXXXXXXX
+      - 'GEOIPUPDATE_EDITION_IDS=GeoLite2-ASN GeoLite2-City GeoLite2-Country'
+    networks:
+      - geoipupdate
+    volumes:
+      - 'geoipupdate_data:/usr/share/GeoIP'
+
+networks:
+  geoipupdate:
+
+volumes:
+  geoipupdate_data:
+    driver: local
+```
