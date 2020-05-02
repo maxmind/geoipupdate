@@ -67,6 +67,7 @@ services:
       - GEOIPUPDATE_ACCOUNT_ID=XXXXXX
       - GEOIPUPDATE_LICENSE_KEY=XXXXXXXXXXXXXXXX
       - 'GEOIPUPDATE_EDITION_IDS=GeoLite2-ASN GeoLite2-City GeoLite2-Country'
+      - GEOIPUPDATE_FREQUENCY=72
     networks:
       - geoipupdate
     volumes:
@@ -79,3 +80,10 @@ volumes:
   geoipupdate_data:
     driver: local
 ```
+
+Note - When using docker-compose, you need to either:
+  - set `GEOIPUPDATE_FREQUENCY` equal to something greater than 0  
+  or  
+  - set `restart: on-failure`
+
+If you don't, the container will continuously restart.
