@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.4.0
+
+* The database edition ID is now included when retrieving the filename
+  fails.
+
 ## 4.3.0 (2020-04-16)
 
 * First release to Docker Hub. Requested by Shun Yanaura. GitHub #24.
