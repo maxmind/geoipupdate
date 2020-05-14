@@ -61,15 +61,15 @@ func run(client *http.Client, config *geoipupdate.Config) error {
 	for _, editionID := range config.EditionIDs {
 		filename, err := geoipupdate.GetFilename(config, editionID, client)
 		if err != nil {
-			return errors.Wrap(err, "error retrieving filename")
+			return errors.Wrapf(err, "error retrieving filename for %s", editionID)
 		}
 		filePath := filepath.Join(config.DatabaseDirectory, filename)
 		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, config.LockFile, config.Verbose)
 		if err != nil {
-			return errors.Wrap(err, "error creating database writer")
+			return errors.Wrapf(err, "error creating database writer for %s", editionID)
 		}
 		if err := dbReader.Get(dbWriter, editionID); err != nil {
-			return err
+			return errors.WithMessagef(err, "error while getting database for %s", editionID)
 		}
 	}
 	return nil

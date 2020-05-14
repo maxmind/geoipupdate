@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.4.0
+
+* The edition ID is now included when there is a failure retrieving a
+  database.
+
 ## 4.3.0 (2020-04-16)
 
 * First release to Docker Hub. Requested by Shun Yanaura. GitHub #24.
