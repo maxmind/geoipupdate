@@ -69,7 +69,7 @@ func run(client *http.Client, config *geoipupdate.Config) error {
 			return errors.Wrapf(err, "error creating database writer for %s", editionID)
 		}
 		if err := dbReader.Get(dbWriter, editionID); err != nil {
-			return err
+			return errors.WithMessagef(err, "error while getting database for %s", editionID)
 		}
 	}
 	return nil

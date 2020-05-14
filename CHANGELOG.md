@@ -2,8 +2,8 @@
 
 ## 4.4.0
 
-* The database edition ID is now included when retrieving the filename
-  fails.
+* The edition ID is now included when there is a failure retrieving a
+  database.
 
 ## 4.3.0 (2020-04-16)
 
