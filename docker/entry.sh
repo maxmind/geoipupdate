@@ -39,8 +39,6 @@ if [ "$GEOIPUPDATE_VERBOSE" ]; then
     flags="-v"
 fi
 
-cat "$conf_file"
-
 while true; do
     echo "# STATE: Running geoipupdate"
     /usr/bin/geoipupdate -d "$database_dir" -f "$conf_file" $flags
