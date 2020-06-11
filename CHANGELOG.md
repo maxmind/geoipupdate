@@ -4,6 +4,9 @@
 
 * The edition ID is now included when there is a failure retrieving a
   database.
+* The Docker image no longer prints the generated `GeoIP.conf` when starting
+  up. This prevents a possible leak of the account's license key. Pull
+  request by Nate Gay. GitHub #109.
 
 ## 4.3.0 (2020-04-16)
 
