@@ -21,6 +21,9 @@ Then release to our PPA:
   `dev-bin/ppa-release.sh`. We should include all currently supported
   Ubuntu releases.
 * Run `dev-bin/ppa-release.sh`
+* Visit https://launchpad.net/~maxmind/+archive/ubuntu/ppa/+copy-packages to
+  copy binaries to and versions that we support but don't build on, e.g.,
+  Xenial.
 
 Finally release to Homebrew:
 
