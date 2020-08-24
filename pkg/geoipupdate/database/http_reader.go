@@ -98,7 +98,7 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		}
 	}()
 
-	if _, err = io.Copy(destination, gzReader); err != nil {
+	if _, err = io.Copy(destination, gzReader); err != nil { //nolint:gosec
 		return errors.Wrap(err, "error writing response")
 	}
 

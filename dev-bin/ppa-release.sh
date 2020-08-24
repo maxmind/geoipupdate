@@ -4,7 +4,7 @@ set -e
 set -x
 set -u
 
-DISTS=( focal eoan bionic xenial )
+DISTS=( focal eoan bionic )
 
 VERSION=$(perl -MFile::Slurp::Tiny=read_file -MDateTime <<EOF
 use v5.16;

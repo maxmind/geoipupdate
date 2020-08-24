@@ -17,10 +17,6 @@ override_dh_auto_build:
 override_dh_auto_install:
 	dh_auto_install -- --no-source
 
-override_dh_auto_test:
-	@# Tests fail on xenial/trusty (because of go not being in PATH) so just
-	@# skip them.
-
 %:
 	dh $@ --buildsystem=golang --with=golang
 
