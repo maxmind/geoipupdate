@@ -22,7 +22,7 @@ Then release to our PPA:
   Ubuntu releases.
 * Run `dev-bin/ppa-release.sh`
 * Visit https://launchpad.net/~maxmind/+archive/ubuntu/ppa/+copy-packages to
-  copy binaries to and versions that we support but don't build on, e.g.,
+  copy binaries to any versions that we support but don't build on, e.g.,
   Xenial.
 
 Finally release to Homebrew:
