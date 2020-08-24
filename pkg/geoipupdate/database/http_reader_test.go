@@ -203,7 +203,7 @@ func TestHTTPDatabaseReader(t *testing.T) {
 				err := ioutil.WriteFile(
 					currentDatabasePath,
 					[]byte(test.DatabaseBefore),
-					0644,
+					0600,
 				)
 				require.NoError(t, err)
 			}
