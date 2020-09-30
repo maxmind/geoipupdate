@@ -18,22 +18,20 @@ import (
 // NewClient creates an *http.Client for use in updating.
 func NewClient(
 	config *Config,
-) *httpclient.HTTPClient {
-	var client *http.Client
+) *http.Client {
 	transport := http.DefaultTransport
 	if config.Proxy != nil {
 		proxy := http.ProxyURL(config.Proxy)
 		transport.(*http.Transport).Proxy = proxy
 	}
-	client = &http.Client{Transport: transport}
-	return httpclient.NewHTTPClient(client, config.RetryFor)
+	return &http.Client{Transport: transport}
 }
 
 // GetFilename looks up the filename for the given edition ID.
 func GetFilename(
 	config *Config,
 	editionID string,
-	client *httpclient.HTTPClient,
+	client *http.Client,
 ) (string, error) {
 	maxMindURL := fmt.Sprintf(
 		"%s/app/update_getfilename?product_id=%s",
@@ -48,7 +46,7 @@ func GetFilename(
 	if err != nil {
 		return "", err
 	}
-	res, err := client.Do(req)
+	res, err := httpclient.NewHTTPClient(client, config.RetryFor).Do(req)
 	if err != nil {
 		return "", errors.Wrap(err, "error performing HTTP request")
 	}

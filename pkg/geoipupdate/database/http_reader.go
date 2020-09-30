@@ -20,7 +20,8 @@ import (
 // HTTPDatabaseReader is a Reader that uses an HTTP client to retrieve
 // databases.
 type HTTPDatabaseReader struct {
-	client            *httpclient.HTTPClient
+	client            *http.Client
+	retryFor          time.Duration
 	url               string
 	licenseKey        string
 	accountID         int
@@ -30,9 +31,10 @@ type HTTPDatabaseReader struct {
 
 // NewHTTPDatabaseReader creates a Reader that downloads database updates via
 // HTTP.
-func NewHTTPDatabaseReader(client *httpclient.HTTPClient, config *geoipupdate.Config) Reader {
+func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Reader {
 	return &HTTPDatabaseReader{
 		client:            client,
+		retryFor:          config.RetryFor,
 		url:               config.URL,
 		licenseKey:        config.LicenseKey,
 		accountID:         config.AccountID,
@@ -66,7 +68,7 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	if reader.verbose {
 		log.Printf("Performing update request to %s", maxMindURL)
 	}
-	response, err := reader.client.Do(req)
+	response, err := httpclient.NewHTTPClient(reader.client, reader.retryFor).Do(req)
 	if err != nil {
 		return errors.Wrap(err, "error performing HTTP request")
 	}
