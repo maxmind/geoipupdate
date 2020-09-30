@@ -1,4 +1,4 @@
-package httpclient
+package retry
 
 import (
 	"net/http"
@@ -44,11 +44,10 @@ func testRetry(t *testing.T, cb func(int, func())) (int, *http.Response, error) 
 			},
 		),
 	)
-	c := NewHTTPClient(server.Client(), 5*time.Second)
 
 	req, err := http.NewRequest(http.MethodGet, server.URL+"/error", nil)
 	require.NoError(t, err)
-	resp, err := c.Do(req)
+	resp, err := MaybeRetryRequest(server.Client(), 5*time.Second, req)
 	server.Close()
 	return requests, resp, err
 }
