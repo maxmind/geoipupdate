@@ -13,6 +13,9 @@ import (
 // RetryFor field of geoipupdate.Config if you'd like to retry failed requests
 // when using the library directly.
 func MaybeRetryRequest(c *http.Client, retryFor time.Duration, req *http.Request) (*http.Response, error) {
+	if retryFor < 0 {
+		return nil, errors.New("negative retry duration")
+	}
 	exp := backoff.NewExponentialBackOff()
 	exp.MaxElapsedTime = retryFor
 	var resp *http.Response
