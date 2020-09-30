@@ -11,13 +11,14 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/httpclient"
 	"github.com/pkg/errors"
 )
 
 // NewClient creates an *http.Client for use in updating.
 func NewClient(
 	config *Config,
-) *http.Client {
+) *httpclient.HTTPClient {
 	var client *http.Client
 	transport := http.DefaultTransport
 	if config.Proxy != nil {
@@ -25,14 +26,14 @@ func NewClient(
 		transport.(*http.Transport).Proxy = proxy
 	}
 	client = &http.Client{Transport: transport}
-	return client
+	return httpclient.NewHTTPClient(client, config.RetryFor)
 }
 
 // GetFilename looks up the filename for the given edition ID.
 func GetFilename(
 	config *Config,
 	editionID string,
-	client *http.Client,
+	client *httpclient.HTTPClient,
 ) (string, error) {
 	maxMindURL := fmt.Sprintf(
 		"%s/app/update_getfilename?product_id=%s",
@@ -43,7 +44,11 @@ func GetFilename(
 	if config.Verbose {
 		log.Printf("Performing get filename request to %s", maxMindURL)
 	}
-	res, err := client.Get(maxMindURL) // nolint: noctx
+	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil)
+	if err != nil {
+		return "", err
+	}
+	res, err := client.Do(req)
 	if err != nil {
 		return "", errors.Wrap(err, "error performing HTTP request")
 	}

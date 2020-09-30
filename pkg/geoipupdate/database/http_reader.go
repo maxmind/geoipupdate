@@ -13,13 +13,14 @@ import (
 	"time"
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/httpclient"
 	"github.com/pkg/errors"
 )
 
 // HTTPDatabaseReader is a Reader that uses an HTTP client to retrieve
 // databases.
 type HTTPDatabaseReader struct {
-	client            *http.Client
+	client            *httpclient.HTTPClient
 	url               string
 	licenseKey        string
 	accountID         int
@@ -29,7 +30,7 @@ type HTTPDatabaseReader struct {
 
 // NewHTTPDatabaseReader creates a Reader that downloads database updates via
 // HTTP.
-func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Reader {
+func NewHTTPDatabaseReader(client *httpclient.HTTPClient, config *geoipupdate.Config) Reader {
 	return &HTTPDatabaseReader{
 		client:            client,
 		url:               config.URL,

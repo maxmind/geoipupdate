@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/httpclient"
 	"github.com/pkg/errors"
 )
 
@@ -56,7 +56,7 @@ func main() {
 	}
 }
 
-func run(client *http.Client, config *geoipupdate.Config) error {
+func run(client *httpclient.HTTPClient, config *geoipupdate.Config) error {
 	dbReader := database.NewHTTPDatabaseReader(client, config)
 
 	for _, editionID := range config.EditionIDs {
