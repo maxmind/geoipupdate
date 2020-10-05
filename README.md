@@ -1,7 +1,5 @@
 # GeoIP Update
 
-[![Build Status](https://travis-ci.com/maxmind/geoipupdate.svg?branch=master)](https://travis-ci.com/maxmind/geoipupdate)
-
 The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP Legacy
 binary databases. CSV databases are _not_ supported.
 
