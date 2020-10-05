@@ -1,13 +1,14 @@
 package database
 
 import (
-	"github.com/gofrs/flock"
-	"github.com/pkg/errors"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/gofrs/flock"
+	"github.com/pkg/errors"
 )
 
 // ZeroMD5 is the default value provided as an MD5 hash for a non-existent

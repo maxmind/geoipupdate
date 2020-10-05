@@ -65,3 +65,8 @@ exclude-use-default = false
   ]
   # G306 - "Expect WriteFile permissions to be 0600 or less".
   text = "G306"
+
+  # This goes off for MD5 usage, which we use heavily
+  [[issues.exclude-rules]]
+  text = "weak cryptographic primitive"
+  linters = ["gosec"]
