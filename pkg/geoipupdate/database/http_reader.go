@@ -1,3 +1,5 @@
+// Package database provides an abstraction over getting and writing a
+// database file.
 package database
 
 import (
@@ -54,7 +56,7 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		url.QueryEscape(destination.GetHash()),
 	)
 
-	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil)
+	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil) // nolint: noctx
 	if err != nil {
 		return errors.Wrap(err, "error creating request")
 	}

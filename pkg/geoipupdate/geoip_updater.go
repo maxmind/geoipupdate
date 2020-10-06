@@ -1,3 +1,5 @@
+// Package geoipupdate provides a library for using MaxMind's GeoIP Update
+// service.
 package geoipupdate
 
 import (
@@ -41,7 +43,7 @@ func GetFilename(
 	if config.Verbose {
 		log.Printf("Performing get filename request to %s", maxMindURL)
 	}
-	res, err := client.Get(maxMindURL)
+	res, err := client.Get(maxMindURL) // nolint: noctx
 	if err != nil {
 		return "", errors.Wrap(err, "error performing HTTP request")
 	}

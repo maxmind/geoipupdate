@@ -97,6 +97,7 @@ func TestHTTPDatabaseReader(t *testing.T) {
 			DownloadHeaders: map[string]string{
 				"X-Database-MD5": "5d41402abc4b2a76b9719d911017c592", // "hello"
 			},
+			// nolint: lll
 			Err: `md5 of new database \(985ecf3d7959b146208b3dc0189b21a5\) does not match expected md5 \(5d41402abc4b2a76b9719d911017c592\)`,
 		},
 		{
