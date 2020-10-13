@@ -1,3 +1,4 @@
+// Package internal is none of your business
 package internal
 
 import (
