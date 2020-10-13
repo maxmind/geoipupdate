@@ -42,7 +42,7 @@ func GetFilename(
 	if config.Verbose {
 		log.Printf("Performing get filename request to %s", maxMindURL)
 	}
-	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil)
+	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil) // nolint: noctx
 	if err != nil {
 		return "", err
 	}

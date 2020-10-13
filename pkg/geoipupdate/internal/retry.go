@@ -25,7 +25,7 @@ func MaybeRetryRequest(c *http.Client, retryFor time.Duration, req *http.Request
 	err := backoff.Retry(
 		func() error {
 			var err error
-			resp, err = c.Do(req)
+			resp, err = c.Do(req) // nolint: bodyclose
 			if err != nil {
 				return errors.Wrap(err, "error performing http request")
 			}

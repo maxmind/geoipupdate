@@ -12,7 +12,7 @@ import (
 
 func TestRetry(t *testing.T) {
 	{
-		n, resp, err := testRetry(t, func(n int, causeError func()) { causeError() })
+		n, resp, err := testRetry(t, func(n int, causeError func()) { causeError() }) // nolint: bodyclose
 		assert.Equal(t, 5, n)
 		assert.Error(t, err)
 		assert.Nil(t, resp)
@@ -30,6 +30,7 @@ func TestRetry(t *testing.T) {
 		assert.Equal(t, 3, n)
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
+		require.NoError(t, resp.Body.Close())
 	}
 }
 
@@ -45,9 +46,9 @@ func testRetry(t *testing.T, cb func(int, func())) (int, *http.Response, error) 
 		),
 	)
 
-	req, err := http.NewRequest(http.MethodGet, server.URL+"/error", nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL+"/error", nil) // nolint: noctx
 	require.NoError(t, err)
-	resp, err := MaybeRetryRequest(server.Client(), 5*time.Second, req)
+	resp, err := MaybeRetryRequest(server.Client(), 6*time.Second, req)
 	server.Close()
 	return requests, resp, err
 }
