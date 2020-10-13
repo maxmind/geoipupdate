@@ -69,7 +69,7 @@ sensitive.
 
 :   The amount of time to retry for when errors during HTTP transactions are
     encountered. It can be specified as a (possibly fractional) decimal number
-    followed by a unix suffix. Valid time units are `ns`, `us` (or `µs`), `ms`,
+    followed by a unit suffix. Valid time units are `ns`, `us` (or `µs`), `ms`,
     `s`, `m`, `h`. The default is `5m` (5 minutes).
 
 ## Deprecated settings:

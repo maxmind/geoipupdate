@@ -40,7 +40,7 @@ EditionIDs GeoLite2-Country GeoLite2-City
 
 # The amount of time to retry for when errors during HTTP transactions are
 # encountered. It can be specified as a (possibly fractional) decimal number
-# followed by a unix suffix. Valid time units are "ns", "us" (or "µs"), "ms",
+# followed by a unit suffix. Valid time units are "ns", "us" (or "µs"), "ms",
 # "s", "m", "h".
 # Defaults to "5m" (5 minutes).
 # RetryFor 5m
