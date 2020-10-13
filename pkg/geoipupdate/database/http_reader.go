@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
-	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/retry"
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/internal"
 	"github.com/pkg/errors"
 )
 
@@ -68,7 +68,7 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	if reader.verbose {
 		log.Printf("Performing update request to %s", maxMindURL)
 	}
-	response, err := retry.MaybeRetryRequest(reader.client, reader.retryFor, req)
+	response, err := internal.MaybeRetryRequest(reader.client, reader.retryFor, req)
 	if err != nil {
 		return errors.Wrap(err, "error performing HTTP request")
 	}

@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/retry"
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/internal"
 	"github.com/pkg/errors"
 )
 
@@ -46,7 +46,7 @@ func GetFilename(
 	if err != nil {
 		return "", err
 	}
-	res, err := retry.MaybeRetryRequest(client, config.RetryFor, req)
+	res, err := internal.MaybeRetryRequest(client, config.RetryFor, req)
 	if err != nil {
 		return "", errors.Wrap(err, "error performing HTTP request")
 	}

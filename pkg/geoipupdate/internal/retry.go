@@ -1,4 +1,4 @@
-package retry
+package internal
 
 import (
 	"net/http"
