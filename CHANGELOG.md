@@ -1,11 +1,11 @@
 # CHANGELOG
 
 * Failing HTTP requests are now retried using an exponential backoff. The
-  period to keep retrying any failed request is set 5 minutes by default and
+  period to keep retrying any failed request is set to 5 minutes by default and
   can be adjusted using the new `RetryFor` configuration option.
 * When using the go package rather than the command-line tool, the null value
   for `RetryFor` will be 0 seconds, which means no retries will be performed. To
-  change that, set to `RetryFor` explicitly in the `Config` you provide, or obtain
+  change that, set `RetryFor` explicitly in the `Config` you provide, or obtain
   your `Config` value via `geoipupdate.NewConfig`.
 
 ## 4.4.0
