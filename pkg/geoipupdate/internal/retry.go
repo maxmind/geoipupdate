@@ -16,6 +16,9 @@ func MaybeRetryRequest(c *http.Client, retryFor time.Duration, req *http.Request
 	if retryFor < 0 {
 		return nil, errors.New("negative retry duration")
 	}
+	if req.Body != nil {
+		return nil, errors.New("can't retry requests with bodies")
+	}
 	exp := backoff.NewExponentialBackOff()
 	exp.MaxElapsedTime = retryFor
 	var resp *http.Response
