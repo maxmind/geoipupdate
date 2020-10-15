@@ -12,7 +12,13 @@ import (
 
 func TestRetry(t *testing.T) {
 	{
-		n, resp, err := testRetry(t, func(n int, causeError func()) { causeError() }) // nolint: bodyclose
+		n, resp, err := testRetry(
+			t,
+			func(n int, causeError func()) int {
+				causeError()
+				return http.StatusOK
+			},
+		) // nolint: bodyclose
 		assert.Equal(t, 5, n)
 		assert.Error(t, err)
 		assert.Nil(t, resp)
@@ -21,10 +27,11 @@ func TestRetry(t *testing.T) {
 	{
 		n, resp, err := testRetry(
 			t,
-			func(n int, causeError func()) {
+			func(n int, causeError func()) int {
 				if n < 3 {
 					causeError()
 				}
+				return http.StatusOK
 			},
 		)
 		assert.Equal(t, 3, n)
@@ -34,19 +41,19 @@ func TestRetry(t *testing.T) {
 	}
 }
 
-func testRetry(t *testing.T, cb func(int, func())) (int, *http.Response, error) {
+func testRetry(t *testing.T, cb func(int, func()) int) (int, *http.Response, error) {
 	var server *httptest.Server
 	requests := 0
 	server = httptest.NewServer(
 		http.HandlerFunc(
 			func(rw http.ResponseWriter, r *http.Request) {
 				requests++
-				cb(requests, func() { server.CloseClientConnections() })
+				rw.WriteHeader(cb(requests, func() { server.CloseClientConnections() }))
 			},
 		),
 	)
 
-	req, err := http.NewRequest(http.MethodGet, server.URL+"/error", nil) // nolint: noctx
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil) // nolint: noctx
 	require.NoError(t, err)
 	resp, err := MaybeRetryRequest(server.Client(), 6*time.Second, req)
 	server.Close()
