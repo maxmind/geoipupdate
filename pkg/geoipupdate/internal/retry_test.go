@@ -12,13 +12,13 @@ import (
 
 func TestRetry(t *testing.T) {
 	{
-		n, resp, err := testRetry(
+		n, resp, err := testRetry( // nolint: bodyclose
 			t,
 			func(n int, causeError func()) int {
 				causeError()
 				return http.StatusOK
 			},
-		) // nolint: bodyclose
+		)
 		assert.Equal(t, 5, n)
 		assert.Error(t, err)
 		assert.Nil(t, resp)

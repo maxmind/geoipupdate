@@ -37,7 +37,7 @@ func MaybeRetryRequest(c *http.Client, retryFor time.Duration, req *http.Request
 			if err != nil {
 				return errors.Wrap(err, "error performing http request")
 			}
-			if resp.StatusCode / 100 == 5 {
+			if resp.StatusCode/100 == 5 {
 				return &internalServerError{}
 			}
 			return nil
@@ -51,4 +51,5 @@ func MaybeRetryRequest(c *http.Client, retryFor time.Duration, req *http.Request
 }
 
 type internalServerError struct{}
+
 func (*internalServerError) Error() string { return "internal server error" }
