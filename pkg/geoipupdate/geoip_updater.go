@@ -44,7 +44,7 @@ func GetFilename(
 	}
 	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil) // nolint: noctx
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "error creating HTTP request")
 	}
 	res, err := internal.MaybeRetryRequest(client, config.RetryFor, req)
 	if err != nil {
