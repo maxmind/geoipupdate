@@ -25,14 +25,30 @@ func MaybeRetryRequest(c *http.Client, retryFor time.Duration, req *http.Request
 	var resp *http.Response
 	err := backoff.Retry(
 		func() error {
+			if resp != nil {
+				r := resp
+				resp = nil
+				if err := r.Body.Close(); err != nil {
+					return errors.Wrap(err, "error closing response body before retrying")
+				}
+			}
 			var err error
 			resp, err = c.Do(req) // nolint: bodyclose
 			if err != nil {
 				return errors.Wrap(err, "error performing http request")
 			}
-			return err
+			if resp.StatusCode / 100 == 5 {
+				return &internalServerError{}
+			}
+			return nil
 		},
 		exp,
 	)
+	if _, ok := err.(*internalServerError); ok {
+		return resp, nil
+	}
 	return resp, err
 }
+
+type internalServerError struct{}
+func (*internalServerError) Error() string { return "internal server error" }
