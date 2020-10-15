@@ -39,6 +39,16 @@ func TestRetry(t *testing.T) {
 		assert.NotNil(t, resp)
 		require.NoError(t, resp.Body.Close())
 	}
+
+	{
+		n, resp, err := testRetry(
+			t,
+			func(int, func()) int { return http.StatusInternalServerError },
+		)
+		assert.Equal(t, 5, n)
+		assert.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
+	}
 }
 
 func testRetry(t *testing.T, cb func(int, func()) int) (int, *http.Response, error) {
