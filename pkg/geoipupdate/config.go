@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -24,6 +25,7 @@ type Config struct {
 	Proxy             *url.URL
 	PreserveFileTimes bool
 	Verbose           bool
+	RetryFor          time.Duration
 }
 
 // NewConfig parses the configuration file.
@@ -101,6 +103,12 @@ func NewConfig( // nolint: gocyclo
 			proxyUserPassword = value
 		case "Protocol", "SkipHostnameVerification", "SkipPeerVerification":
 			// Deprecated.
+		case "RetryFor":
+			dur, err := time.ParseDuration(value)
+			if err != nil || dur < 0 {
+				return nil, errors.Errorf("'%s' is not a valid duration", value)
+			}
+			config.RetryFor = dur
 		default:
 			return nil, errors.Errorf("unknown option on line %d", lineNumber)
 		}
@@ -123,6 +131,10 @@ func NewConfig( // nolint: gocyclo
 	}
 
 	// Set defaults & post-process.
+
+	if _, ok := keysSeen["RetryFor"]; !ok {
+		config.RetryFor = 5 * time.Minute
+	}
 
 	// Argument takes precedence.
 	if databaseDirectory != "" {
