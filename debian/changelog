@@ -1,3 +1,9 @@
+geoipupdate (4.4.0-0+maxmind1) groovy; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Wed, 28 Oct 2020 07:18:32 -0700
+
 geoipupdate (4.3.0-0+maxmind1) eoan; urgency=low
 
   * New upstream release.
