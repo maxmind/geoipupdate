@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.4.0
+## 4.4.0 (2020-10-28)
 
 * The edition ID is now included when there is a failure retrieving a
   database.
