@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.5.0
+## 4.5.0 (2020-10-28)
 
 * We no longer use a third party library for exponential backoff. This
   restores support for older Go versions.
