@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
 	"github.com/pkg/errors"
 )
 
@@ -20,36 +19,29 @@ func MaybeRetryRequest(c *http.Client, retryFor time.Duration, req *http.Request
 	if req.Body != nil {
 		return nil, errors.New("can't retry requests with bodies")
 	}
-	exp := backoff.NewExponentialBackOff()
-	exp.MaxElapsedTime = retryFor
 	var resp *http.Response
-	err := backoff.Retry(
-		func() error {
-			if resp != nil {
-				r := resp
-				resp = nil
-				if err := r.Body.Close(); err != nil {
-					return errors.Wrap(err, "error closing response body before retrying")
-				}
-			}
-			var err error
-			resp, err = c.Do(req) // nolint: bodyclose
-			if err != nil {
-				return errors.Wrap(err, "error performing http request")
-			}
-			if resp.StatusCode/100 == 5 {
-				return &internalServerError{}
-			}
-			return nil
-		},
-		exp,
-	)
-	if _, ok := err.(*internalServerError); ok {
-		return resp, nil
+	var err error
+
+	start := time.Now()
+	for i := uint(0); ; i++ {
+		resp, err = c.Do(req)
+		if err == nil && resp.StatusCode < 500 {
+			break
+		}
+
+		currentDuration := time.Since(start)
+
+		waitDuration := 200 * time.Millisecond * (1 << i)
+		if currentDuration+waitDuration > retryFor {
+			break
+		}
+		if err == nil {
+			_ = resp.Body.Close()
+		}
+		time.Sleep(waitDuration)
 	}
-	return resp, err
+	if err != nil {
+		return nil, errors.Wrap(err, "error performing http request")
+	}
+	return resp, nil
 }
-
-type internalServerError struct{}
-
-func (*internalServerError) Error() string { return "internal server error" }

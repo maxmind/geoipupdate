@@ -3,7 +3,6 @@ module github.com/maxmind/geoipupdate/v4
 go 1.11
 
 require (
-	github.com/cenkalti/backoff/v4 v4.1.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gofrs/flock v0.8.0
 	github.com/kr/text v0.2.0 // indirect
