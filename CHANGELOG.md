@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.4.0
+## 4.4.0 (2020-10-28)
 
 * The edition ID is now included when there is a failure retrieving a
   database.
@@ -8,6 +8,13 @@
   up. This prevents a possible leak of the account's license key. Pull
   request by Nate Gay. GitHub #109.
 * The minimum Go version is now 1.11.
+* Failing HTTP requests are now retried using an exponential backoff. The
+  period to keep retrying any failed request is set to 5 minutes by default and
+  can be adjusted using the new `RetryFor` configuration option.
+* When using the go package rather than the command-line tool, the null value
+  for `RetryFor` will be 0 seconds, which means no retries will be performed. To
+  change that, set `RetryFor` explicitly in the `Config` you provide, or obtain
+  your `Config` value via `geoipupdate.NewConfig`.
 
 ## 4.3.0 (2020-04-16)
 

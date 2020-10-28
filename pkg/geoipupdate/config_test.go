@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -60,6 +61,13 @@ EditionIDs GeoLite2-Country GeoLite2-City
 # Note: Once created, this lockfile is not removed from the filesystem.
 # Defaults to ".geoipupdate.lock" under the DatabaseDirectory.
 # LockFile DATADIR/.geoipupdate.lock
+
+# The amount of time to retry for when errors during HTTP transactions are
+# encountered. It can be specified as a (possibly fractional) decimal number
+# followed by a unit suffix. Valid time units are "ns", "us" (or "µs"), "ms",
+# "s", "m", "h".
+# Defaults to "5m" (5 minutes).
+# RetryFor 5m
 `,
 			Output: &Config{
 				AccountID:         42,
@@ -68,6 +76,7 @@ EditionIDs GeoLite2-Country GeoLite2-City
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
 			},
 		},
 		{
@@ -119,6 +128,7 @@ ProductIds GeoLite2-Country GeoLite2-City
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
 			},
 		},
 		{
@@ -162,6 +172,8 @@ PreserveFileTimes 1
 # Note: Once created, this lockfile is not removed from the filesystem.
 # Defaults to ".geoipupdate.lock" under the DatabaseDirectory.
 LockFile /usr/lock
+
+RetryFor 10m
 `,
 			Output: &Config{
 				AccountID:         1234,
@@ -176,6 +188,7 @@ LockFile /usr/lock
 				},
 				PreserveFileTimes: true,
 				URL:               "https://updates.example.com",
+				RetryFor:          10 * time.Minute,
 			},
 		},
 		{
@@ -252,6 +265,20 @@ EditionIDs GeoIP2-City`,
 			Err: "geoipupdate requires a valid AccountID and LicenseKey combination",
 		},
 		{
+			Description: "RetryFor needs a unit",
+			Input: `AccountID 42
+LicenseKey 000000000001
+RetryFor 5`,
+			Err: "'5' is not a valid duration",
+		},
+		{
+			Description: "RetryFor needs to be non-negative",
+			Input: `AccountID 42
+LicenseKey 000000000001
+RetryFor -5m`,
+			Err: "'-5m' is not a valid duration",
+		},
+		{
 			Description: "AccountID 999999 with a non-000000000000 LicenseKey is treated normally",
 			Input: `AccountID 999999
 LicenseKey abcd
@@ -263,6 +290,7 @@ EditionIDs GeoIP2-City`,
 				LicenseKey:        "abcd",
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
 			},
 		},
 		{
@@ -281,6 +309,7 @@ SkipPeerVerification 1
 				LicenseKey:        "abcd",
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
 			},
 		},
 		{
@@ -293,12 +322,14 @@ SkipPeerVerification 1
 				LicenseKey:        "123",
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
 			},
 		},
 		{
 			Description: "CR line ending does not work",
 			Input:       "AccountID 0\rLicenseKey 123\rEditionIDs GeoIP2-City\r",
-			Err:         `invalid account ID format: strconv.Atoi: parsing "0 LicenseKey 123 EditionIDs GeoIP2-City": invalid syntax`,
+			// nolint: lll
+			Err: `invalid account ID format: strconv.Atoi: parsing "0 LicenseKey 123 EditionIDs GeoIP2-City": invalid syntax`,
 		},
 		{
 			Description: "Multiple spaces between option and value works",
@@ -313,11 +344,13 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				LicenseKey:        "456",
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
 			},
 		},
 		{
 			Description: "Tabs between options and values works",
-			Input:       "AccountID\t123\nLicenseKey\t\t456\nEditionIDs\t\t\tGeoLite2-City\t\t\t\tGeoLite2-Country\t\t\t\t\n",
+
+			Input: "AccountID\t123\nLicenseKey\t\t456\nEditionIDs\t\t\tGeoLite2-City\t\t\t\tGeoLite2-Country\t\t\t\t\n",
 			Output: &Config{
 				AccountID:         123,
 				DatabaseDirectory: filepath.Clean("/tmp"),
@@ -325,6 +358,7 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				LicenseKey:        "456",
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
 			},
 		},
 	}

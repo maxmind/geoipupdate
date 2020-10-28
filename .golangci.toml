@@ -5,34 +5,68 @@
 [linters]
   disable-all = true
   enable = [
+    "bodyclose",
     "deadcode",
     "depguard",
     "errcheck",
+    "exhaustive",
+    "exportloopref",
     "goconst",
     "gocyclo",
     "gocritic",
-    "gofmt",
+    "gofumpt",
     "golint",
     "gosec",
     "gosimple",
+    "govet",
     "ineffassign",
+    "lll",
     "maligned",
     "misspell",
     "nakedret",
+    "noctx",
+    "nolintlint",
+    # https://github.com/golangci/golangci-lint/issues/287
+    # "safesql",
+    "sqlclosecheck",
     "staticcheck",
     "structcheck",
+    "stylecheck",
     "typecheck",
     "unconvert",
     "unparam",
+    "unused",
     "varcheck",
-    "vet",
     "vetshadow",
   ]
 
-# This goes off for MD5 usage, which we use heavily
-[[issues.exclude-rules]]
-text = "weak cryptographic primitive"
-linters = ["gosec"]
+[linters-settings.errcheck]
+    # Ignoring Close so that we don't have to have a bunch of
+    # `defer func() { _ = r.Close() }()` constructs when we
+    # don't actually care about the error.
+    ignore = "Close,fmt:.*"
+
+[linters-settings.exhaustive]
+    default-signifies-exhaustive = true
+
+[linters-settings.gofumpt]
+    extra-rules = true
+
+[linters-settings.lll]
+    line-length = 120
+    tab-width = 4
 
 [issues]
 exclude-use-default = false
+
+  [[issues.exclude-rules]]
+  linters = [
+    "gosec"
+  ]
+  # G306 - "Expect WriteFile permissions to be 0600 or less".
+  text = "G306"
+
+  # This goes off for MD5 usage, which we use heavily
+  [[issues.exclude-rules]]
+  text = "weak cryptographic primitive"
+  linters = ["gosec"]

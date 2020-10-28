@@ -1,6 +1,10 @@
 name: golangci-lint
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '5 5 * * SUN'
 
 jobs:
   golangci:
@@ -9,6 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v1
+        uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.30
+          version: latest

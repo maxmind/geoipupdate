@@ -1,3 +1,5 @@
+// Package geoipupdate provides a library for using MaxMind's GeoIP Update
+// service.
 package geoipupdate
 
 import (
@@ -9,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/internal"
 	"github.com/pkg/errors"
 )
 
@@ -16,14 +19,12 @@ import (
 func NewClient(
 	config *Config,
 ) *http.Client {
-	var client *http.Client
 	transport := http.DefaultTransport
 	if config.Proxy != nil {
 		proxy := http.ProxyURL(config.Proxy)
 		transport.(*http.Transport).Proxy = proxy
 	}
-	client = &http.Client{Transport: transport}
-	return client
+	return &http.Client{Transport: transport}
 }
 
 // GetFilename looks up the filename for the given edition ID.
@@ -41,7 +42,11 @@ func GetFilename(
 	if config.Verbose {
 		log.Printf("Performing get filename request to %s", maxMindURL)
 	}
-	res, err := client.Get(maxMindURL)
+	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil) // nolint: noctx
+	if err != nil {
+		return "", errors.Wrap(err, "error creating HTTP request")
+	}
+	res, err := internal.MaybeRetryRequest(client, config.RetryFor, req)
 	if err != nil {
 		return "", errors.Wrap(err, "error performing HTTP request")
 	}

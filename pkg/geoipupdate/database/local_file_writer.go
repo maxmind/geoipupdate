@@ -31,7 +31,7 @@ type LocalFileDatabaseWriter struct {
 // NewLocalFileDatabaseWriter create a LocalFileDatabaseWriter. It creates the
 // necessary lock and temporary files to protect the database from concurrent
 // writes.
-func NewLocalFileDatabaseWriter(filePath string, lockFilePath string, verbose bool) (*LocalFileDatabaseWriter, error) {
+func NewLocalFileDatabaseWriter(filePath, lockFilePath string, verbose bool) (*LocalFileDatabaseWriter, error) {
 	dbWriter := &LocalFileDatabaseWriter{
 		filePath:     filePath,
 		lockFilePath: lockFilePath,
