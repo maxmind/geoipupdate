@@ -5,6 +5,9 @@
 # mkdir /sbuild-nonexistent: permission denied
 export GOCACHE := $(CURDIR)/.go-cache
 
+# We vendor our dependencies
+export GOFLAGS := -mod=vendor
+
 # We don't use DH_GOLANG_INSTALL_EXTRA as Xenial doesn't support it.
 export DH_GOLANG_INSTALL_ALL := 1
 
