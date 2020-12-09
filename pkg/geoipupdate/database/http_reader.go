@@ -59,15 +59,16 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		url.QueryEscape(destination.GetHash()),
 	)
 
+	if reader.verbose {
+		log.Printf("Performing update request to %s", maxMindURL)
+	}
+
 	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil) // nolint: noctx
 	if err != nil {
 		return errors.Wrap(err, "error creating request")
 	}
 	req.SetBasicAuth(fmt.Sprintf("%d", reader.accountID), reader.licenseKey)
 
-	if reader.verbose {
-		log.Printf("Performing update request to %s", maxMindURL)
-	}
 	response, err := internal.MaybeRetryRequest(reader.client, reader.retryFor, req)
 	if err != nil {
 		return errors.Wrap(err, "error performing HTTP request")
