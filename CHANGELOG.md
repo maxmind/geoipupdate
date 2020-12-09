@@ -3,6 +3,8 @@
 ## 4.6.0
 
 * Show version number in verbose output.
+* Retry downloads in more scenarios. Previously we would not retry failures
+  occurring when reading the response body, but now we do.
 
 ## 4.5.0 (2020-10-28)
 
