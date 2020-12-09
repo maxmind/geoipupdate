@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 4.6.0
+
+* Show version number in verbose output.
+
 ## 4.5.0 (2020-10-28)
 
 * We no longer use a third party library for exponential backoff. This
