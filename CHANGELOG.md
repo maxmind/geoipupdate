@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.6.0
+## 4.6.0 (2020-12-14)
 
 * Show version number in verbose output.
 * Retry downloads in more scenarios. Previously we would not retry failures
