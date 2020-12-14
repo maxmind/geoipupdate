@@ -1,3 +1,9 @@
+geoipupdate (4.6.0-0+maxmind1) groovy; urgency=low
+
+  * New upstream release.
+
+ -- William Storey <wstorey@maxmind.com>  Mon, 14 Dec 2020 10:41:45 -0800
+
 geoipupdate (4.5.0-0+maxmind1) groovy; urgency=low
 
   * New upstream release.
