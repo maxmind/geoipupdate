@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
@@ -52,25 +53,107 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		}
 	}()
 
-	maxMindURL := fmt.Sprintf(
+	updateURL := fmt.Sprintf(
 		"%s/geoip/databases/%s/update?db_md5=%s",
 		reader.url,
 		url.PathEscape(editionID),
 		url.QueryEscape(destination.GetHash()),
 	)
 
-	req, err := http.NewRequest(http.MethodGet, maxMindURL, nil) // nolint: noctx
+	if reader.verbose {
+		log.Printf("Performing update request to %s", updateURL)
+	}
+
+	var modified bool
+	// It'd be nice to not use a temporary file here. However the Writer API does
+	// not currently support multiple attempts to download the file (it assumes
+	// we'll begin writing once). Using a temporary file here should be a less
+	// disruptive alternative to changing the API. If we change that API in the
+	// future, adding something like Reset() may be desirable.
+	tempFile, err := ioutil.TempFile("", "geoipupdate")
 	if err != nil {
-		return errors.Wrap(err, "error creating request")
+		return errors.Wrap(err, "error opening temporary file")
+	}
+	defer func() {
+		if err := tempFile.Close(); err != nil {
+			log.Printf("error closing temporary file: %s", err)
+		}
+		if err := os.Remove(tempFile.Name()); err != nil {
+			log.Printf("error removing temporary file: %s", err)
+		}
+	}()
+	var newMD5 string
+	var modificationTime time.Time
+	err = internal.RetryWithBackoff(
+		func() error {
+			newMD5, modificationTime, modified, err = reader.download(
+				updateURL,
+				editionID,
+				tempFile,
+			)
+			return err
+		},
+		reader.retryFor,
+	)
+	if err != nil {
+		return err
+	}
+
+	if !modified {
+		return nil
+	}
+
+	if _, err := tempFile.Seek(0, 0); err != nil {
+		return errors.Wrap(err, "error seeking")
+	}
+
+	if _, err = io.Copy(destination, tempFile); err != nil {
+		return errors.Wrap(err, "error writing response")
+	}
+
+	if err := destination.ValidHash(newMD5); err != nil {
+		return err
+	}
+
+	if err := destination.Commit(); err != nil {
+		return errors.Wrap(err, "encountered an issue committing database update")
+	}
+
+	if reader.preserveFileTimes {
+		err = destination.SetFileModificationTime(modificationTime)
+		if err != nil {
+			return errors.Wrap(err, "unable to set modification time")
+		}
+	}
+
+	return nil
+}
+
+func (reader *HTTPDatabaseReader) download(
+	updateURL,
+	editionID string,
+	tempFile *os.File,
+) (string, time.Time, bool, error) {
+	// Prepare a clean slate for this download attempt.
+
+	if err := tempFile.Truncate(0); err != nil {
+		return "", time.Time{}, false, errors.Wrap(err, "error truncating")
+	}
+	if _, err := tempFile.Seek(0, 0); err != nil {
+		return "", time.Time{}, false, errors.Wrap(err, "error seeking")
+	}
+
+	// Perform the download.
+
+	req, err := http.NewRequest(http.MethodGet, updateURL, nil) // nolint: noctx
+	if err != nil {
+		return "", time.Time{}, false, errors.Wrap(err, "error creating request")
 	}
 	req.SetBasicAuth(fmt.Sprintf("%d", reader.accountID), reader.licenseKey)
 
-	if reader.verbose {
-		log.Printf("Performing update request to %s", maxMindURL)
-	}
-	response, err := internal.MaybeRetryRequest(reader.client, reader.retryFor, req)
+	response, err := reader.client.Do(req)
 	if err != nil {
-		return errors.Wrap(err, "error performing HTTP request")
+		return "", time.Time{}, false, errors.Wrap(err, "error performing HTTP request")
 	}
 	defer func() {
 		if err := response.Body.Close(); err != nil {
@@ -82,20 +165,20 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		if reader.verbose {
 			log.Printf("No new updates available for %s", editionID)
 		}
-		return nil
+		return "", time.Time{}, false, nil
 	}
 
 	if response.StatusCode != http.StatusOK {
 		buf, err := ioutil.ReadAll(io.LimitReader(response.Body, 256))
 		if err == nil {
-			return errors.Errorf("unexpected HTTP status code: %s: %s", response.Status, buf)
+			return "", time.Time{}, false, errors.Errorf("unexpected HTTP status code: %s: %s", response.Status, buf)
 		}
-		return errors.Errorf("unexpected HTTP status code: %s", response.Status)
+		return "", time.Time{}, false, errors.Errorf("unexpected HTTP status code: %s", response.Status)
 	}
 
 	gzReader, err := gzip.NewReader(response.Body)
 	if err != nil {
-		return errors.Wrap(err, "encountered an error creating GZIP reader")
+		return "", time.Time{}, false, errors.Wrap(err, "encountered an error creating GZIP reader")
 	}
 	defer func() {
 		if err := gzReader.Close(); err != nil {
@@ -103,34 +186,21 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		}
 	}()
 
-	if _, err = io.Copy(destination, gzReader); err != nil { //nolint:gosec
-		return errors.Wrap(err, "error writing response")
+	if _, err := io.Copy(tempFile, gzReader); err != nil { //nolint:gosec
+		return "", time.Time{}, false, errors.Wrap(err, "error writing response")
 	}
 
 	newMD5 := response.Header.Get("X-Database-MD5")
 	if newMD5 == "" {
-		return errors.New("no X-Database-MD5 header found")
-	}
-	if err := destination.ValidHash(newMD5); err != nil {
-		return err
+		return "", time.Time{}, false, errors.New("no X-Database-MD5 header found")
 	}
 
-	if err := destination.Commit(); err != nil {
-		return errors.Wrap(err, "encountered an issue committing database update")
+	modificationTime, err := lastModified(response.Header.Get("Last-Modified"))
+	if err != nil {
+		return "", time.Time{}, false, errors.Wrap(err, "unable to get last modified time")
 	}
 
-	if reader.preserveFileTimes {
-		modificationTime, err := lastModified(response.Header.Get("Last-Modified"))
-		if err != nil {
-			return errors.Wrap(err, "unable to get last modified time")
-		}
-		err = destination.SetFileModificationTime(modificationTime)
-		if err != nil {
-			return errors.Wrap(err, "unable to set modification time")
-		}
-	}
-
-	return nil
+	return newMD5, modificationTime, true, nil
 }
 
 // LastModified retrieves the date that the MaxMind database was last modified.
