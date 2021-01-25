@@ -67,7 +67,11 @@ func GetFilename(
 			}
 
 			if res.StatusCode != http.StatusOK {
-				return errors.Errorf("unexpected HTTP status code: %s: %s", res.Status, buf)
+				err := internal.HTTPError{
+					Body:       string(buf),
+					StatusCode: res.StatusCode,
+				}
+				return errors.Wrap(err, "unexpected HTTP status code")
 			}
 
 			if len(buf) == 0 {

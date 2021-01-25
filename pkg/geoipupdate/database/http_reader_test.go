@@ -73,7 +73,7 @@ func TestHTTPDatabaseReader(t *testing.T) {
 			DatabaseBefore:  "database goes here",
 			DatabaseAfter:   "database goes here",
 			DownloadStatus:  http.StatusBadRequest,
-			Err:             "unexpected HTTP status code: 400 Bad Request",
+			Err:             "unexpected HTTP status code: received HTTP status code: 400",
 		},
 		{
 			Description:     "Download request is missing X-Database-MD5",

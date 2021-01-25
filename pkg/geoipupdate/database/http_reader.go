@@ -171,9 +171,16 @@ func (reader *HTTPDatabaseReader) download(
 	if response.StatusCode != http.StatusOK {
 		buf, err := ioutil.ReadAll(io.LimitReader(response.Body, 256))
 		if err == nil {
-			return "", time.Time{}, false, errors.Errorf("unexpected HTTP status code: %s: %s", response.Status, buf)
+			err := internal.HTTPError{
+				Body:       string(buf),
+				StatusCode: response.StatusCode,
+			}
+			return "", time.Time{}, false, errors.Wrap(err, "unexpected HTTP status code")
 		}
-		return "", time.Time{}, false, errors.Errorf("unexpected HTTP status code: %s", response.Status)
+		err = internal.HTTPError{
+			StatusCode: response.StatusCode,
+		}
+		return "", time.Time{}, false, errors.Wrap(err, "unexpected HTTP status code")
 	}
 
 	gzReader, err := gzip.NewReader(response.Body)
