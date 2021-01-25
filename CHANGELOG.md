@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.7.0
+
+* In verbose mode, we now print a message before each HTTP request.
+  Previously we would not print anything for retried requests.
+
 ## 4.6.0 (2020-12-14)
 
 * Show version number in verbose output.

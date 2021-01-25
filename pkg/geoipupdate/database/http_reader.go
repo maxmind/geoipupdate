@@ -60,10 +60,6 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 		url.QueryEscape(destination.GetHash()),
 	)
 
-	if reader.verbose {
-		log.Printf("Performing update request to %s", updateURL)
-	}
-
 	var modified bool
 	// It'd be nice to not use a temporary file here. However the Writer API does
 	// not currently support multiple attempts to download the file (it assumes
@@ -86,6 +82,10 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	var modificationTime time.Time
 	err = internal.RetryWithBackoff(
 		func() error {
+			if reader.verbose {
+				log.Printf("Performing update request to %s", updateURL)
+			}
+
 			newMD5, modificationTime, modified, err = reader.download(
 				updateURL,
 				editionID,
