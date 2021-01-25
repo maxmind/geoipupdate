@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 4.7.0
+
+* In verbose mode, we now print a message before each HTTP request.
+  Previously we would not print anything for retried requests.
+* Expected response errors no longer cause request retries. For example, we
+  no longer retry the download request if the database subscription has
+  lapsed.
+
 ## 4.6.0 (2020-12-14)
 
 * Show version number in verbose output.

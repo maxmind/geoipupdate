@@ -39,13 +39,13 @@ func GetFilename(
 		url.QueryEscape(editionID),
 	)
 
-	if config.Verbose {
-		log.Printf("Performing get filename request to %s", maxMindURL)
-	}
-
 	var buf []byte
 	err := internal.RetryWithBackoff(
 		func() error {
+			if config.Verbose {
+				log.Printf("Performing get filename request to %s", maxMindURL)
+			}
+
 			req, err := http.NewRequest(http.MethodGet, maxMindURL, nil) // nolint: noctx
 			if err != nil {
 				return errors.Wrap(err, "error creating HTTP request")
@@ -67,7 +67,11 @@ func GetFilename(
 			}
 
 			if res.StatusCode != http.StatusOK {
-				return errors.Errorf("unexpected HTTP status code: %s: %s", res.Status, buf)
+				err := internal.HTTPError{
+					Body:       string(buf),
+					StatusCode: res.StatusCode,
+				}
+				return errors.Wrap(err, "unexpected HTTP status code")
 			}
 
 			if len(buf) == 0 {
