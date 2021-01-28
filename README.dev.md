@@ -18,7 +18,7 @@ Then release to our PPA:
   `git merge v4.1.0`.
 * Set up to release to launchpad. You can see some information about
   prerequisites for this
-  [here](https://github.com/maxmind/libmaxminddb/blob/master/README.dev.md).
+  [here](https://github.com/maxmind/libmaxminddb/blob/main/README.dev.md).
 * Ensure you have the `dh-golang`, `golang-any`, `devscripts`,
   `libfile-slurp-tiny-perl`, and `libdatetime-perl` packages installed.
 * Delete `dist` directory.
