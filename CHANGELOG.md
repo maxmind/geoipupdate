@@ -7,6 +7,9 @@
 * Expected response errors no longer cause request retries. For example, we
   no longer retry the download request if the database subscription has
   lapsed.
+* When running with `GEOIPUPDATE_FREQUENCY` set, the Docker image will now
+  stop when sent a SIGTERM instead of waiting for a SIGKILL. Pull request
+  by Maxence POULAIN. GitHub #135.
 
 ## 4.6.0 (2020-12-14)
 
