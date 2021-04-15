@@ -23,10 +23,10 @@ func RetryWithBackoff(
 
 		// It'd be preferable to use errors.As(), but that's only in Go 1.13+.
 		underlyingErr := errors.Cause(err)
-		httpError, ok := underlyingErr.(HTTPError)
-		if ok &&
-			httpError.StatusCode >= 400 &&
-			httpError.StatusCode < 500 {
+		var httpErr HTTPError
+		if errors.As(underlyingErr, &httpErr) &&
+			httpErr.StatusCode >= 400 &&
+			httpErr.StatusCode < 500 {
 			return err
 		}
 
