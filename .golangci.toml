@@ -21,7 +21,6 @@
     "govet",
     "ineffassign",
     "lll",
-    "maligned",
     "misspell",
     "nakedret",
     "noctx",
