@@ -27,12 +27,33 @@ builds:
       - CGO_ENABLED=0
 dockers:
   - image_templates:
-      - "maxmindinc/geoipupdate:{{ .Tag }}"
-      - "maxmindinc/geoipupdate:v{{ .Major }}"
-      - "maxmindinc/geoipupdate:v{{ .Major }}.{{ .Minor }}"
-      - "maxmindinc/geoipupdate:latest"
+      - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
     dockerfile: docker/Dockerfile
+    goarch: amd64
     extra_files:
       - docker/entry.sh
+  - image_templates:
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
+    dockerfile: docker/Dockerfile
+    goarch: arm64
+    extra_files:
+      - docker/entry.sh
+docker_manifests:
+  - name_template: "maxmindinc/geoipupdate:{{ .Tag }}"
+    image_templates:
+      - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
+  - name_template: "maxmindinc/geoipupdate:v{{ .Major }}"
+    image_templates:
+      - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
+  - name_template: "maxmindinc/geoipupdate:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
+  - name_template: "maxmindinc/geoipupdate:latest"
+    image_templates:
+      - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
 checksum:
   name_template: 'checksums-darwin-linux.txt'
