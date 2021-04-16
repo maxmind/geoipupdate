@@ -11,9 +11,7 @@ jobs:
   build:
     strategy:
       matrix:
-        # We test back to 1.11 as we need to support old, EOL'd Go versions
-        # to build PPA packages for older versions of Ubuntu.
-        go-version: [1.11.x, 1.12.x, 1.13.x, 1.14.x, 1.15.x]
+        go-version: [1.13.x, 1.14.x, 1.15.x, 1.16.x]
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     name: "Build ${{ matrix.go-version }} test on ${{ matrix.platform }}"

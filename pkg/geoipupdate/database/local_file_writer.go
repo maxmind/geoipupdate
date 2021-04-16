@@ -97,7 +97,8 @@ func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
 func (writer *LocalFileDatabaseWriter) Close() error {
 	err := writer.temporaryFile.Close()
 	if err != nil {
-		if perr, ok := err.(*os.PathError); !ok || perr.Err != os.ErrClosed {
+		var perr *os.PathError
+		if !errors.As(err, &perr) || !errors.Is(perr.Err, os.ErrClosed) {
 			return errors.Wrap(err, "error closing temporary file")
 		}
 	}

@@ -2,6 +2,7 @@
 
 ## 4.7.0
 
+* Go 1.13 or greater is now required.
 * In verbose mode, we now print a message before each HTTP request.
   Previously we would not print anything for retried requests.
 * Expected response errors no longer cause request retries. For example, we
@@ -10,6 +11,8 @@
 * When running with `GEOIPUPDATE_FREQUENCY` set, the Docker image will now
   stop when sent a SIGTERM instead of waiting for a SIGKILL. Pull request
   by Maxence POULAIN. GitHub #135.
+* Docker images are now provided for ARM64. Requested by allthesebugsv2.
+  GitHub #136.
 
 ## 4.6.0 (2020-12-14)
 
