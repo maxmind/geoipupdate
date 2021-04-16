@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.7.0
+## 4.7.0 (2021-04-16)
 
 * Go 1.13 or greater is now required.
 * In verbose mode, we now print a message before each HTTP request.
