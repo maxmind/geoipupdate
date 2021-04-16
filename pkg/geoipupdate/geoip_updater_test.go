@@ -29,7 +29,7 @@ func TestGetFileName(t *testing.T) {
 		{
 			Description:    "Get filename fails",
 			FilenameStatus: http.StatusBadRequest,
-			ExpectedError:  "unexpected HTTP status code: 400 Bad Request: ",
+			ExpectedError:  "unexpected HTTP status code: received HTTP status code: 400: ",
 		},
 		{
 			Description:    "Get filename is missing body",

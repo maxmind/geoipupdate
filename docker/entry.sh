@@ -2,6 +2,18 @@
 
 set -e
 
+# SIGTERM-handler
+term_handler() {
+  if [ $pid -ne 0 ]; then
+    kill -SIGTERM "$pid"
+    wait "$pid"
+  fi
+  exit 143; # 128 + 15 -- SIGTERM
+}
+
+trap 'kill ${!}; term_handler' SIGTERM
+
+pid=0
 conf_file=/etc/GeoIP.conf
 database_dir=/usr/share/GeoIP
 flags=
@@ -47,5 +59,7 @@ while true; do
     fi
 
     echo "# STATE: Sleeping for $GEOIPUPDATE_FREQUENCY hours"
-    sleep "$frequency"
+    sleep "$frequency" &
+    pid=$!
+    wait $!
 done

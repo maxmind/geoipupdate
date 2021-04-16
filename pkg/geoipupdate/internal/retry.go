@@ -3,6 +3,8 @@ package internal
 
 import (
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // RetryWithBackoff calls the provided function repeatedly until it succeeds or
@@ -17,6 +19,14 @@ func RetryWithBackoff(
 		err := fn()
 		if err == nil {
 			return nil
+		}
+
+		underlyingErr := errors.Cause(err)
+		var httpErr HTTPError
+		if errors.As(underlyingErr, &httpErr) &&
+			httpErr.StatusCode >= 400 &&
+			httpErr.StatusCode < 500 {
+			return err
 		}
 
 		currentDuration := time.Since(start)

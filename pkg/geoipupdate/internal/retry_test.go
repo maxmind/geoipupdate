@@ -1,11 +1,11 @@
 package internal
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/pkg/errors"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,4 +38,36 @@ func TestRetryWithBackoff(t *testing.T) {
 		assert.Equal(t, 3, n)
 		assert.NoError(t, err)
 	})
+}
+
+func TestRetryDoesNotRetryHTTP4xx(t *testing.T) {
+	var n int
+	err := RetryWithBackoff(
+		func() error {
+			n++
+			err := HTTPError{
+				StatusCode: http.StatusBadRequest,
+			}
+			return errors.Wrap(err, "unexpected HTTP status")
+		},
+		6*time.Second,
+	)
+	assert.Equal(t, 1, n)
+	assert.Error(t, err)
+}
+
+func TestRetryDoesRetryHTTP5xx(t *testing.T) {
+	var n int
+	err := RetryWithBackoff(
+		func() error {
+			n++
+			err := HTTPError{
+				StatusCode: http.StatusInternalServerError,
+			}
+			return errors.Wrap(err, "unexpected HTTP status")
+		},
+		6*time.Second,
+	)
+	assert.Equal(t, 5, n)
+	assert.Error(t, err)
 }
