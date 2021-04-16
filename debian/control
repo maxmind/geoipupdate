@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: William Storey <wstorey@maxmind.com>
 Build-Depends: debhelper (>= 9),
                dh-golang,
-               golang-any (>= 2:1.13~0),
+               golang-any (>= 2:1.13~0) | golang-1.13 | go,
                pandoc,
                perl
 Standards-Version: 4.2.1
