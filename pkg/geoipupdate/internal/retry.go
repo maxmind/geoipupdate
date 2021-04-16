@@ -21,7 +21,6 @@ func RetryWithBackoff(
 			return nil
 		}
 
-		// It'd be preferable to use errors.As(), but that's only in Go 1.13+.
 		underlyingErr := errors.Cause(err)
 		var httpErr HTTPError
 		if errors.As(underlyingErr, &httpErr) &&
