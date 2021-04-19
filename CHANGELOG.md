@@ -3,7 +3,8 @@
 ## 4.7.1 (2021-04-19)
 
 * The `arm64` Docker images were not correctly generated. This release
-  corrects the issue. There are no other changes.
+  corrects the issue.
+* This release provides an `arm/v6` Docker image.
 
 ## 4.7.0 (2021-04-16)
 
