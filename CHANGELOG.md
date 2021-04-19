@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 4.7.1 (2021-04-19)
+
+* The Alpine version used for the Docker image now tracks the `alpine:3`
+  tag rather than a specific point release.
+* The `arm64` Docker images were not correctly generated in 4.7.0. This
+  release corrects the issue.
+* This release provides an `arm/v6` Docker image.
+
 ## 4.7.0 (2021-04-16)
 
 * Go 1.13 or greater is now required.
