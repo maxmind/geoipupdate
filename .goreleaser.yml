@@ -32,12 +32,16 @@ dockers:
     goarch: amd64
     extra_files:
       - docker/entry.sh
+    build_flag_templates:
+      - "--platform=linux/amd64"
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
     dockerfile: docker/Dockerfile
     goarch: arm64
     extra_files:
       - docker/entry.sh
+    build_flag_templates:
+      - "--platform=linux/arm64"
 docker_manifests:
   - name_template: "maxmindinc/geoipupdate:{{ .Tag }}"
     image_templates:

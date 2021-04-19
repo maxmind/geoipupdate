@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.7.1 (2021-04-19)
+
+* The `arm64` Docker images were not correctly generated. This release
+  corrects the issue. There are no other changes.
+
 ## 4.7.0 (2021-04-16)
 
 * Go 1.13 or greater is now required.
