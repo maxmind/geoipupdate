@@ -29,6 +29,7 @@ dockers:
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
     dockerfile: docker/Dockerfile
+    use_buildx: true
     goarch: amd64
     extra_files:
       - docker/entry.sh
@@ -37,27 +38,42 @@ dockers:
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
     dockerfile: docker/Dockerfile
+    use_buildx: true
     goarch: arm64
     extra_files:
       - docker/entry.sh
     build_flag_templates:
       - "--platform=linux/arm64"
+  - image_templates:
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
+    dockerfile: docker/Dockerfile
+    use_buildx: true
+    goarch: arm
+    goarm: 6
+    extra_files:
+      - docker/entry.sh
+    build_flag_templates:
+      - "--platform=linux/arm/v6"
 docker_manifests:
   - name_template: "maxmindinc/geoipupdate:{{ .Tag }}"
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
   - name_template: "maxmindinc/geoipupdate:v{{ .Major }}"
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
   - name_template: "maxmindinc/geoipupdate:v{{ .Major }}.{{ .Minor }}"
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
   - name_template: "maxmindinc/geoipupdate:latest"
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
+      - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
 checksum:
   name_template: 'checksums-darwin-linux.txt'
