@@ -2,7 +2,7 @@
 
 ## Image information
 
-The image is available on [Docker Hub](https://hub.docker.com/r/maxmindinc/geoipupdate).  
+The image is available on [Docker Hub](https://hub.docker.com/r/maxmindinc/geoipupdate).
 The source code is available on [GitHub](https://github.com/maxmind/geoipupdate).
 
 ## Configuring
@@ -33,8 +33,10 @@ The following are optional:
   default is `0`.
 * `GEOIPUPDATE_VERBOSE` - Enable verbose mode. Prints out the steps that
   `geoipupdate` takes. Set to **anything** (e.g., `1`) to enable.
-* `GEOIPUPDATE_CONF_FILE` - The path where the configuration file will be written. The default is `/etc/GeoIP.conf`.
-* `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download the databases. The default is `/usr/share/GeoIP`.
+* `GEOIPUPDATE_CONF_FILE` - The path where the configuration file will be
+  written. The default is `/etc/GeoIP.conf`.
+* `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download the
+  databases. The default is `/usr/share/GeoIP`.
 
 The environment variables can be placed in a file with one per line and
 passed in with the `--env-file` flag. Alternatively, you may pass them in
@@ -46,7 +48,7 @@ individually with the `-e` flag.
 
 Run the latest image with:
 
-```
+```sh
 docker run --env-file <file> -v <database directory>:/usr/share/GeoIP maxmindinc/geoipupdate
 ```
 
@@ -58,7 +60,7 @@ the databases to.
 
 Run the latest image with:
 
-```
+```yaml
 version: '3'
 services:
   geoipupdate:
@@ -84,8 +86,8 @@ volumes:
 ```
 
 Note - When using docker-compose, you need to either:
-  - set `GEOIPUPDATE_FREQUENCY` equal to something greater than 0  
-  or  
-  - set `restart: on-failure`
+
+* set `GEOIPUPDATE_FREQUENCY` equal to something greater than 0 or
+* set `restart: on-failure`
 
 If you don't, the container will continuously restart.
