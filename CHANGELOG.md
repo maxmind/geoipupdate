@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 4.8.0
+
+* The Docker container now supports the following new environment
+  variables:
+
+  * `GEOIPUPDATE_CONF_FILE` - The path where the configuration file will
+    be written. The default is `/etc/GeoIP.conf`.
+  * `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download
+    the databases. The default is `/usr/share/GeoIP`.
+
+  Pull request by Maxence POULAIN. GitHub #143.
+
 ## 4.7.1 (2021-04-19)
 
 * The Alpine version used for the Docker image now tracks the `alpine:3`
