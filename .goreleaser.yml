@@ -29,7 +29,7 @@ dockers:
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
     dockerfile: docker/Dockerfile
-    use_buildx: true
+    use: buildx
     goarch: amd64
     extra_files:
       - docker/entry.sh
@@ -38,7 +38,7 @@ dockers:
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
     dockerfile: docker/Dockerfile
-    use_buildx: true
+    use: buildx
     goarch: arm64
     extra_files:
       - docker/entry.sh
@@ -47,7 +47,7 @@ dockers:
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
     dockerfile: docker/Dockerfile
-    use_buildx: true
+    use: buildx
     goarch: arm
     goarm: 6
     extra_files:
