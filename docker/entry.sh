@@ -18,6 +18,15 @@ conf_file=/etc/GeoIP.conf
 database_dir=/usr/share/GeoIP
 flags=
 frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
+
+if ! [ -z "$GEOIPUPDATE_CONF_FILE" ]; then
+  conf_file=$GEOIPUPDATE_CONF_FILE
+fi
+
+if ! [ -z "$GEOIPUPDATE_DB_DIR" ]; then
+  database_dir=$GEOIPUPDATE_DB_DIR
+fi
+
 if [ -z "$GEOIPUPDATE_ACCOUNT_ID" ] || [ -z  "$GEOIPUPDATE_LICENSE_KEY" ] || [ -z "$GEOIPUPDATE_EDITION_IDS" ]; then
     echo "ERROR: You must set the environment variables GEOIPUPDATE_ACCOUNT_ID, GEOIPUPDATE_LICENSE_KEY, and GEOIPUPDATE_EDITION_IDS!"
     exit 1
