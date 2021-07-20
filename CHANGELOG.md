@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.8.0
+## 4.8.0 (2021-07-20)
 
 * The Docker container now supports the following new environment
   variables:
