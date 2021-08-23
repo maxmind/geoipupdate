@@ -50,7 +50,7 @@ func NewLocalFileDatabaseWriter(filePath, lockFilePath string, verbose bool) (*L
 	dbWriter.temporaryFile, err = os.OpenFile( //nolint:gosec
 		temporaryFilename,
 		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		0644,
+		0o644,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating temporary file")

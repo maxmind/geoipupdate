@@ -192,7 +192,7 @@ func TestHTTPDatabaseReader(t *testing.T) {
 			}
 
 			if test.CreateDirectory {
-				err := os.Mkdir(config.DatabaseDirectory, 0755) //nolint:gosec
+				err := os.Mkdir(config.DatabaseDirectory, 0o755) //nolint:gosec
 				require.NoError(t, err)
 			}
 
@@ -204,7 +204,7 @@ func TestHTTPDatabaseReader(t *testing.T) {
 				err := ioutil.WriteFile(
 					currentDatabasePath,
 					[]byte(test.DatabaseBefore),
-					0600,
+					0o600,
 				)
 				require.NoError(t, err)
 			}
