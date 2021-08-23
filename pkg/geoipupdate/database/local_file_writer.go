@@ -90,7 +90,11 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 
 // Write writes to the temporary file.
 func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
-	return writer.fileWriter.Write(p)
+	n, err := writer.fileWriter.Write(p)
+	if err != nil {
+		return 0, errors.Wrap(err, "error writing")
+	}
+	return n, nil
 }
 
 // Close closes the temporary file and releases the file lock.

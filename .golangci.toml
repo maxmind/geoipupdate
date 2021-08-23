@@ -79,3 +79,9 @@ exclude-use-default = false
   [[issues.exclude-rules]]
   text = "weak cryptographic primitive"
   linters = ["gosec"]
+
+  [[issues.exclude-rules]]
+  linters = [
+    "wrapcheck"
+  ]
+  text = "github.com/maxmind/geoipupdate"
