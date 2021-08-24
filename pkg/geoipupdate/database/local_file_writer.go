@@ -50,7 +50,7 @@ func NewLocalFileDatabaseWriter(filePath, lockFilePath string, verbose bool) (*L
 	dbWriter.temporaryFile, err = os.OpenFile( //nolint:gosec
 		temporaryFilename,
 		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		0644,
+		0o644,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating temporary file")
@@ -90,7 +90,11 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 
 // Write writes to the temporary file.
 func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
-	return writer.fileWriter.Write(p)
+	n, err := writer.fileWriter.Write(p)
+	if err != nil {
+		return 0, errors.Wrap(err, "error writing")
+	}
+	return n, nil
 }
 
 // Close closes the temporary file and releases the file lock.

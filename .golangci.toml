@@ -8,15 +8,18 @@
     "bodyclose",
     "deadcode",
     "depguard",
+    "durationcheck",
     "errcheck",
+    "errname",
     "errorlint",
     "exhaustive",
     "exportloopref",
     "goconst",
     "gocyclo",
     "gocritic",
+    "godot",
     "gofumpt",
-    "golint",
+    "gomodguard",
     "gosec",
     "gosimple",
     "govet",
@@ -30,6 +33,7 @@
     "nolintlint",
     "predeclared",
     "revive",
+    "rowserrcheck",
     "sqlclosecheck",
     "staticcheck",
     "structcheck",
@@ -41,6 +45,8 @@
     "unused",
     "varcheck",
     "vetshadow",
+    "wastedassign",
+    "wrapcheck",
   ]
 
 [linters-settings.errcheck]
@@ -73,3 +79,9 @@ exclude-use-default = false
   [[issues.exclude-rules]]
   text = "weak cryptographic primitive"
   linters = ["gosec"]
+
+  [[issues.exclude-rules]]
+  linters = [
+    "wrapcheck"
+  ]
+  text = "github.com/maxmind/geoipupdate"
