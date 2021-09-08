@@ -22,7 +22,7 @@ func TestNewConfig(t *testing.T) {
 	}{
 		{
 			Description: "Default config",
-			Input: `# Please see https://dev.maxmind.com/geoip/geoipupdate/ for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
@@ -81,7 +81,7 @@ EditionIDs GeoLite2-Country GeoLite2-City
 		},
 		{
 			Description: "Default config, old names",
-			Input: `# Please see https://dev.maxmind.com/geoip/geoipupdate/ for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
@@ -133,7 +133,7 @@ ProductIds GeoLite2-Country GeoLite2-City
 		},
 		{
 			Description: "Everything populated",
-			Input: `# Please see https://dev.maxmind.com/geoip/geoipupdate/ for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
