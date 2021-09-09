@@ -1,6 +1,6 @@
-# Please see https://dev.maxmind.com/geoip/geoipupdate/ for instructions
-# on setting up geoipupdate, including information on how to download a
-# pre-filled GeoIP.conf file.
+# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for
+# instructions on setting up geoipupdate, including information on how to
+# download a pre-filled GeoIP.conf file.
 
 # Replace YOUR_ACCOUNT_ID_HERE and YOUR_LICENSE_KEY_HERE with an active account
 # ID and license key combination associated with your MaxMind account. These
