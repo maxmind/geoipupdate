@@ -15,27 +15,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-var version = "4.8.0"
-
-// AddHeaderRoundTripper struct is used to add versioned User-Agent header to each request.
-type AddHeaderRoundTripper struct {
-	r http.RoundTripper
-}
-
-// RoundTrip is used to add versioned User-Agent header to each request.
-func (ahrt AddHeaderRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
-	r.Header.Add("User-Agent", "geoipupdate/"+version)
-	return ahrt.r.RoundTrip(r) // nolint: wrapcheck
-}
-
 // NewClient creates an *http.Client for use in updating.
 func NewClient(
 	config *Config,
 ) *http.Client {
-	transport := AddHeaderRoundTripper{r: http.DefaultTransport}
+	transport := http.DefaultTransport
 	if config.Proxy != nil {
 		proxy := http.ProxyURL(config.Proxy)
-		transport.r.(*http.Transport).Proxy = proxy
+		transport.(*http.Transport).Proxy = proxy
 	}
 	return &http.Client{Transport: transport}
 }
@@ -63,6 +50,7 @@ func GetFilename(
 			if err != nil {
 				return errors.Wrap(err, "error creating HTTP request")
 			}
+			req.Header.Add("User-Agent", "geoipupdate/"+Version)
 
 			res, err := client.Do(req)
 			if err != nil {

@@ -149,6 +149,7 @@ func (reader *HTTPDatabaseReader) download(
 	if err != nil {
 		return "", time.Time{}, false, errors.Wrap(err, "error creating request")
 	}
+	req.Header.Add("User-Agent", "geoipupdate/"+geoipupdate.Version)
 	req.SetBasicAuth(fmt.Sprintf("%d", reader.accountID), reader.licenseKey)
 
 	response, err := reader.client.Do(req)
