@@ -49,6 +49,10 @@ if [ "$ok" != "y" ]; then
     exit 1
 fi
 
+git commit -m "Update for $tag" -a
+
+git push
+
 echo "Creating tag $tag"
 
 message="$version
