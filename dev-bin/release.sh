@@ -37,9 +37,10 @@ fi
 
 tag="v$version"
 
+perl -pi -e "s/(?<=Version = \").+?(?=\")/$version/g" pkg/geoipupdate/version.go
+
 echo $'\nRelease notes:'
 echo "$notes"
-
 
 read -p "Continue? (y/n) " ok
 
@@ -47,6 +48,10 @@ if [ "$ok" != "y" ]; then
     echo "Aborting"
     exit 1
 fi
+
+git commit -m "Update for $tag" -a
+
+git push
 
 echo "Creating tag $tag"
 

@@ -50,6 +50,7 @@ func GetFilename(
 			if err != nil {
 				return errors.Wrap(err, "error creating HTTP request")
 			}
+			req.Header.Add("User-Agent", "geoipupdate/"+Version)
 
 			res, err := client.Do(req)
 			if err != nil {
