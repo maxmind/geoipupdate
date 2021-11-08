@@ -145,8 +145,8 @@ func (reader *HTTPDatabaseReader) download(
 	}
 
 	// Perform the download.
-
-	req, err := http.NewRequest(http.MethodGet, updateURL, nil) // nolint: noctx
+	//nolint: noctx // using the context would require an API change
+	req, err := http.NewRequest(http.MethodGet, updateURL, nil)
 	if err != nil {
 		return "", time.Time{}, false, errors.Wrap(err, "error creating request")
 	}
@@ -195,7 +195,8 @@ func (reader *HTTPDatabaseReader) download(
 		}
 	}()
 
-	if _, err := io.Copy(tempFile, gzReader); err != nil { //nolint:gosec
+	//nolint:gosec // A decompression bomb is unlikely here
+	if _, err := io.Copy(tempFile, gzReader); err != nil {
 		return "", time.Time{}, false, errors.Wrap(err, "error writing response")
 	}
 

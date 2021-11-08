@@ -328,7 +328,7 @@ SkipPeerVerification 1
 		{
 			Description: "CR line ending does not work",
 			Input:       "AccountID 0\rLicenseKey 123\rEditionIDs GeoIP2-City\r",
-			// nolint: lll
+			//nolint: lll
 			Err: `invalid account ID format: strconv.Atoi: parsing "0 LicenseKey 123 EditionIDs GeoIP2-City": invalid syntax`,
 		},
 		{

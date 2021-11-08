@@ -47,7 +47,8 @@ func NewLocalFileDatabaseWriter(filePath, lockFilePath string, verbose bool) (*L
 	}
 
 	temporaryFilename := fmt.Sprintf("%s.temporary", dbWriter.filePath)
-	dbWriter.temporaryFile, err = os.OpenFile( //nolint:gosec
+	//nolint:gosec // We want the permission to be world readable
+	dbWriter.temporaryFile, err = os.OpenFile(
 		temporaryFilename,
 		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
 		0o644,

@@ -46,7 +46,8 @@ func GetFilename(
 				log.Printf("Performing get filename request to %s", maxMindURL)
 			}
 
-			req, err := http.NewRequest(http.MethodGet, maxMindURL, nil) // nolint: noctx
+			//nolint: noctx // as it would require a breaking API change
+			req, err := http.NewRequest(http.MethodGet, maxMindURL, nil)
 			if err != nil {
 				return errors.Wrap(err, "error creating HTTP request")
 			}

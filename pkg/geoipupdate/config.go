@@ -29,7 +29,7 @@ type Config struct {
 }
 
 // NewConfig parses the configuration file.
-func NewConfig( // nolint: gocyclo
+func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 	file,
 	defaultDatabaseDirectory,
 	databaseDirectory string,
