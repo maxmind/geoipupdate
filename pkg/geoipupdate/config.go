@@ -39,6 +39,7 @@ func NewConfig( // nolint: gocyclo
 	if err != nil {
 		return nil, errors.Wrap(err, "error opening file")
 	}
+	//nolint: gosec // see https://github.com/securego/gosec/issues/714
 	defer func() {
 		if err := fh.Close(); err != nil {
 			log.Fatalf("Error closing config file: %+v", errors.Wrap(err, "closing file"))

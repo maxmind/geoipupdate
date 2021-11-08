@@ -71,6 +71,7 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 		return errors.Wrap(err, "error opening database")
 	}
 
+	//nolint: gosec // see https://github.com/securego/gosec/issues/714
 	defer func() {
 		err := currentDatabaseFile.Close()
 		if err != nil {
@@ -152,6 +153,7 @@ func (writer *LocalFileDatabaseWriter) Commit() error {
 	if err != nil {
 		return errors.Wrap(err, "error opening database directory")
 	}
+	//nolint: gosec // see https://github.com/securego/gosec/issues/714
 	defer func() {
 		if err := dh.Close(); err != nil {
 			log.Fatalf("Error closing directory: %+v", errors.Wrap(err, "closing directory"))
