@@ -157,11 +157,8 @@ func (reader *HTTPDatabaseReader) download(
 	if err != nil {
 		return "", time.Time{}, false, errors.Wrap(err, "error performing HTTP request")
 	}
-	defer func() {
-		if err := response.Body.Close(); err != nil {
-			log.Fatalf("Error closing response body: %+v", errors.Wrap(err, "closing body"))
-		}
-	}()
+
+	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusNotModified {
 		if reader.verbose {

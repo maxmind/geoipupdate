@@ -57,15 +57,15 @@ func GetFilename(
 			if err != nil {
 				return errors.Wrap(err, "error performing HTTP request")
 			}
-			defer func() {
-				if err := res.Body.Close(); err != nil {
-					log.Fatalf("error closing response body: %+v", errors.Wrap(err, "closing body"))
-				}
-			}()
 
 			buf, err = ioutil.ReadAll(io.LimitReader(res.Body, 256))
 			if err != nil {
+				_ = res.Body.Close()
 				return errors.Wrap(err, "error reading response body")
+			}
+
+			if err := res.Body.Close(); err != nil {
+				return errors.Wrap(err, "closing body")
 			}
 
 			if res.StatusCode != http.StatusOK {
