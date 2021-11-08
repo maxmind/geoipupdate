@@ -2,7 +2,6 @@ package geoipupdate
 
 import (
 	"bufio"
-	"log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -29,7 +28,7 @@ type Config struct {
 }
 
 // NewConfig parses the configuration file.
-func NewConfig( // nolint: gocyclo
+func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 	file,
 	defaultDatabaseDirectory,
 	databaseDirectory string,
@@ -39,11 +38,9 @@ func NewConfig( // nolint: gocyclo
 	if err != nil {
 		return nil, errors.Wrap(err, "error opening file")
 	}
-	defer func() {
-		if err := fh.Close(); err != nil {
-			log.Fatalf("Error closing config file: %+v", errors.Wrap(err, "closing file"))
-		}
-	}()
+
+	//nolint: gosec // We don't particularly care if the close fails
+	defer fh.Close()
 
 	config := &Config{}
 	scanner := bufio.NewScanner(fh)
