@@ -21,6 +21,17 @@ builds:
     goos:
       - 'darwin'
       - 'linux'
+      - 'freebsd'
+      - 'openbsd'
+    ignore:
+      - goos: freebsd
+        goarch: arm
+      - goos: openbsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
+      - goos: openbsd
+        goarch: arm64
     hooks:
       post: 'make data BUILDDIR=.'
     env:
