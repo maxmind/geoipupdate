@@ -70,7 +70,6 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	if err != nil {
 		return errors.Wrap(err, "error opening temporary file")
 	}
-	//nolint: gosec // see https://github.com/securego/gosec/issues/714
 	defer func() {
 		if err := tempFile.Close(); err != nil {
 			log.Printf("error closing temporary file: %s", err)
