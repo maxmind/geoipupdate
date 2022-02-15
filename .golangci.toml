@@ -9,15 +9,19 @@
     "asciicheck",
     "bidichk",
     "bodyclose",
+    "containedctx",
     "contextcheck",
     "deadcode",
     "depguard",
     "durationcheck",
     "errcheck",
+    # Seems to cause stack overflows :-(
+    # "errchkjson",
     "errname",
     "errorlint",
     "exhaustive",
     "exportloopref",
+    "forbidigo",
     # We tried this liner but most places we do forced type asserts are
     # pretty safe, e.g., an atomic.Value when everything is encapsulated
     # in a small package.
@@ -31,9 +35,14 @@
     "gosec",
     "gosimple",
     "govet",
+    "grouper",
     "ineffassign",
     "lll",
     "makezero",
+    # Maintainability Index. Seems like it could be a good idea, but a
+    # lot of things fail and we would need to make some decisions about
+    # what to allow.
+    # "maintidx",
     "misspell",
     "nakedret",
     "nilerr",
@@ -105,6 +114,8 @@
         "commentedOutImport",
         "commentFormatting",
         "defaultCaseOrder",
+        # Revive's defer rule already captures this. This caught no extra cases.
+        # "deferInLoop",
         "deferUnlambda",
         "deprecatedComment",
         "docStub",
@@ -113,6 +124,7 @@
         "dupCase",
         "dupImport",
         "dupSubExpr",
+        "dynamicFmtString",
         "elseif",
         "emptyDecl",
         "emptyFallthrough",
@@ -262,7 +274,7 @@
 [linters-settings.nolintlint]
     allow-leading-space = false
     allow-unused = false
-    allow-no-explanation = ["lll"]
+    allow-no-explanation = ["lll", "misspell"]
     require-explanation = true
     require-specific = true
 
@@ -400,6 +412,8 @@
     # [[linters-settings.revive.rules]]
     # name = "nested-structs"
 
+    [[linters-settings.revive.rules]]
+    name = "optimize-operands-order"
 
     [[linters-settings.revive.rules]]
     name = "package-comments"
