@@ -10,6 +10,9 @@ archives:
       - 'GeoIP.conf'
       - 'GeoIP.conf.md'
       - 'geoipupdate.md'
+    format_overrides:
+      - goos: windows
+        format: zip
 builds:
   - main: './cmd/geoipupdate'
     binary: 'geoipupdate'
@@ -34,6 +37,18 @@ builds:
         goarch: arm64
     hooks:
       post: 'make data BUILDDIR=.'
+    env:
+      - CGO_ENABLED=0
+  - id: 'geoipupdate-windows'
+    main: './cmd/geoipupdate'
+    binary: 'geoipupdate'
+    goarch:
+      - '386'
+      - 'amd64'
+    goos:
+      - 'windows'
+    hooks:
+      post: 'make data OS=Windows_NT BUILDDIR=.'
     env:
       - CGO_ENABLED=0
 dockers:

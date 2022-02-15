@@ -71,15 +71,6 @@ goreleaser release --rm-dist -f .goreleaser.yml --release-notes <(echo "$message
 make clean BUILDDIR=.
 
 rm -rf dist
-goreleaser release --rm-dist -f .goreleaser-windows.yml --skip-publish
-hub release edit -m "$message" \
-    -a "dist/geoipupdate_${version}_windows_386.zip" \
-    -a "dist/geoipupdate_${version}_windows_amd64.zip" \
-    -a dist/checksums-windows.txt \
-    "$tag"
-make clean BUILDDIR=.
-
-rm -rf dist
 goreleaser release --rm-dist -f .goreleaser-packages.yml --skip-publish
 
 hub release edit -m "$message" \
