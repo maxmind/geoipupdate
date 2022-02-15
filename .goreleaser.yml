@@ -1,17 +1,33 @@
 project_name: 'geoipupdate'
 archives:
-  - id: main
+  - id: 'archives-unix'
+    builds:
+      - 'geoipupdate-unix'
     wrap_in_directory: true
     files:
       - 'CHANGELOG.md'
       - 'LICENSE-APACHE'
       - 'LICENSE-MIT'
       - 'README.md'
-      - 'GeoIP.conf'
-      - 'GeoIP.conf.md'
-      - 'geoipupdate.md'
+      - src: 'build/unix/*'
+        dst: '.'
+        strip_parent: true
+  - id: 'archives-windows'
+    builds:
+      - 'geoipupdate-windows'
+    wrap_in_directory: true
+    files:
+      - 'CHANGELOG.md'
+      - 'LICENSE-APACHE'
+      - 'LICENSE-MIT'
+      - 'README.md'
+      - src: 'build/windows/*'
+        dst: '.'
+        strip_parent: true
+    format: 'zip'
 builds:
-  - main: './cmd/geoipupdate'
+  - id: 'geoipupdate-unix'
+    main: './cmd/geoipupdate'
     binary: 'geoipupdate'
     goarch:
       - '386'
@@ -21,15 +37,58 @@ builds:
     goos:
       - 'darwin'
       - 'linux'
+      - 'freebsd'
+      - 'openbsd'
+    ignore:
+      - goos: freebsd
+        goarch: arm
+      - goos: openbsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
+      - goos: openbsd
+        goarch: arm64
     hooks:
-      post: 'make data BUILDDIR=.'
+      post: 'make data BUILDDIR="build/unix"'
+    env:
+      - CGO_ENABLED=0
+  # This is a separate build as we want to specify different paths in the
+  # ldflags.
+  - id: 'geoipupdate-packages'
+    main: './cmd/geoipupdate'
+    binary: 'geoipupdate'
+    goarch:
+      - '386'
+      - 'amd64'
+      - 'arm'
+      - 'arm64'
+    goos:
+      - 'linux'
+    hooks:
+      post: 'make data BUILDDIR="build/packages" CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP'
+    ldflags:
+      - '-s -w -X main.version={{.Version}} -X main.defaultConfigFile=/etc/GeoIP.conf -X main.defaultDatabaseDirectory=/usr/share/GeoIP'
+    env:
+      - CGO_ENABLED=0
+  - id: 'geoipupdate-windows'
+    main: './cmd/geoipupdate'
+    binary: 'geoipupdate'
+    goarch:
+      - '386'
+      - 'amd64'
+    goos:
+      - 'windows'
+    hooks:
+      post: 'make data OS=Windows_NT BUILDDIR="build/windows"'
     env:
       - CGO_ENABLED=0
 dockers:
-  - image_templates:
+  - ids:
+      - 'geoipupdate-unix'
+    image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
     dockerfile: docker/Dockerfile
-    use_buildx: true
+    use: buildx
     goarch: amd64
     extra_files:
       - docker/entry.sh
@@ -38,7 +97,7 @@ dockers:
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
     dockerfile: docker/Dockerfile
-    use_buildx: true
+    use: buildx
     goarch: arm64
     extra_files:
       - docker/entry.sh
@@ -47,7 +106,7 @@ dockers:
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
     dockerfile: docker/Dockerfile
-    use_buildx: true
+    use: buildx
     goarch: arm
     goarm: 6
     extra_files:
@@ -75,5 +134,39 @@ docker_manifests:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
-checksum:
-  name_template: 'checksums-darwin-linux.txt'
+nfpms:
+  - builds:
+      - 'geoipupdate-packages'
+    vendor: 'MaxMind, Inc.'
+    homepage: https://www.maxmind.com/
+    maintainer: 'MaxMind, Inc. <support@maxmind.com>'
+    description: Program to perform automatic updates of GeoIP2 and GeoIP Legacy binary databases.
+    license: Apache 2.0 or MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    contents:
+      - dst: /usr/share/GeoIP
+        type: 'dir'
+      - src: 'CHANGELOG.md'
+        dst: '/usr/share/doc/geoipupdate/CHANGELOG.md'
+      - src: 'LICENSE-APACHE'
+        dst: '/usr/share/doc/geoipupdate/LICENSE-APACHE'
+      - src: 'LICENSE-MIT'
+        dst: '/usr/share/doc/geoipupdate/LICENSE-MIT'
+      - src: 'README.md'
+        dst: '/usr/share/doc/geoipupdate/README.md'
+      - src: 'build/packages/GeoIP.conf'
+        dst: '/usr/share/doc/geoipupdate/GeoIP.conf'
+      - src: 'build/packages/GeoIP.conf.md'
+        dst: '/usr/share/doc/geoipupdate/GeoIP.conf.md'
+      - src: 'build/packages/geoipupdate.md'
+        dst: '/usr/share/doc/geoipupdate/geoipupdate.md'
+      - src: 'build/packages/GeoIP.conf.5'
+        dst: '/usr/share/man/man5/GeoIP.conf.5'
+      - src: 'build/packages/geoipupdate.1'
+        dst: '/usr/share/man/man1/geoipupdate.1'
+      - src: 'build/packages/GeoIP.conf'
+        dst: '/etc/GeoIP.conf'
+        type: config

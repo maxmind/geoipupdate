@@ -47,10 +47,11 @@ func NewLocalFileDatabaseWriter(filePath, lockFilePath string, verbose bool) (*L
 	}
 
 	temporaryFilename := fmt.Sprintf("%s.temporary", dbWriter.filePath)
-	dbWriter.temporaryFile, err = os.OpenFile( //nolint:gosec
+	//nolint:gosec // We want the permission to be world readable
+	dbWriter.temporaryFile, err = os.OpenFile(
 		temporaryFilename,
 		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		0644,
+		0o644,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating temporary file")
@@ -90,7 +91,11 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 
 // Write writes to the temporary file.
 func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
-	return writer.fileWriter.Write(p)
+	n, err := writer.fileWriter.Write(p)
+	if err != nil {
+		return 0, errors.Wrap(err, "error writing")
+	}
+	return n, nil
 }
 
 // Close closes the temporary file and releases the file lock.
@@ -148,15 +153,14 @@ func (writer *LocalFileDatabaseWriter) Commit() error {
 	if err != nil {
 		return errors.Wrap(err, "error opening database directory")
 	}
-	defer func() {
-		if err := dh.Close(); err != nil {
-			log.Fatalf("Error closing directory: %+v", errors.Wrap(err, "closing directory"))
-		}
-	}()
 
 	// We ignore Sync errors as they primarily happen on file systems that do
 	// not support sync.
 	_ = dh.Sync()
+
+	if err := dh.Close(); err != nil {
+		return errors.Wrap(err, "closing directory")
+	}
 	return nil
 }
 

@@ -40,6 +40,7 @@ func getArgs() *Args {
 	}
 	if *displayVersion {
 		log.Printf("geoipupdate %s", version)
+		//nolint: revive // deep exit from main package
 		os.Exit(0)
 	}
 
@@ -59,5 +60,6 @@ func getArgs() *Args {
 func printUsage() {
 	log.Printf("Usage: %s <arguments>\n", os.Args[0])
 	flag.PrintDefaults()
+	//nolint: revive // deep exit from main package
 	os.Exit(1)
 }

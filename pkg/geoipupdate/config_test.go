@@ -22,7 +22,7 @@ func TestNewConfig(t *testing.T) {
 	}{
 		{
 			Description: "Default config",
-			Input: `# Please see https://dev.maxmind.com/geoip/geoipupdate/ for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
@@ -81,7 +81,7 @@ EditionIDs GeoLite2-Country GeoLite2-City
 		},
 		{
 			Description: "Default config, old names",
-			Input: `# Please see https://dev.maxmind.com/geoip/geoipupdate/ for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
@@ -133,7 +133,7 @@ ProductIds GeoLite2-Country GeoLite2-City
 		},
 		{
 			Description: "Everything populated",
-			Input: `# Please see https://dev.maxmind.com/geoip/geoipupdate/ for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
@@ -328,7 +328,7 @@ SkipPeerVerification 1
 		{
 			Description: "CR line ending does not work",
 			Input:       "AccountID 0\rLicenseKey 123\rEditionIDs GeoIP2-City\r",
-			// nolint: lll
+			//nolint: lll
 			Err: `invalid account ID format: strconv.Atoi: parsing "0 LicenseKey 123 EditionIDs GeoIP2-City": invalid syntax`,
 		},
 		{
@@ -373,7 +373,7 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
-			require.NoError(t, ioutil.WriteFile(tempName, []byte(test.Input), 0600))
+			require.NoError(t, ioutil.WriteFile(tempName, []byte(test.Input), 0o600))
 			config, err := NewConfig(tempName, DefaultDatabaseDirectory, "/tmp", false)
 			if test.Err == "" {
 				assert.NoError(t, err, test.Description)

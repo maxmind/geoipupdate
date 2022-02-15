@@ -14,11 +14,11 @@ We provide releases for Linux, macOS (darwin), and Windows. Please see the
 latest release.
 
 After you install geoipupdate, please refer to our
-[documentation](https://dev.maxmind.com/geoip/geoipupdate/) for information
+[documentation](https://dev.maxmind.com/geoip/updating-databases?lang=en) for information
 about configuration.
 
 If you're upgrading from geoipupdate 3.x, please see our [upgrade
-guide](https://dev.maxmind.com/geoip/geoipupdate/upgrading-to-geoip-update-4-x/).
+guide](https://dev.maxmind.com/geoip/upgrading-geoip-update?lang=en).
 
 ### Installing on Linux via the tarball
 
@@ -117,7 +117,7 @@ This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 
 # Configuring
 
-Please see our [online guide](https://dev.maxmind.com/geoip/geoipupdate/) for
+Please see our [online guide](https://dev.maxmind.com/geoip/updating-databases?lang=en) for
 directions on how to configure GeoIP Update.
 
 # Documentation
@@ -141,7 +141,7 @@ https://github.com/maxmind/geoipupdate/issues
 
 # Copyright and License
 
-This software is Copyright (c) 2018 - 2021 by MaxMind, Inc.
+This software is Copyright (c) 2018 - 2022 by MaxMind, Inc.
 
 This is free software, licensed under the [Apache License, Version
 2.0](LICENSE-APACHE) or the [MIT License](LICENSE-MIT), at your option.

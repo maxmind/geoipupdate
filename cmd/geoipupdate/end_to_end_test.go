@@ -94,7 +94,7 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 
 	for _, editionID := range config.EditionIDs {
 		path := filepath.Join(config.DatabaseDirectory, editionID+".mmdb")
-		buf, err := ioutil.ReadFile(path) //nolint:gosec
+		buf, err := ioutil.ReadFile(filepath.Clean(path))
 		require.NoError(t, err, "read file")
 		assert.Equal(
 			t,

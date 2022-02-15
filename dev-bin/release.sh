@@ -37,9 +37,10 @@ fi
 
 tag="v$version"
 
+perl -pi -e "s/(?<=Version = \").+?(?=\")/$version/g" pkg/geoipupdate/version.go
+
 echo $'\nRelease notes:'
 echo "$notes"
-
 
 read -p "Continue? (y/n) " ok
 
@@ -47,6 +48,10 @@ if [ "$ok" != "y" ]; then
     echo "Aborting"
     exit 1
 fi
+
+git commit -m "Update for $tag" -a
+
+git push
 
 echo "Creating tag $tag"
 
@@ -63,25 +68,4 @@ git push
 # goreleaser's `--rm-dist' should clear out `dist', but it didn't work for me.
 rm -rf dist
 goreleaser release --rm-dist -f .goreleaser.yml --release-notes <(echo "$message")
-make clean BUILDDIR=.
-
-rm -rf dist
-goreleaser release --rm-dist -f .goreleaser-windows.yml --skip-publish
-hub release edit -m "$message" \
-    -a "dist/geoipupdate_${version}_windows_386.zip" \
-    -a "dist/geoipupdate_${version}_windows_amd64.zip" \
-    -a dist/checksums-windows.txt \
-    "$tag"
-make clean BUILDDIR=.
-
-rm -rf dist
-goreleaser release --rm-dist -f .goreleaser-packages.yml --skip-publish
-
-hub release edit -m "$message" \
-    -a dist/checksums-dpkg-rpm.txt \
-    -a "dist/geoipupdate_${version}_linux_386.deb" \
-    -a "dist/geoipupdate_${version}_linux_amd64.deb" \
-    -a "dist/geoipupdate_${version}_linux_386.rpm" \
-    -a "dist/geoipupdate_${version}_linux_amd64.rpm" \
-    "$tag"
 make clean BUILDDIR=.

@@ -144,22 +144,20 @@ func (reader *HTTPDatabaseReader) download(
 	}
 
 	// Perform the download.
-
-	req, err := http.NewRequest(http.MethodGet, updateURL, nil) // nolint: noctx
+	//nolint: noctx // using the context would require an API change
+	req, err := http.NewRequest(http.MethodGet, updateURL, nil)
 	if err != nil {
 		return "", time.Time{}, false, errors.Wrap(err, "error creating request")
 	}
+	req.Header.Add("User-Agent", "geoipupdate/"+geoipupdate.Version)
 	req.SetBasicAuth(fmt.Sprintf("%d", reader.accountID), reader.licenseKey)
 
 	response, err := reader.client.Do(req)
 	if err != nil {
 		return "", time.Time{}, false, errors.Wrap(err, "error performing HTTP request")
 	}
-	defer func() {
-		if err := response.Body.Close(); err != nil {
-			log.Fatalf("Error closing response body: %+v", errors.Wrap(err, "closing body"))
-		}
-	}()
+
+	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusNotModified {
 		if reader.verbose {
@@ -193,7 +191,8 @@ func (reader *HTTPDatabaseReader) download(
 		}
 	}()
 
-	if _, err := io.Copy(tempFile, gzReader); err != nil { //nolint:gosec
+	//nolint:gosec // A decompression bomb is unlikely here
+	if _, err := io.Copy(tempFile, gzReader); err != nil {
 		return "", time.Time{}, false, errors.Wrap(err, "error writing response")
 	}
 
