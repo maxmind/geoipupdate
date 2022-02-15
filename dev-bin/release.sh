@@ -69,15 +69,3 @@ git push
 rm -rf dist
 goreleaser release --rm-dist -f .goreleaser.yml --release-notes <(echo "$message")
 make clean BUILDDIR=.
-
-rm -rf dist
-goreleaser release --rm-dist -f .goreleaser-packages.yml --skip-publish
-
-hub release edit -m "$message" \
-    -a dist/checksums-dpkg-rpm.txt \
-    -a "dist/geoipupdate_${version}_linux_386.deb" \
-    -a "dist/geoipupdate_${version}_linux_amd64.deb" \
-    -a "dist/geoipupdate_${version}_linux_386.rpm" \
-    -a "dist/geoipupdate_${version}_linux_amd64.rpm" \
-    "$tag"
-make clean BUILDDIR=.

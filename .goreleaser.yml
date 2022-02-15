@@ -1,6 +1,9 @@
 project_name: 'geoipupdate'
 archives:
   - id: main
+    builds:
+      - 'geoipupdate'
+      - 'geoipupdate-windows'
     wrap_in_directory: true
     files:
       - 'CHANGELOG.md'
@@ -14,7 +17,8 @@ archives:
       - goos: windows
         format: zip
 builds:
-  - main: './cmd/geoipupdate'
+  - id: 'geoipupdate'
+    main: './cmd/geoipupdate'
     binary: 'geoipupdate'
     goarch:
       - '386'
@@ -39,6 +43,24 @@ builds:
       post: 'make data BUILDDIR=.'
     env:
       - CGO_ENABLED=0
+  # This is a separate build as we want to specify different paths in the
+  # ldflags.
+  - id: 'geoipupdate-packages'
+    main: './cmd/geoipupdate'
+    binary: 'geoipupdate'
+    goarch:
+      - '386'
+      - 'amd64'
+      - 'arm'
+      - 'arm64'
+    goos:
+      - 'linux'
+    hooks:
+      post: 'make data BUILDDIR=. CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP'
+    ldflags:
+      - '-s -w -X main.version={{.Version}} -X main.defaultConfigFile=/etc/GeoIP.conf -X main.defaultDatabaseDirectory=/usr/share/GeoIP'
+    env:
+      - CGO_ENABLED=0
   - id: 'geoipupdate-windows'
     main: './cmd/geoipupdate'
     binary: 'geoipupdate'
@@ -52,7 +74,9 @@ builds:
     env:
       - CGO_ENABLED=0
 dockers:
-  - image_templates:
+  - ids:
+      - 'geoipupdate'
+    image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
     dockerfile: docker/Dockerfile
     use: buildx
@@ -101,5 +125,35 @@ docker_manifests:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
-checksum:
-  name_template: 'checksums-darwin-linux.txt'
+nfpms:
+  - builds:
+      - 'geoipupdate-packages'
+    vendor: 'MaxMind, Inc.'
+    homepage: https://www.maxmind.com/
+    maintainer: 'MaxMind, Inc. <support@maxmind.com>'
+    description: Program to perform automatic updates of GeoIP2 and GeoIP Legacy binary databases.
+    license: Apache 2.0 or MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    empty_folders:
+      - /usr/share/GeoIP
+    contents:
+      - src: 'CHANGELOG.md'
+        dst: '/usr/share/doc/geoipupdate/CHANGELOG.md'
+      - src: 'LICENSE-APACHE'
+        dst: '/usr/share/doc/geoipupdate/LICENSE-APACHE'
+      - src: 'LICENSE-MIT'
+        dst: '/usr/share/doc/geoipupdate/LICENSE-MIT'
+      - src: 'README.md'
+        dst: '/usr/share/doc/geoipupdate/README.md'
+      - src: 'GeoIP.conf'
+        dst: '/usr/share/doc/geoipupdate/GeoIP.conf'
+      - src: 'GeoIP.conf.md'
+        dst: '/usr/share/doc/geoipupdate/GeoIP.conf.md'
+      - src: 'geoipupdate.md'
+        dst: '/usr/share/doc/geoipupdate/geoipupdate.md'
+      - src: 'GeoIP.conf'
+        dst: '/etc/GeoIP.conf'
+        type: config
