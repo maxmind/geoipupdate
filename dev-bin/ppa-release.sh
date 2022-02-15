@@ -4,7 +4,7 @@ set -e
 set -x
 set -u
 
-DISTS=( hirsute groovy focal bionic )
+DISTS=( impish groovy focal bionic )
 
 VERSION=$(perl -MFile::Slurp::Tiny=read_file -MDateTime <<EOF
 use v5.16;
