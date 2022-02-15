@@ -166,7 +166,7 @@ nfpms:
       - src: 'build/packages/GeoIP.conf.5'
         dst: '/usr/share/man/man5/GeoIP.conf.5'
       - src: 'build/packages/geoipupdate.1'
-        dst: '/usr/share/man/man1//geoipupdate.1'
+        dst: '/usr/share/man/man1/geoipupdate.1'
       - src: 'build/packages/GeoIP.conf'
         dst: '/etc/GeoIP.conf'
         type: config
