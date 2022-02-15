@@ -68,4 +68,3 @@ git push
 # goreleaser's `--rm-dist' should clear out `dist', but it didn't work for me.
 rm -rf dist
 goreleaser release --rm-dist -f .goreleaser.yml --release-notes <(echo "$notes")
-make clean BUILDDIR=.
