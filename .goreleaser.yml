@@ -146,9 +146,9 @@ nfpms:
       - deb
       - rpm
     bindir: /usr/bin
-    empty_folders:
-      - /usr/share/GeoIP
     contents:
+      - dst: /usr/share/GeoIP
+        type: 'dir'
       - src: 'CHANGELOG.md'
         dst: '/usr/share/doc/geoipupdate/CHANGELOG.md'
       - src: 'LICENSE-APACHE'
