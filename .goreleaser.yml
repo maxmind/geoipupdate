@@ -170,3 +170,5 @@ nfpms:
       - src: 'build/packages/GeoIP.conf'
         dst: '/etc/GeoIP.conf'
         type: config
+release:
+  name_template: "{{.Version}}"

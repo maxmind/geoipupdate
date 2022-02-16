@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 4.9.0 (2022-02-15)
+
+* The client now sets the `User-Agent` header.
+* The error handling has been improved.
+* The `goreleaser` configuration has been consolidated. There is now
+  one checksum file for all builds.
+* Binaries are now built for OpenBSD and FreeBSD. Pull request by
+  Devin Buhl. GitHub #161.
+* Packages for ARM are now correctly uploaded. Bug report by Service Entity.
+  GitHub #162.
+
 ## 4.8.0 (2021-07-20)
 
 * The Docker container now supports the following new environment
