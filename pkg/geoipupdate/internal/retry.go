@@ -23,6 +23,7 @@ func RetryWithBackoff(
 
 		underlyingErr := errors.Cause(err)
 		var httpErr HTTPError
+		//nolint:revive // suggests checking status code first, which is not valid.
 		if errors.As(underlyingErr, &httpErr) &&
 			httpErr.StatusCode >= 400 &&
 			httpErr.StatusCode < 500 {

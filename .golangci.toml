@@ -415,8 +415,10 @@
     [[linters-settings.revive.rules]]
     name = "optimize-operands-order"
 
-    [[linters-settings.revive.rules]]
-    name = "package-comments"
+    # Disable this temporarily. See
+    # https://github.com/golangci/golangci-lint/issues/2610.
+    #[[linters-settings.revive.rules]]
+    #name = "package-comments"
 
     [[linters-settings.revive.rules]]
     name = "range"
