@@ -187,8 +187,8 @@ func parseProxy(
 		proxyURL = "http://" + proxyURL
 	} else {
 		scheme := strings.ToLower(matches[1])
-		// The http package only supports http and socks5.
-		if scheme != "http" && scheme != "socks5" {
+		// The http package only supports http, https, and socks5.
+		if scheme != "http" && scheme != "https" && scheme != "socks5" {
 			return nil, errors.Errorf("unsupported proxy type: %s", scheme)
 		}
 	}
