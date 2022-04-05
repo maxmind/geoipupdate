@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.10.0
+
+* HTTPS proxies are now supported. Pull request by Jamie Thompson. GitHub
+  #172.
+
 ## 4.9.0 (2022-02-15)
 
 * The client now sets the `User-Agent` header.
