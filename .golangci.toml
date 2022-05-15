@@ -15,8 +15,7 @@
     "depguard",
     "durationcheck",
     "errcheck",
-    # Seems to cause stack overflows :-(
-    # "errchkjson",
+    "errchkjson",
     "errname",
     "errorlint",
     "exhaustive",
@@ -48,6 +47,7 @@
     "nilerr",
     "noctx",
     "nolintlint",
+    "nosprintfhostport",
     "predeclared",
     "revive",
     "rowserrcheck",
@@ -178,10 +178,12 @@
         "sortSlice",
         "sprintfQuotedString",
         "sqlQuery",
+        "stringsCompare",
         "stringXbytes",
         "switchTrue",
         "syncMapLoadAndDelete",
         "timeExprSimplify",
+        "todoCommentWithoutDetail",
         "tooManyResultsChecker",
         "truncateCmp",
         "typeAssertChain",
@@ -209,7 +211,7 @@
 
 [linters-settings.gofumpt]
     extra-rules = true
-    lang-version = "1.16"
+    lang-version = "1.17"
 
 [linters-settings.gomodguard]
   [[linters-settings.gomodguard.blocked.modules]]
@@ -219,7 +221,7 @@
 
   [[linters-settings.gomodguard.blocked.modules]]
   [linters-settings.gomodguard.blocked.modules."github.com/BurntSushi/toml"]
-    recommendations = ["github.com/pelletier/go-toml"]
+    recommendations = ["github.com/pelletier/go-toml/v2"]
     reason = "This library panics frequently on invalid input."
 
   [[linters-settings.gomodguard.blocked.modules]]
@@ -415,10 +417,8 @@
     [[linters-settings.revive.rules]]
     name = "optimize-operands-order"
 
-    # Disable this temporarily. See
-    # https://github.com/golangci/golangci-lint/issues/2610.
-    #[[linters-settings.revive.rules]]
-    #name = "package-comments"
+    [[linters-settings.revive.rules]]
+    name = "package-comments"
 
     [[linters-settings.revive.rules]]
     name = "range"
