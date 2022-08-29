@@ -1,3 +1,4 @@
+// geoipupdate performs automatic updates of GeoIP binary databases.
 package main
 
 import (
