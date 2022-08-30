@@ -18,7 +18,7 @@ jobs:
     name: "Build ${{ matrix.go-version }} test on ${{ matrix.platform }}"
     steps:
       - name: Set up Go 1.x
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
         id: go
