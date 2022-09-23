@@ -4,6 +4,9 @@
 
 * HTTPS proxies are now supported. Pull request by Jamie Thompson. GitHub
   #172.
+* An HTTP request to get the filename for the edition ID has been removed.
+  This was previously required as the GeoIP Legacy edition IDs bore little
+  relation to the name of the database on disk.
 
 ## 4.9.0 (2022-02-15)
 
