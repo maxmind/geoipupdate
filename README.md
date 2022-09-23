@@ -132,8 +132,8 @@ time using flags:
 
 # Bug Reports
 
-Please report bugs by filing an issue with our GitHub issue tracker at
-https://github.com/maxmind/geoipupdate/issues
+Please report bugs by filing an issue with [our GitHub issue
+tracker](https://github.com/maxmind/geoipupdate/issues).
 
 # Copyright and License
 
