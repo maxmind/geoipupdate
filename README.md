@@ -9,11 +9,11 @@ We provide releases for Linux, macOS (darwin), and Windows. Please see the
 [Releases](https://github.com/maxmind/geoipupdate/releases) tab for the
 latest release.
 
-After you install geoipupdate, please refer to our
+After you install GeoIP Update, please refer to our
 [documentation](https://dev.maxmind.com/geoip/updating-databases?lang=en) for information
 about configuration.
 
-If you're upgrading from geoipupdate 3.x, please see our [upgrade
+If you're upgrading from GeoIP Update 3.x, please see our [upgrade
 guide](https://dev.maxmind.com/geoip/upgrading-geoip-update?lang=en).
 
 ### Installing on Linux via the tarball
