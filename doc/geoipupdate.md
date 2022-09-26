@@ -8,16 +8,17 @@ geoipupdate - GeoIP2 and GeoLite2 Update Program
 
 # DESCRIPTION
 
-`geoipupdate` automatically updates GeoIP2 databases. The program connects
-to the MaxMind GeoIP Update server to check for new databases. If a new
-database is available, the program will download and install it.
+`geoipupdate` automatically updates GeoIP2 and GeoLite2 databases. The
+program connects to the MaxMind GeoIP Update server to check for new
+databases. If a new database is available, the program will download and
+install it.
 
 If you are using a firewall, you must have the DNS and HTTPS ports
 open.
 
 # OPTIONS
 
-`-d`, database-directory`
+`-d`, `--database-directory`
 
 :   Install databases to a custom directory.  This is optional. If provided, it
     overrides any `DatabaseDirectory` set in the configuration file.
@@ -83,8 +84,7 @@ the MIT License, at your option.
 # MORE INFORMATION
 
 Visit [our website](https://www.maxmind.com/en/geoip2-services-and-databases)
-to learn more about the GeoIP2 databases or to sign up
-for a subscription.
+to learn more about the GeoIP2 databases or to sign up for a subscription.
 
 # SEE ALSO
 

@@ -5,7 +5,7 @@ GeoIP.conf - Configuration file for geoipupdate
 # SYNOPSIS
 
 This file allows you to configure your `geoipupdate` program to
-download GeoIP2 and GeoLite2.
+download GeoIP2 and GeoLite2 databases.
 
 # DESCRIPTION
 
@@ -26,7 +26,7 @@ sensitive.
 `EditionIDs`
 
 :   List of space-separated database edition IDs. Edition IDs may consist
-    of letters, digits, and dashes.  For example, `GeoIP2-City 106` would
+    of letters, digits, and dashes.  For example, `GeoIP2-City` would
     download the GeoIP2 City database (`GeoIP2-City`). Note: this was
     formerly called `ProductIds`.
 

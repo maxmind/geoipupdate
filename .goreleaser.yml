@@ -140,7 +140,7 @@ nfpms:
     vendor: 'MaxMind, Inc.'
     homepage: https://www.maxmind.com/
     maintainer: 'MaxMind, Inc. <support@maxmind.com>'
-    description: Program to perform automatic updates of GeoIP2 binary databases.
+    description: Program to perform automatic updates of GeoIP2 and GeoLite2 binary databases.
     license: Apache 2.0 or MIT
     formats:
       - deb
