@@ -1,3 +1,4 @@
+// geoipupdate performs automatic updates of GeoIP binary databases.
 package main
 
 import (
@@ -31,9 +32,9 @@ func main() {
 	args := getArgs()
 	fatalLogger := func(message string, err error) {
 		if args.StackTrace {
-			log.Print(fmt.Sprintf("%s: %+v", message, err))
+			log.Printf("%s: %+v", message, err)
 		} else {
-			log.Print(fmt.Sprintf("%s: %s", message, err))
+			log.Printf("%s: %s", message, err)
 		}
 		os.Exit(1)
 	}

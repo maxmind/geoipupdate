@@ -179,21 +179,22 @@ func parseProxy(
 	if proxy == "" {
 		return nil, nil
 	}
+	proxyURL := proxy
 
 	// If no scheme is provided, use http.
-	matches := schemeRE.FindStringSubmatch(proxy)
+	matches := schemeRE.FindStringSubmatch(proxyURL)
 	if matches == nil {
-		proxy = "http://" + proxy
+		proxyURL = "http://" + proxyURL
 	} else {
 		scheme := strings.ToLower(matches[1])
-		// The http package only supports http and socks5.
-		if scheme != "http" && scheme != "socks5" {
+		// The http package only supports http, https, and socks5.
+		if scheme != "http" && scheme != "https" && scheme != "socks5" {
 			return nil, errors.Errorf("unsupported proxy type: %s", scheme)
 		}
 	}
 
 	// Now that we have a scheme, we should be able to parse.
-	u, err := url.Parse(proxy)
+	u, err := url.Parse(proxyURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing proxy URL")
 	}
