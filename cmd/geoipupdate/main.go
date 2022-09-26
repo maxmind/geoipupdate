@@ -10,7 +10,6 @@ import (
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/database"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -64,15 +63,15 @@ func run(client *http.Client, config *geoipupdate.Config) error {
 	for _, editionID := range config.EditionIDs {
 		filename, err := geoipupdate.GetFilename(config, editionID, client)
 		if err != nil {
-			return errors.Wrapf(err, "error retrieving filename for %s", editionID)
+			return fmt.Errorf("error retrieving filename for %s: %w", editionID, err)
 		}
 		filePath := filepath.Join(config.DatabaseDirectory, filename)
 		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, config.LockFile, config.Verbose)
 		if err != nil {
-			return errors.Wrapf(err, "error creating database writer for %s", editionID)
+			return fmt.Errorf("error creating database writer for %s: %w", editionID, err)
 		}
 		if err := dbReader.Get(dbWriter, editionID); err != nil {
-			return errors.WithMessagef(err, "error while getting database for %s", editionID)
+			return fmt.Errorf("error while getting database for %s: %w", editionID, err)
 		}
 	}
 	return nil
