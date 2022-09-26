@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.10.0
+## 4.10.0 (2022-09-26)
 
 * HTTPS proxies are now supported. Pull request by Jamie Thompson. GitHub
   #172.
