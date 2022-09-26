@@ -54,12 +54,6 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 					return
 				}
 
-				if r.URL.Path == "/app/update_getfilename" {
-					_, err := rw.Write([]byte(r.Form.Get("product_id") + ".mmdb"))
-					require.NoError(t, err)
-					return
-				}
-
 				rw.WriteHeader(http.StatusBadRequest)
 			},
 		),

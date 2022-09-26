@@ -14,8 +14,7 @@ variables are required:
 * `GEOIPUPDATE_LICENSE_KEY` - Your case-sensitive MaxMind license key.
 * `GEOIPUPDATE_EDITION_IDS` - List of space-separated database edition IDs.
   Edition IDs may consist of letters, digits, and dashes. For example,
-  `GeoIP2-City 106` would download the GeoIP2 City database
-  (`GeoIP2-City`) and the GeoIP Legacy Country database (`106`).
+  `GeoIP2-City` would download the GeoIP2 City database (`GeoIP2-City`).
 
 The following are optional:
 

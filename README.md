@@ -1,11 +1,7 @@
 # GeoIP Update
 
-The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP Legacy
-binary databases. CSV databases are _not_ supported.
-
-This is the new version of GeoIP Update. If for some reason you need the
-legacy C version, you can find it
-[here](https://github.com/maxmind/geoipupdate-legacy).
+The GeoIP Update program performs automatic updates of GeoIP2 and
+GeoLite2 binary databases. CSV databases are _not_ supported.
 
 ## Installation
 
@@ -13,11 +9,11 @@ We provide releases for Linux, macOS (darwin), and Windows. Please see the
 [Releases](https://github.com/maxmind/geoipupdate/releases) tab for the
 latest release.
 
-After you install geoipupdate, please refer to our
+After you install GeoIP Update, please refer to our
 [documentation](https://dev.maxmind.com/geoip/updating-databases?lang=en) for information
 about configuration.
 
-If you're upgrading from geoipupdate 3.x, please see our [upgrade
+If you're upgrading from GeoIP Update 3.x, please see our [upgrade
 guide](https://dev.maxmind.com/geoip/upgrading-geoip-update?lang=en).
 
 ### Installing on Linux via the tarball
@@ -106,7 +102,7 @@ Please see our [Docker documentation](doc/docker.md).
 
 ### Installation from source or Git
 
-You need the Go compiler (1.8+). You can get it at the [Go
+You need the Go compiler (1.13+). You can get it at the [Go
 website](https://golang.org).
 
 The easiest way is via `go get`:
@@ -136,8 +132,8 @@ time using flags:
 
 # Bug Reports
 
-Please report bugs by filing an issue with our GitHub issue tracker at
-https://github.com/maxmind/geoipupdate/issues
+Please report bugs by filing an issue with [our GitHub issue
+tracker](https://github.com/maxmind/geoipupdate/issues).
 
 # Copyright and License
 
