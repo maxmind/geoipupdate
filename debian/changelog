@@ -1,3 +1,9 @@
+geoipupdate (4.10.0-0+maxmind1) kinetic; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Mon, 26 Sep 2022 13:51:02 -0700
+
 geoipupdate (4.9.0-0+maxmind1) impish; urgency=low
 
   * New upstream release.
