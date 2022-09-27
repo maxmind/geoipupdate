@@ -4,6 +4,7 @@ package database
 
 import (
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/internal"
-	"github.com/pkg/errors"
 )
 
 // HTTPDatabaseReader is a Reader that uses an HTTP client to retrieve
@@ -68,7 +68,7 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	// future, adding something like Reset() may be desirable.
 	tempFile, err := ioutil.TempFile("", "geoipupdate")
 	if err != nil {
-		return errors.Wrap(err, "error opening temporary file")
+		return fmt.Errorf("error opening temporary file: %w", err)
 	}
 	defer func() {
 		if err := tempFile.Close(); err != nil {
@@ -104,11 +104,11 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	}
 
 	if _, err := tempFile.Seek(0, 0); err != nil {
-		return errors.Wrap(err, "error seeking")
+		return fmt.Errorf("error seeking: %w", err)
 	}
 
 	if _, err = io.Copy(destination, tempFile); err != nil {
-		return errors.Wrap(err, "error writing response")
+		return fmt.Errorf("error writing response: %w", err)
 	}
 
 	if err := destination.ValidHash(newMD5); err != nil {
@@ -116,13 +116,13 @@ func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) erro
 	}
 
 	if err := destination.Commit(); err != nil {
-		return errors.Wrap(err, "encountered an issue committing database update")
+		return fmt.Errorf("encountered an issue committing database update: %w", err)
 	}
 
 	if reader.preserveFileTimes {
 		err = destination.SetFileModificationTime(modificationTime)
 		if err != nil {
-			return errors.Wrap(err, "unable to set modification time")
+			return fmt.Errorf("unable to set modification time: %w", err)
 		}
 	}
 
@@ -137,24 +137,24 @@ func (reader *HTTPDatabaseReader) download(
 	// Prepare a clean slate for this download attempt.
 
 	if err := tempFile.Truncate(0); err != nil {
-		return "", time.Time{}, false, errors.Wrap(err, "error truncating")
+		return "", time.Time{}, false, fmt.Errorf("error truncating: %w", err)
 	}
 	if _, err := tempFile.Seek(0, 0); err != nil {
-		return "", time.Time{}, false, errors.Wrap(err, "error seeking")
+		return "", time.Time{}, false, fmt.Errorf("error seeking: %w", err)
 	}
 
 	// Perform the download.
 	//nolint: noctx // using the context would require an API change
 	req, err := http.NewRequest(http.MethodGet, updateURL, nil)
 	if err != nil {
-		return "", time.Time{}, false, errors.Wrap(err, "error creating request")
+		return "", time.Time{}, false, fmt.Errorf("error creating request: %w", err)
 	}
 	req.Header.Add("User-Agent", "geoipupdate/"+geoipupdate.Version)
 	req.SetBasicAuth(fmt.Sprintf("%d", reader.accountID), reader.licenseKey)
 
 	response, err := reader.client.Do(req)
 	if err != nil {
-		return "", time.Time{}, false, errors.Wrap(err, "error performing HTTP request")
+		return "", time.Time{}, false, fmt.Errorf("error performing HTTP request: %w", err)
 	}
 
 	defer response.Body.Close()
@@ -173,17 +173,17 @@ func (reader *HTTPDatabaseReader) download(
 				Body:       string(buf),
 				StatusCode: response.StatusCode,
 			}
-			return "", time.Time{}, false, errors.Wrap(err, "unexpected HTTP status code")
+			return "", time.Time{}, false, fmt.Errorf("unexpected HTTP status code: %w", err)
 		}
 		err = internal.HTTPError{
 			StatusCode: response.StatusCode,
 		}
-		return "", time.Time{}, false, errors.Wrap(err, "unexpected HTTP status code")
+		return "", time.Time{}, false, fmt.Errorf("unexpected HTTP status code: %w", err)
 	}
 
 	gzReader, err := gzip.NewReader(response.Body)
 	if err != nil {
-		return "", time.Time{}, false, errors.Wrap(err, "encountered an error creating GZIP reader")
+		return "", time.Time{}, false, fmt.Errorf("encountered an error creating GZIP reader: %w", err)
 	}
 	defer func() {
 		if err := gzReader.Close(); err != nil {
@@ -193,7 +193,7 @@ func (reader *HTTPDatabaseReader) download(
 
 	//nolint:gosec // A decompression bomb is unlikely here
 	if _, err := io.Copy(tempFile, gzReader); err != nil {
-		return "", time.Time{}, false, errors.Wrap(err, "error writing response")
+		return "", time.Time{}, false, fmt.Errorf("error writing response: %w", err)
 	}
 
 	newMD5 := response.Header.Get("X-Database-MD5")
@@ -203,7 +203,7 @@ func (reader *HTTPDatabaseReader) download(
 
 	modificationTime, err := lastModified(response.Header.Get("Last-Modified"))
 	if err != nil {
-		return "", time.Time{}, false, errors.Wrap(err, "unable to get last modified time")
+		return "", time.Time{}, false, fmt.Errorf("unable to get last modified time: %w", err)
 	}
 
 	return newMD5, modificationTime, true, nil
@@ -217,7 +217,7 @@ func lastModified(lastModified string) (time.Time, error) {
 
 	t, err := time.ParseInLocation(time.RFC1123, lastModified, time.UTC)
 	if err != nil {
-		return time.Time{}, errors.Wrap(err, "error parsing time")
+		return time.Time{}, fmt.Errorf("error parsing time: %w", err)
 	}
 
 	return t, nil

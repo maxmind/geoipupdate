@@ -66,16 +66,6 @@
     "wrapcheck",
   ]
 
-# Please note that we only use depguard for stdlib as gomodguard only
-# supports modules currently. See https://github.com/ryancurrah/gomodguard/issues/12
-[linters-settings.depguard]
-  list-type = "blacklist"
-  include-go-root = true
-  packages = [
-    # We should use github.com/pkg/errors instead
-    "errors",
-  ]
-
 [linters-settings.errcheck]
     # Ignoring Close so that we don't have to have a bunch of
     # `defer func() { _ = r.Close() }()` constructs when we

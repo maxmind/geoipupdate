@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 4.11.0
+
+* `github.com/pkg/errors` is no longer used to wrap errors.
+
 ## 4.10.0 (2022-09-26)
 
 * HTTPS proxies are now supported. Pull request by Jamie Thompson. GitHub

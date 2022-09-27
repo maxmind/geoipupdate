@@ -1,6 +1,8 @@
 package database
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -8,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gofrs/flock"
-	"github.com/pkg/errors"
 )
 
 // ZeroMD5 is the default value provided as an MD5 hash for a non-existent
@@ -30,7 +31,7 @@ type Writer interface {
 func CreateLockFile(lockFilePath string, verbose bool) (*flock.Flock, error) {
 	fi, err := os.Stat(filepath.Dir(lockFilePath))
 	if err != nil {
-		return nil, errors.Wrap(err, "database directory is not available")
+		return nil, fmt.Errorf("database directory is not available: %w", err)
 	}
 	if !fi.IsDir() {
 		return nil, errors.New("database directory is not a directory")
@@ -38,10 +39,10 @@ func CreateLockFile(lockFilePath string, verbose bool) (*flock.Flock, error) {
 	lock := flock.New(lockFilePath)
 	ok, err := lock.TryLock()
 	if err != nil {
-		return nil, errors.Wrap(err, "error acquiring a lock")
+		return nil, fmt.Errorf("error acquiring a lock: %w", err)
 	}
 	if !ok {
-		return nil, errors.Errorf("could not acquire lock on %s", lockFilePath)
+		return nil, fmt.Errorf("could not acquire lock on %s", lockFilePath)
 	}
 	if verbose {
 		log.Printf("Acquired lock file lock (%s)", lockFilePath)
