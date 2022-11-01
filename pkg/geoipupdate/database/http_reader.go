@@ -176,6 +176,7 @@ func (reader *HTTPDatabaseReader) download(
 			return "", time.Time{}, false, fmt.Errorf("unexpected HTTP status code: %w", err)
 		}
 		err = internal.HTTPError{
+			Body:       string(buf),
 			StatusCode: response.StatusCode,
 		}
 		return "", time.Time{}, false, fmt.Errorf("unexpected HTTP status code: %w", err)
