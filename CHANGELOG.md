@@ -2,9 +2,12 @@
 
 ## 4.11.0
 
+* `github.com/pkg/errors` is no longer used to wrap errors.
 * Docker secrets are now supported for the MaxMind account ID and
   license key. Pull request by Matthew Kobayashi. GitHub #197.
-* `github.com/pkg/errors` is no longer used to wrap errors.
+* When using the provided Docker images, `geoipupdate` no longer runs
+  as root in the container. Pull request by Andreas Grünenfelder. GitHub
+  #200.
 
 ## 4.10.0 (2022-09-26)
 
