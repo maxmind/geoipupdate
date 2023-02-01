@@ -8,6 +8,8 @@
 * When using the provided Docker images, `geoipupdate` no longer runs
   as root in the container. Pull request by Andreas Grünenfelder. GitHub
   #200.
+* The Dockerfile now has a Healthcheck that makes sure the modification date of
+  of the database directory is within the update period.
 
 ## 4.10.0 (2022-09-26)
 
