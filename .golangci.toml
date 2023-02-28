@@ -1,26 +1,36 @@
 [run]
   deadline = "10m"
-
   tests = true
 
 [linters]
   disable-all = true
   enable = [
+    "asasalint",
     "asciicheck",
     "bidichk",
     "bodyclose",
     "containedctx",
-    "contextcheck",
+    # Although this is useful, it complains about quite a few reasonable things,
+    # e.g., using the request context. We should reevaluate in the future.
+    # "contextcheck",
     "depguard",
+    # This is probably worthwhile, but there are a number of false positives
+    # that would need to be addressed.
+    # "dupword",
     "durationcheck",
     "errcheck",
     "errchkjson",
     "errname",
     "errorlint",
+    # This doesn't seem to know about CTEs or DELETEs with RETURNING
+    # "execinquery",
     "exhaustive",
+    # We often don't initialize all of the struct fields. This is fine
+    # generally
+    # "exhaustruct",
     "exportloopref",
     "forbidigo",
-    # We tried this liner but most places we do forced type asserts are
+    # We tried this linter but most places we do forced type asserts are
     # pretty safe, e.g., an atomic.Value when everything is encapsulated
     # in a small package.
     # "forcetypeassert",
@@ -46,10 +56,16 @@
     "nilerr",
     "noctx",
     "nolintlint",
+    # We occasionally use named returns for documentation, which is helpful.
+    # Named returns are only really a problem when used in conjunction with
+    # a bare return statement. I _think_ Revive's bare-return covers that
+    # case.
+    # "nonamedreturns",
     "nosprintfhostport",
     "predeclared",
     "revive",
-    "rowserrcheck",
+    # XXX - disabled due to lack of 1.18 support.
+    # "rowserrcheck",
     # https://github.com/golangci/golangci-lint/issues/287
     # "safesql",
     "sqlclosecheck",
@@ -61,12 +77,31 @@
     "unconvert",
     "unparam",
     "unused",
+    "usestdlibvars",
     "vetshadow",
-    "wastedassign",
+    # XXX - disabled due to lack of 1.18 support.
+    # "wastedassign",
     "wrapcheck",
   ]
 
 [linters-settings.errcheck]
+    # Don't allow setting of error to the blank identifier. If there is a legitimate
+    # reason, there should be a nolint with an explanation.
+    check-blank = true
+
+    exclude-functions = [
+        # If we are rolling back a transaction, we are often already in an error
+        # state.
+        '(*database/sql.Tx).Rollback',
+
+        # It is reasonable to ignore errors if Cleanup fails in most cases.
+        '(*github.com/google/renameio/v2.PendingFile).Cleanup',
+
+        # We often don't care if removing a file failed (e.g., it doesn't exist)
+        'os.Remove',
+        'os.RemoveAll',
+    ]
+
     # Ignoring Close so that we don't have to have a bunch of
     # `defer func() { _ = r.Close() }()` constructs when we
     # don't actually care about the error.
@@ -79,6 +114,20 @@
 
 [linters-settings.exhaustive]
     default-signifies-exhaustive = true
+
+[linters-settings.forbidigo]
+    # Forbid the following identifiers
+    forbid = [
+        "^minFraud*",
+        "^maxMind*",
+        "^hubSpot*",
+
+        # use netip.ParsePrefix unless you really need a *net.IPNet
+        "^net.ParseCIDR",
+
+        # use netip.ParseAddr unless you really need a net.IP
+        "^net.ParseIP",
+    ]
 
 [linters-settings.gocritic]
     enabled-checks = [
@@ -127,10 +176,17 @@
         "flagDeref",
         "flagName",
         "hexLiteral",
+        # This seems like it could be good, but we would need to update current
+        # uses. It supports "--fix", but the fixing is a bit broken.
+        # "httpNoBody",
+        # This might be good, but we would have to revist a lot of code.
+        # "hugeParam",
         "ifElseChain",
         "importShadow",
         "indexAlloc",
         "initClause",
+        # We still support ancient Go versions for our Ubuntu packages.
+        # "ioutilDeprecated",
         "mapKey",
         "methodExprCall",
         "nestingReduce",
@@ -153,19 +209,19 @@
         # This might be good, but I don't think we want to encourage
         # significant changes to regexes as we port stuff from Perl.
         # "regexpSimplify",
-        "ruleguard",
+        "returnAfterHttpError",
         "singleCaseSwitch",
         "sliceClear",
         "sloppyLen",
         # This seems like it might also be good, but a lot of existing code
         # fails.
         # "sloppyReassign",
-        "returnAfterHttpError",
         "sloppyTypeAssert",
         "sortSlice",
         "sprintfQuotedString",
         "sqlQuery",
         "stringsCompare",
+        "stringConcatSimplify",
         "stringXbytes",
         "switchTrue",
         "syncMapLoadAndDelete",
@@ -188,17 +244,15 @@
         "unslice",
         "valSwap",
         "weakCond",
+        # Covered by nolintlint
+        # "whyNoLint"
         "wrapperFunc",
         "yodaStyleExpr",
-        # This requires explanations for "nolint" directives. This would be
-        # nice for gosec ones, but I am not sure we want it generally unless
-        # we can get the false positive rate lower.
-        # "whyNoLint"
     ]
 
 [linters-settings.gofumpt]
     extra-rules = true
-    lang-version = "1.17"
+    lang-version = "1.18"
 
 [linters-settings.gomodguard]
   [[linters-settings.gomodguard.blocked.modules]]
@@ -233,6 +287,10 @@
   [linters-settings.gomodguard.blocked.modules."github.com/pariz/gountries"]
     reason = "This library's data is not actively maintained. Use GeoInfo data."
 
+  [linters-settings.gomodguard.blocked.modules."github.com/pkg/errors"]
+    recommendations = ["github.maxmind.com/maxmind/mm_website/go/pkg/mmerrors"]
+    reason = "pkg/errors is no longer maintained."
+
   [[linters-settings.gomodguard.blocked.modules]]
   [linters-settings.gomodguard.blocked.modules."github.com/RackSec/srslog"]
     recommendations = ["github.com/RackSec/srslog"]
@@ -248,10 +306,38 @@
     recommendations = ["encoding/json", "github.com/mailru/easyjson"]
     reason = "This library is poorly maintained. We should default to using encoding/json and use easyjson where performance really matters."
 
+  [[linters-settings.gomodguard.blocked.modules]]
+  [linters-settings.gomodguard.blocked.modules."io/ioutil"]
+
+  [[linters-settings.gomodguard.blocked.versions]]
+  [linters-settings.gomodguard.blocked.versions."github.com/jackc/pgconn"]
+    reason = "Use github.com/jackc/pgx/v5"
+
+  [[linters-settings.gomodguard.blocked.versions]]
+  [linters-settings.gomodguard.blocked.versions."github.com/jackc/pgtype"]
+    reason = "Use github.com/jackc/pgx/v5"
+
   [[linters-settings.gomodguard.blocked.versions]]
   [linters-settings.gomodguard.blocked.versions."github.com/jackc/pgx"]
-    version = "< 4.0.0"
-    reason = "Use github.com/jackc/pgx/v4"
+    version = "< 5.0.0"
+    reason = "Use github.com/jackc/pgx/v5"
+
+  [[linters-settings.gomodguard.blocked.modules]]
+  [linters-settings.gomodguard.blocked.modules."inet.af/netaddr"]
+    recommendations = ["go4.org/netipx"]
+    reason = "inet.af/netaddr has been deprecated."
+
+[linters-settings.gosec]
+    excludes = [
+        # G104 - "Audit errors not checked." We use errcheck for this.
+        "G104",
+
+        # G306 - "Expect WriteFile permissions to be 0600 or less".
+        "G306",
+
+        # Prohibits defer (*os.File).Close, which we allow when reading from file.
+        "G307",
+    ]
 
 [linters-settings.govet]
     "enable-all" = true
@@ -297,6 +383,13 @@
     # [[linters-settings.revive.rules]]
     # name = "cognitive-complexity"
 
+    # This interacts poorly with gofumpt, which seems to convert
+    # "//   " to "//<tab>". That is probably a bug in gofumpt, but there
+    # isn't much we can do about it right now.
+    # [[linters-settings.revive.rules]]
+    # name = "comment-spacings"
+    # arguments = ["easyjson", "nolint"]
+
     # Probably a good rule, but we have a lot of names that
     # only have case differences.
     # [[linters-settings.revive.rules]]
@@ -316,6 +409,9 @@
 
     # [[linters-settings.revive.rules]]
     # name = "cyclomatic"
+
+    [[linters-settings.revive.rules]]
+    name = "datarace"
 
     [[linters-settings.revive.rules]]
     name = "deep-exit"
@@ -432,6 +528,9 @@
     name = "superfluous-else"
 
     [[linters-settings.revive.rules]]
+    name = "time-equal"
+
+    [[linters-settings.revive.rules]]
     name = "time-naming"
 
     [[linters-settings.revive.rules]]
@@ -463,6 +562,9 @@
     # name = "unused-receiver"
 
     [[linters-settings.revive.rules]]
+    name = "use-any"
+
+    [[linters-settings.revive.rules]]
     name = "useless-break"
 
     [[linters-settings.revive.rules]]
@@ -477,21 +579,6 @@
 [linters-settings.unparam]
     check-exported = true
 
-[linters-settings.wrapcheck]
-    "ignoreSigs" = [
-        ".Errorf(",
-        "errgroup.NewMultiError(",
-        "errors.New(",
-        ".Wait(",
-        ".WithMessage(",
-        ".WithMessagef(",
-        ".WithStack(",
-        ".Wrap(",
-        ".Wrapf(",
-        "v4.Retry(",
-        "v4.RetryNotify(",
-    ]
-
 [issues]
 exclude-use-default = false
 
@@ -502,27 +589,11 @@ exclude-use-default = false
 
   [[issues.exclude-rules]]
   linters = [
-    "gocritic"
+    "bodyclose"
   ]
-  # For some reason the imports stuff in ruleguard doesn't work in golangci-lint.
-  # Perhaps it has an outdated version or something
+  # This rule doesn't really make sense for tests where we don't have an open
+  # connection and we might be passing around the response for other reasons.
   path = "_test.go"
-  text = "ruleguard: Prefer the alternative Context method instead"
-
-  [[issues.exclude-rules]]
-  linters = [
-    "gocritic"
-  ]
-  ## The nolintlint linter behaves oddly with ruleguard rules
-  source = "// *no-ruleguard"
-
-
-  [[issues.exclude-rules]]
-  linters = [
-    "gosec"
-  ]
-  # G306 - "Expect WriteFile permissions to be 0600 or less".
-  text = "G306"
 
   [[issues.exclude-rules]]
   linters = [
