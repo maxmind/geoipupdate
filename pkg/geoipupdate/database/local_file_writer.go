@@ -156,6 +156,7 @@ func (writer *LocalFileDatabaseWriter) Commit() error {
 
 	// We ignore Sync errors as they primarily happen on file systems that do
 	// not support sync.
+	//nolint:errcheck // See above.
 	_ = dh.Sync()
 
 	if err := dh.Close(); err != nil {

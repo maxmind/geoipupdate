@@ -167,6 +167,7 @@ func (reader *HTTPDatabaseReader) download(
 	}
 
 	if response.StatusCode != http.StatusOK {
+		//nolint:errcheck // we are already returning an error.
 		buf, _ := ioutil.ReadAll(io.LimitReader(response.Body, 256))
 		httpErr := internal.HTTPError{
 			Body:       string(buf),
