@@ -39,7 +39,6 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		return nil, fmt.Errorf("error opening file: %w", err)
 	}
 
-	//nolint: gosec // We don't particularly care if the close fails
 	defer fh.Close()
 
 	config := &Config{}
