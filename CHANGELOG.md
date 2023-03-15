@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.11.0
+## 4.11.0 (2023-03-15)
 
 * `github.com/pkg/errors` is no longer used to wrap errors.
 * Docker secrets are now supported for the MaxMind account ID and
