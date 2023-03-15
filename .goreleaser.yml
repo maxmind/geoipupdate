@@ -87,6 +87,7 @@ dockers:
       - 'geoipupdate-unix'
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
+      - "maxmind/geoipupdate:{{ .Tag }}-amd64"
     dockerfile: docker/Dockerfile
     use: buildx
     goarch: amd64
@@ -96,6 +97,7 @@ dockers:
       - "--platform=linux/amd64"
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
+      - "maxmind/geoipupdate:{{ .Tag }}-arm64"
     dockerfile: docker/Dockerfile
     use: buildx
     goarch: arm64
@@ -105,6 +107,7 @@ dockers:
       - "--platform=linux/arm64"
   - image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
+      - "maxmind/geoipupdate:{{ .Tag }}-arm-v6"
     dockerfile: docker/Dockerfile
     use: buildx
     goarch: arm
@@ -134,6 +137,26 @@ docker_manifests:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
+  - name_template: "maxmind/geoipupdate:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-amd64"
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"
+  - name_template: "maxmind/geoipupdate:v{{ .Major }}"
+    image_templates:
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-amd64"
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"
+  - name_template: "maxmind/geoipupdate:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-amd64"
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"
+  - name_template: "maxmind/geoipupdate:latest"
+    image_templates:
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-amd64"
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
+      - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"
 nfpms:
   - builds:
       - 'geoipupdate-packages'
