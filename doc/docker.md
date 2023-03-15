@@ -2,7 +2,7 @@
 
 ## Image information
 
-The image is available on [Docker Hub](https://hub.docker.com/r/maxmindinc/geoipupdate).
+The image is available on [ghcr.io](https://github.com/maxmind/geoipupdate/pkgs/container/geoipupdate).
 The source code is available on [GitHub](https://github.com/maxmind/geoipupdate).
 
 ## Configuring
@@ -50,7 +50,7 @@ individually with the `-e` flag.
 Run the latest image with:
 
 ```sh
-docker run --env-file <file> -v <database directory>:/usr/share/GeoIP maxmindinc/geoipupdate
+docker run --env-file <file> -v <database directory>:/usr/share/GeoIP ghcr.io/maxmind/geoipupdate
 ```
 
 `<file>` should be the environment variable file with your configuration.
@@ -66,7 +66,7 @@ version: '3'
 services:
   geoipupdate:
     container_name: geoipupdate
-    image: maxmindinc/geoipupdate
+    image: ghcr.io/maxmind/geoipupdate
     restart: unless-stopped
     environment:
       - GEOIPUPDATE_ACCOUNT_ID=XXXXXX
@@ -93,7 +93,7 @@ version: '3'
 services:
   geoipupdate:
     container_name: geoipupdate
-    image: maxmindinc/geoipupdate
+    image: ghcr.io/maxmind/geoipupdate
     restart: unless-stopped
     environment:
       - 'GEOIPUPDATE_ACCOUNT_ID_FILE=/run/secrets/GEOIPUPDATE_ACCOUNT_ID'

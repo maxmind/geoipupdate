@@ -1,15 +1,14 @@
 # CHANGELOG
 
-## 4.11.0
+## 4.11.0 (2023-03-15)
 
 * `github.com/pkg/errors` is no longer used to wrap errors.
 * Docker secrets are now supported for the MaxMind account ID and
   license key. Pull request by Matthew Kobayashi. GitHub #197.
-* When using the provided Docker images, `geoipupdate` no longer runs
-  as root in the container. Pull request by Andreas Grünenfelder. GitHub
-  #200.
-* The Dockerfile now has a Healthcheck that makes sure the modification date of
+* The Dockerfile now has a Healthcheck that makes sure the modification date
   of the database directory is within the update period.
+* The Docker images are now published to the GitHub Container Registry,
+  `ghcr.io`. We will likely stop publishing to Docker Hub in the near future.
 
 ## 4.10.0 (2022-09-26)
 
