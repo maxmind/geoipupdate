@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 4.11.1 (2023-03-16)
+
+* Removed extra underscore in script variables preventing the Docker
+  secret support added in 4.11.0 from working as expected. Pull request by
+  Moeen Mirjalili. GitHub #210.
+
 ## 4.11.0 (2023-03-15)
 
 * `github.com/pkg/errors` is no longer used to wrap errors.
