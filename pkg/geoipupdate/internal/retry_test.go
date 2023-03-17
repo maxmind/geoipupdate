@@ -1,11 +1,12 @@
 package internal
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,7 +49,7 @@ func TestRetryDoesNotRetryHTTP4xx(t *testing.T) {
 			err := HTTPError{
 				StatusCode: http.StatusBadRequest,
 			}
-			return errors.Wrap(err, "unexpected HTTP status")
+			return fmt.Errorf("unexpected HTTP status: %w", err)
 		},
 		6*time.Second,
 	)
@@ -64,7 +65,7 @@ func TestRetryDoesRetryHTTP5xx(t *testing.T) {
 			err := HTTPError{
 				StatusCode: http.StatusInternalServerError,
 			}
-			return errors.Wrap(err, "unexpected HTTP status")
+			return fmt.Errorf("unexpected HTTP status: %w", err)
 		},
 		6*time.Second,
 	)

@@ -2,6 +2,8 @@ package geoipupdate
 
 import (
 	"bufio"
+	"errors"
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -9,8 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // Config is a parsed configuration file.
@@ -36,10 +36,9 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 ) (*Config, error) {
 	fh, err := os.Open(filepath.Clean(file))
 	if err != nil {
-		return nil, errors.Wrap(err, "error opening file")
+		return nil, fmt.Errorf("error opening file: %w", err)
 	}
 
-	//nolint: gosec // We don't particularly care if the close fails
 	defer fh.Close()
 
 	config := &Config{}
@@ -56,13 +55,13 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 
 		fields := strings.Fields(line)
 		if len(fields) < 2 {
-			return nil, errors.Errorf("invalid format on line %d", lineNumber)
+			return nil, fmt.Errorf("invalid format on line %d", lineNumber)
 		}
 		key := fields[0]
 		value := strings.Join(fields[1:], " ")
 
 		if _, ok := keysSeen[key]; ok {
-			return nil, errors.Errorf("`%s' is in the config multiple times", key)
+			return nil, fmt.Errorf("`%s' is in the config multiple times", key)
 		}
 		keysSeen[key] = struct{}{}
 
@@ -70,7 +69,7 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		case "AccountID", "UserId":
 			accountID, err := strconv.Atoi(value)
 			if err != nil {
-				return nil, errors.Wrap(err, "invalid account ID format")
+				return nil, fmt.Errorf("invalid account ID format: %w", err)
 			}
 			config.AccountID = accountID
 			keysSeen["AccountID"] = struct{}{}
@@ -103,28 +102,28 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		case "RetryFor":
 			dur, err := time.ParseDuration(value)
 			if err != nil || dur < 0 {
-				return nil, errors.Errorf("'%s' is not a valid duration", value)
+				return nil, fmt.Errorf("'%s' is not a valid duration", value)
 			}
 			config.RetryFor = dur
 		default:
-			return nil, errors.Errorf("unknown option on line %d", lineNumber)
+			return nil, fmt.Errorf("unknown option on line %d", lineNumber)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, errors.Wrap(err, "error reading file")
+		return nil, fmt.Errorf("error reading file: %w", err)
 	}
 
 	if _, ok := keysSeen["EditionIDs"]; !ok {
-		return nil, errors.Errorf("the `EditionIDs` option is required")
+		return nil, fmt.Errorf("the `EditionIDs` option is required")
 	}
 
 	if _, ok := keysSeen["AccountID"]; !ok {
-		return nil, errors.Errorf("the `AccountID` option is required")
+		return nil, fmt.Errorf("the `AccountID` option is required")
 	}
 
 	if _, ok := keysSeen["LicenseKey"]; !ok {
-		return nil, errors.Errorf("the `LicenseKey` option is required")
+		return nil, fmt.Errorf("the `LicenseKey` option is required")
 	}
 
 	// Set defaults & post-process.
@@ -189,14 +188,14 @@ func parseProxy(
 		scheme := strings.ToLower(matches[1])
 		// The http package only supports http, https, and socks5.
 		if scheme != "http" && scheme != "https" && scheme != "socks5" {
-			return nil, errors.Errorf("unsupported proxy type: %s", scheme)
+			return nil, fmt.Errorf("unsupported proxy type: %s", scheme)
 		}
 	}
 
 	// Now that we have a scheme, we should be able to parse.
 	u, err := url.Parse(proxyURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing proxy URL")
+		return nil, fmt.Errorf("error parsing proxy URL: %w", err)
 	}
 
 	if !strings.Contains(u.Host, ":") {

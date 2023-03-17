@@ -2,7 +2,7 @@
 
 ## Image information
 
-The image is available on [Docker Hub](https://hub.docker.com/r/maxmindinc/geoipupdate).
+The image is available on [ghcr.io](https://github.com/maxmind/geoipupdate/pkgs/container/geoipupdate).
 The source code is available on [GitHub](https://github.com/maxmind/geoipupdate).
 
 ## Configuring
@@ -18,6 +18,8 @@ variables are required:
 
 The following are optional:
 
+* `GEOIPUPDATE_ACCOUNT_ID_FILE` - The path to a file containing your MaxMind account ID. This is intended to be used with Docker secrets (example below).
+* `GEOIPUPDATE_LICENSE_KEY_FILE` - The path to a file containing your case-sensitive MaxMind license key. This is intended to be used with Docker secrets (example below).
 * `GEOIPUPDATE_FREQUENCY` - The number of hours between `geoipupdate` runs.
   If this is not set or is set to `0`, `geoipupdate` will run once and exit.
 * `GEOIPUPDATE_HOST` - The host name of the server to use. The default is
@@ -48,7 +50,7 @@ individually with the `-e` flag.
 Run the latest image with:
 
 ```sh
-docker run --env-file <file> -v <database directory>:/usr/share/GeoIP maxmindinc/geoipupdate
+docker run --env-file <file> -v <database directory>:/usr/share/GeoIP ghcr.io/maxmind/geoipupdate
 ```
 
 `<file>` should be the environment variable file with your configuration.
@@ -64,7 +66,7 @@ version: '3'
 services:
   geoipupdate:
     container_name: geoipupdate
-    image: maxmindinc/geoipupdate
+    image: ghcr.io/maxmind/geoipupdate
     restart: unless-stopped
     environment:
       - GEOIPUPDATE_ACCOUNT_ID=XXXXXX
@@ -82,6 +84,42 @@ networks:
 volumes:
   geoipupdate_data:
     driver: local
+```
+
+You may also pass your MaxMind account ID and license key as secrets, for example:
+
+```yaml
+version: '3'
+services:
+  geoipupdate:
+    container_name: geoipupdate
+    image: ghcr.io/maxmind/geoipupdate
+    restart: unless-stopped
+    environment:
+      - 'GEOIPUPDATE_ACCOUNT_ID_FILE=/run/secrets/GEOIPUPDATE_ACCOUNT_ID'
+      - 'GEOIPUPDATE_LICENSE_KEY_FILE=/run/secrets/GEOIPUPDATE_LICENSE_KEY'
+      - 'GEOIPUPDATE_EDITION_IDS=GeoLite2-ASN GeoLite2-City GeoLite2-Country'
+      - GEOIPUPDATE_FREQUENCY=72
+    networks:
+      - geoipupdate
+    volumes:
+      - 'geoipupdate_data:/usr/share/GeoIP'
+    secrets:
+      - GEOIPUPDATE_ACCOUNT_ID
+      - GEOIPUPDATE_LICENSE_KEY
+
+networks:
+  geoipupdate:
+
+volumes:
+  geoipupdate_data:
+    driver: local
+
+secrets:
+  GEOIPUPDATE_ACCOUNT_ID:
+    file: ./secrets/GEOIPUPDATE_ACCOUNT_ID.txt
+  GEOIPUPDATE_LICENSE_KEY:
+    file: ./secrets/GEOIPUPDATE_LICENSE_KEY.txt
 ```
 
 Note - When using docker-compose, you need to either:

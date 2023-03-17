@@ -2,6 +2,7 @@ package database
 
 import (
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"hash"
 	"io"
@@ -12,7 +13,6 @@ import (
 	"time"
 
 	"github.com/gofrs/flock"
-	"github.com/pkg/errors"
 )
 
 // LocalFileDatabaseWriter is a database.Writer that stores the database to the
@@ -54,7 +54,7 @@ func NewLocalFileDatabaseWriter(filePath, lockFilePath string, verbose bool) (*L
 		0o644,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "error creating temporary file")
+		return nil, fmt.Errorf("error creating temporary file: %w", err)
 	}
 	dbWriter.md5Writer = md5.New()
 	dbWriter.fileWriter = io.MultiWriter(dbWriter.md5Writer, dbWriter.temporaryFile)
@@ -69,18 +69,18 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 			writer.oldHash = ZeroMD5
 			return nil
 		}
-		return errors.Wrap(err, "error opening database")
+		return fmt.Errorf("error opening database: %w", err)
 	}
 
 	defer func() {
 		err := currentDatabaseFile.Close()
 		if err != nil {
-			log.Println(errors.Wrap(err, "error closing database"))
+			log.Println(fmt.Errorf("error closing database: %w", err))
 		}
 	}()
 	oldHash := md5.New()
 	if _, err := io.Copy(oldHash, currentDatabaseFile); err != nil {
-		return errors.Wrap(err, "error calculating database hash")
+		return fmt.Errorf("error calculating database hash: %w", err)
 	}
 	writer.oldHash = fmt.Sprintf("%x", oldHash.Sum(nil))
 	if writer.verbose {
@@ -93,7 +93,7 @@ func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
 func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
 	n, err := writer.fileWriter.Write(p)
 	if err != nil {
-		return 0, errors.Wrap(err, "error writing")
+		return 0, fmt.Errorf("error writing: %w", err)
 	}
 	return n, nil
 }
@@ -104,15 +104,15 @@ func (writer *LocalFileDatabaseWriter) Close() error {
 	if err != nil {
 		var perr *os.PathError
 		if !errors.As(err, &perr) || !errors.Is(perr.Err, os.ErrClosed) {
-			return errors.Wrap(err, "error closing temporary file")
+			return fmt.Errorf("error closing temporary file: %w", err)
 		}
 	}
 
 	if err := os.Remove(writer.temporaryFile.Name()); err != nil && !os.IsNotExist(err) {
-		return errors.Wrap(err, "error removing temporary file")
+		return fmt.Errorf("error removing temporary file: %w", err)
 	}
 	if err := writer.lock.Unlock(); err != nil {
-		return errors.Wrap(err, "error releasing lock file")
+		return fmt.Errorf("error releasing lock file: %w", err)
 	}
 	return nil
 }
@@ -121,7 +121,7 @@ func (writer *LocalFileDatabaseWriter) Close() error {
 func (writer *LocalFileDatabaseWriter) ValidHash(expectedHash string) error {
 	actualHash := fmt.Sprintf("%x", writer.md5Writer.Sum(nil))
 	if !strings.EqualFold(actualHash, expectedHash) {
-		return errors.Errorf("md5 of new database (%s) does not match expected md5 (%s)", actualHash, expectedHash)
+		return fmt.Errorf("md5 of new database (%s) does not match expected md5 (%s)", actualHash, expectedHash)
 	}
 	return nil
 }
@@ -130,7 +130,7 @@ func (writer *LocalFileDatabaseWriter) ValidHash(expectedHash string) error {
 // to the given time.
 func (writer *LocalFileDatabaseWriter) SetFileModificationTime(lastModified time.Time) error {
 	if err := os.Chtimes(writer.filePath, lastModified, lastModified); err != nil {
-		return errors.Wrap(err, "error setting times on file")
+		return fmt.Errorf("error setting times on file: %w", err)
 	}
 	return nil
 }
@@ -139,27 +139,28 @@ func (writer *LocalFileDatabaseWriter) SetFileModificationTime(lastModified time
 // the directory.
 func (writer *LocalFileDatabaseWriter) Commit() error {
 	if err := writer.temporaryFile.Sync(); err != nil {
-		return errors.Wrap(err, "error syncing temporary file")
+		return fmt.Errorf("error syncing temporary file: %w", err)
 	}
 	if err := writer.temporaryFile.Close(); err != nil {
-		return errors.Wrap(err, "error closing temporary file")
+		return fmt.Errorf("error closing temporary file: %w", err)
 	}
 	if err := os.Rename(writer.temporaryFile.Name(), writer.filePath); err != nil {
-		return errors.Wrap(err, "error moving database into place")
+		return fmt.Errorf("error moving database into place: %w", err)
 	}
 
 	// fsync the directory. http://austingroupbugs.net/view.php?id=672
 	dh, err := os.Open(filepath.Dir(writer.filePath))
 	if err != nil {
-		return errors.Wrap(err, "error opening database directory")
+		return fmt.Errorf("error opening database directory: %w", err)
 	}
 
 	// We ignore Sync errors as they primarily happen on file systems that do
 	// not support sync.
+	//nolint:errcheck // See above.
 	_ = dh.Sync()
 
 	if err := dh.Close(); err != nil {
-		return errors.Wrap(err, "closing directory")
+		return fmt.Errorf("closing directory: %w", err)
 	}
 	return nil
 }
