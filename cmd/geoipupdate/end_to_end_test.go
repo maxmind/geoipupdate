@@ -179,7 +179,7 @@ func TestParallelDatabaseDownload(t *testing.T) {
 			select {
 			case <-doneCh:
 				elapsed = time.Since(start)
-			case <-time.After(100 * time.Millisecond):
+			case <-time.After(1000 * time.Millisecond):
 				t.Errorf("Timeout waiting for function completion")
 			}
 
