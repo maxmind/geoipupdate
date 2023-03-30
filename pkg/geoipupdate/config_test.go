@@ -68,6 +68,10 @@ EditionIDs GeoLite2-Country GeoLite2-City
 # "s", "m", "h".
 # Defaults to "5m" (5 minutes).
 # RetryFor 5m
+
+# The number of parallel database downloads.
+# Defaults to "1".
+# Parallelism 1
 `,
 			Output: &Config{
 				AccountID:         42,
@@ -77,6 +81,7 @@ EditionIDs GeoLite2-Country GeoLite2-City
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
 			},
 		},
 		{
@@ -129,6 +134,7 @@ ProductIds GeoLite2-Country GeoLite2-City
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
 			},
 		},
 		{
@@ -174,6 +180,8 @@ PreserveFileTimes 1
 LockFile /usr/lock
 
 RetryFor 10m
+
+Parallelism 3
 `,
 			Output: &Config{
 				AccountID:         1234,
@@ -189,6 +197,7 @@ RetryFor 10m
 				PreserveFileTimes: true,
 				URL:               "https://updates.example.com",
 				RetryFor:          10 * time.Minute,
+				Parallelism:       3,
 			},
 		},
 		{
@@ -279,6 +288,20 @@ RetryFor -5m`,
 			Err: "'-5m' is not a valid duration",
 		},
 		{
+			Description: "Parallelism should be a number",
+			Input: `AccountID 42
+LicenseKey 000000000001
+Parallelism a`,
+			Err: "'a' is not a valid parallelism value: strconv.Atoi: parsing \"a\": invalid syntax",
+		},
+		{
+			Description: "Parallelism should be a positive number",
+			Input: `AccountID 42
+LicenseKey 000000000001
+Parallelism 0`,
+			Err: "parallelism should be greater than 0, got '0'",
+		},
+		{
 			Description: "AccountID 999999 with a non-000000000000 LicenseKey is treated normally",
 			Input: `AccountID 999999
 LicenseKey abcd
@@ -291,6 +314,7 @@ EditionIDs GeoIP2-City`,
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
 			},
 		},
 		{
@@ -310,6 +334,7 @@ SkipPeerVerification 1
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
 			},
 		},
 		{
@@ -323,6 +348,7 @@ SkipPeerVerification 1
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
 			},
 		},
 		{
@@ -345,6 +371,7 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
 			},
 		},
 		{
@@ -359,6 +386,7 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
 				URL:               "https://updates.maxmind.com",
 				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
 			},
 		},
 	}
@@ -374,7 +402,7 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
 			require.NoError(t, ioutil.WriteFile(tempName, []byte(test.Input), 0o600))
-			config, err := NewConfig(tempName, DefaultDatabaseDirectory, "/tmp", false)
+			config, err := NewConfig(tempName, DefaultDatabaseDirectory, "/tmp", false, 0)
 			if test.Err == "" {
 				assert.NoError(t, err, test.Description)
 			} else {

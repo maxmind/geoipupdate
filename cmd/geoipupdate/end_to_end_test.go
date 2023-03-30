@@ -148,7 +148,8 @@ func TestParallelDatabaseDownload(t *testing.T) {
 
 			// A mock download function that is used to gather data
 			// about the number of goroutines called.
-			downloadFunc := func(s string) error {
+			//nolint:unparam // downloadFunc signature cannot be changed
+			downloadFunc := func(_ string) error {
 				lock.Lock()
 				runningGoroutines++
 				if runningGoroutines > maxConcurrentGoroutines {
@@ -185,7 +186,10 @@ func TestParallelDatabaseDownload(t *testing.T) {
 			// The maximum number of parallel downloads executed should not exceed
 			// the number defined in the configuration.
 			if maxConcurrentGoroutines > config.Parallelism {
-				t.Errorf("Expected %d concurrent download processes, but got %d", config.Parallelism, maxConcurrentGoroutines)
+				t.Errorf("Expected %d concurrent download processes, but got %d",
+					config.Parallelism,
+					maxConcurrentGoroutines,
+				)
 			}
 
 			if !test.durationCheckFunc(elapsed) {

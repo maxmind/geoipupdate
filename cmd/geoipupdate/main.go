@@ -87,7 +87,7 @@ func run(
 	}
 
 	if err := g.Wait(); err != nil {
-		return err
+		return fmt.Errorf("download error: %w", err)
 	}
 	return nil
 }

@@ -110,7 +110,10 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		case "Parallelism":
 			parallelism, err := strconv.Atoi(value)
 			if err != nil {
-				return nil, fmt.Errorf("invalid download parallelism format: %w", err)
+				return nil, fmt.Errorf("'%s' is not a valid parallelism value: %w", value, err)
+			}
+			if parallelism <= 0 {
+				return nil, fmt.Errorf("parallelism should be greater than 0, got '%d'", parallelism)
 			}
 			config.Parallelism = parallelism
 		default:
