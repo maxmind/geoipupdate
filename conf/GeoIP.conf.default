@@ -44,3 +44,7 @@ EditionIDs GeoLite2-Country GeoLite2-City
 # "s", "m", "h".
 # Defaults to "5m" (5 minutes).
 # RetryFor 5m
+
+# The number of parallel database downloads.
+# Defaults to "1".
+# Parallelism 1

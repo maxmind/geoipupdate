@@ -13,6 +13,7 @@ type Args struct {
 	DatabaseDirectory string
 	StackTrace        bool
 	Verbose           bool
+	Parallelism       int
 }
 
 func getArgs() *Args {
@@ -32,6 +33,7 @@ func getArgs() *Args {
 	stackTrace := flag.Bool("stack-trace", false, "Show a stack trace along with any error message.")
 	verbose := flag.BoolP("verbose", "v", false, "Use verbose output")
 	displayVersion := flag.BoolP("version", "V", false, "Display the version and exit")
+	parallelism := flag.Int("parallelism", 0, "Set the number of parallel database downloads.")
 
 	flag.Parse()
 
@@ -49,11 +51,17 @@ func getArgs() *Args {
 		printUsage()
 	}
 
+	if *parallelism < 0 {
+		log.Printf("Parallelism must be a positive number")
+		printUsage()
+	}
+
 	return &Args{
 		ConfigFile:        *configFile,
 		DatabaseDirectory: *databaseDirectory,
 		StackTrace:        *stackTrace,
 		Verbose:           *verbose,
+		Parallelism:       *parallelism,
 	}
 }
 

@@ -25,6 +25,7 @@ type Config struct {
 	PreserveFileTimes bool
 	Verbose           bool
 	RetryFor          time.Duration
+	Parallelism       int
 }
 
 // NewConfig parses the configuration file.
@@ -33,6 +34,7 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 	defaultDatabaseDirectory,
 	databaseDirectory string,
 	verbose bool,
+	parallelism int,
 ) (*Config, error) {
 	fh, err := os.Open(filepath.Clean(file))
 	if err != nil {
@@ -105,6 +107,12 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 				return nil, fmt.Errorf("'%s' is not a valid duration", value)
 			}
 			config.RetryFor = dur
+		case "Parallelism":
+			parallelism, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, fmt.Errorf("invalid download parallelism format: %w", err)
+			}
+			config.Parallelism = parallelism
 		default:
 			return nil, fmt.Errorf("unknown option on line %d", lineNumber)
 		}
@@ -132,6 +140,10 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		config.RetryFor = 5 * time.Minute
 	}
 
+	if _, ok := keysSeen["Parallelism"]; !ok {
+		config.Parallelism = 1
+	}
+
 	// Argument takes precedence.
 	if databaseDirectory != "" {
 		config.DatabaseDirectory = filepath.Clean(databaseDirectory)
@@ -139,6 +151,10 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 
 	if config.DatabaseDirectory == "" {
 		config.DatabaseDirectory = filepath.Clean(defaultDatabaseDirectory)
+	}
+
+	if parallelism > 0 {
+		config.Parallelism = parallelism
 	}
 
 	config.Verbose = verbose
