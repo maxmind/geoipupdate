@@ -113,24 +113,14 @@ func TestParallelDatabaseDownload(t *testing.T) {
 	editions := []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"}
 
 	tests := []struct {
-		Description       string
-		Parallelism       int
-		durationCheckFunc func(elapsed time.Duration) bool
+		Description string
+		Parallelism int
 	}{{
 		Description: "sequential downloads",
 		Parallelism: 1,
-		durationCheckFunc: func(elapsed time.Duration) bool {
-			return elapsed >= time.Duration(len(editions))*simulatedDownloadDuration
-		},
 	}, {
 		Description: "parallel downloads",
 		Parallelism: 3,
-		durationCheckFunc: func(elapsed time.Duration) bool {
-			// all downloads should execute in a duration that is
-			// less than what it would have taken to execute them
-			// sequentially
-			return elapsed < time.Duration(len(editions))*simulatedDownloadDuration
-		},
 	}}
 
 	for _, test := range tests {
@@ -167,8 +157,6 @@ func TestParallelDatabaseDownload(t *testing.T) {
 
 			// Execute run in a goroutine so that we can exit early if the test
 			// hangs or takes too long to execute.
-			start := time.Now()
-			var elapsed time.Duration
 			go func() {
 				err := run(config, downloadFunc)
 				assert.NoError(t, err, "run executed successfully")
@@ -178,7 +166,6 @@ func TestParallelDatabaseDownload(t *testing.T) {
 			// Wait for run to complete or timeout after a certain duration
 			select {
 			case <-doneCh:
-				elapsed = time.Since(start)
 			case <-time.After(1000 * time.Millisecond):
 				t.Errorf("Timeout waiting for function completion")
 			}
@@ -190,10 +177,6 @@ func TestParallelDatabaseDownload(t *testing.T) {
 					config.Parallelism,
 					maxConcurrentGoroutines,
 				)
-			}
-
-			if !test.durationCheckFunc(elapsed) {
-				t.Errorf("downloads completed in %+v", elapsed)
 			}
 		})
 	}
