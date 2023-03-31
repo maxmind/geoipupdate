@@ -181,9 +181,8 @@ func TestHTTPDatabaseReader(t *testing.T) {
 					},
 				),
 			)
-			t.Cleanup(func() {
-				server.Close()
-			})
+
+			defer server.Close()
 
 			config := &geoipupdate.Config{
 				AccountID:         123,
@@ -220,10 +219,10 @@ func TestHTTPDatabaseReader(t *testing.T) {
 			dbReader := NewHTTPDatabaseReader(client, config)
 			fileLock, err := NewFileLock(config.LockFile, config.Verbose)
 			assert.NoError(t, err, test.Description)
-			t.Cleanup(func() {
+			defer func() {
 				err := fileLock.Close()
 				assert.NoError(t, err, test.Description)
-			})
+			}()
 			dbWriter, err := NewLocalFileDatabaseWriter(currentDatabasePath, fileLock, config.Verbose)
 			assert.NoError(t, err, test.Description)
 
@@ -308,10 +307,10 @@ func TestParallelDatabaseDownload(t *testing.T) {
 				cancel:    cancel,
 			}
 			reader.processorFunc = processorFunc
-			t.Cleanup(func() {
+			defer func() {
 				err := reader.Stop()
 				require.NoError(t, err)
-			})
+			}()
 
 			for _, edition := range editions {
 				edition := edition

@@ -33,19 +33,19 @@ func TestCreateFileLock(t *testing.T) {
 		t.Run(test.Description, func(t *testing.T) {
 			tempDir, err := ioutil.TempDir("", "gutest-")
 			require.NoError(t, err)
-			t.Cleanup(func() {
+			defer func() {
 				err = os.RemoveAll(tempDir)
 				require.NoError(t, err)
-			})
+			}()
 			fl, err := NewFileLock(filepath.Join(tempDir, test.LockFilename), false)
 			if err != nil {
 				// regex because some errors have filenames.
 				assert.Regexp(t, test.ExpectedError, err.Error(), test.Description)
 			} else {
-				t.Cleanup(func() {
+				defer func() {
 					err := fl.Close()
 					require.NoError(t, err)
-				})
+				}()
 				require.Equal(t, test.ExpectedError, "", test.Description)
 			}
 		})
@@ -57,17 +57,17 @@ func TestCreateFileLock(t *testing.T) {
 func TestAcquireFileLock(t *testing.T) {
 	tempDir, err := ioutil.TempDir("", "gutest-")
 	require.NoError(t, err)
-	t.Cleanup(func() {
+	defer func() {
 		err = os.RemoveAll(tempDir)
 		require.NoError(t, err)
-	})
+	}()
 
 	fl, err := NewFileLock(filepath.Join(tempDir, ".geoipupdate.lock"), false)
 	require.NoError(t, err)
-	t.Cleanup(func() {
+	defer func() {
 		err := fl.Close()
 		require.NoError(t, err)
-	})
+	}()
 
 	lock, err := fl.acquireLock()
 	require.NoError(t, err)
