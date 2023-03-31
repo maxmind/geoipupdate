@@ -11,17 +11,13 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/gofrs/flock"
 )
 
 // LocalFileDatabaseWriter is a database.Writer that stores the database to the
 // local file system.
 type LocalFileDatabaseWriter struct {
 	filePath      string
-	lockFilePath  string
 	verbose       bool
-	lock          *flock.Flock
 	oldHash       string
 	fileWriter    io.Writer
 	temporaryFile *os.File
@@ -31,21 +27,21 @@ type LocalFileDatabaseWriter struct {
 // NewLocalFileDatabaseWriter create a LocalFileDatabaseWriter. It creates the
 // necessary lock and temporary files to protect the database from concurrent
 // writes.
-func NewLocalFileDatabaseWriter(filePath, lockFilePath string, verbose bool) (*LocalFileDatabaseWriter, error) {
+func NewLocalFileDatabaseWriter(filePath string, lock *FileLock, verbose bool) (*LocalFileDatabaseWriter, error) {
 	dbWriter := &LocalFileDatabaseWriter{
-		filePath:     filePath,
-		lockFilePath: lockFilePath,
-		verbose:      verbose,
+		filePath: filePath,
+		verbose:  verbose,
+	}
+
+	if _, err := lock.acquireLock(); err != nil {
+		return nil, err
+	}
+
+	if err := dbWriter.createOldMD5Hash(); err != nil {
+		return nil, err
 	}
 
 	var err error
-	if dbWriter.lock, err = CreateLockFile(lockFilePath, verbose); err != nil {
-		return nil, err
-	}
-	if err = dbWriter.createOldMD5Hash(); err != nil {
-		return nil, err
-	}
-
 	temporaryFilename := fmt.Sprintf("%s.temporary", dbWriter.filePath)
 	//nolint:gosec // We want the permission to be world readable
 	dbWriter.temporaryFile, err = os.OpenFile(
@@ -98,7 +94,7 @@ func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
 	return n, nil
 }
 
-// Close closes the temporary file and releases the file lock.
+// Close closes the temporary file.
 func (writer *LocalFileDatabaseWriter) Close() error {
 	err := writer.temporaryFile.Close()
 	if err != nil {
@@ -110,9 +106,6 @@ func (writer *LocalFileDatabaseWriter) Close() error {
 
 	if err := os.Remove(writer.temporaryFile.Name()); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("error removing temporary file: %w", err)
-	}
-	if err := writer.lock.Unlock(); err != nil {
-		return fmt.Errorf("error releasing lock file: %w", err)
 	}
 	return nil
 }

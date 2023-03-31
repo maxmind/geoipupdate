@@ -64,6 +64,15 @@ func main() {
 
 func run(client *http.Client, config *geoipupdate.Config) error {
 	dbReader := database.NewHTTPDatabaseReader(client, config)
+	fileLock, err := database.NewFileLock(config.LockFile, config.Verbose)
+	if err != nil {
+		return fmt.Errorf("error initializing file lock: %w", err)
+	}
+	defer func() {
+		if err := fileLock.Close(); err != nil {
+			log.Printf("error closing file lock: %w", err)
+		}
+	}()
 
 	for _, editionID := range config.EditionIDs {
 		filename, err := geoipupdate.GetFilename(config, editionID, client)
@@ -71,7 +80,7 @@ func run(client *http.Client, config *geoipupdate.Config) error {
 			return fmt.Errorf("error retrieving filename for %s: %w", editionID, err)
 		}
 		filePath := filepath.Join(config.DatabaseDirectory, filename)
-		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, config.LockFile, config.Verbose)
+		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, fileLock, config.Verbose)
 		if err != nil {
 			return fmt.Errorf("error creating database writer for %s: %w", editionID, err)
 		}
