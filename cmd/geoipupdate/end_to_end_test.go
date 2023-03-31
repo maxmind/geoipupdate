@@ -13,7 +13,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -83,11 +82,7 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 	logOutput := &bytes.Buffer{}
 	log.SetOutput(logOutput)
 
-	downloadFunc := func(editionID string) error {
-		return download(client, config, editionID)
-	}
-
-	err = run(config, downloadFunc)
+	err = run(client, config)
 	assert.NoError(t, err, "run successfully")
 
 	assert.Equal(t, "", logOutput.String(), "no logged output")
@@ -102,82 +97,5 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 			string(buf),
 			"correct database",
 		)
-	}
-}
-
-// TestParallelDatabaseDownload tests the parallel database download functionality
-// and ensures that the maximum number of allowed goroutines does not exceed the value
-// set in the config.
-func TestParallelDatabaseDownload(t *testing.T) {
-	simulatedDownloadDuration := 5 * time.Millisecond
-	editions := []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"}
-
-	tests := []struct {
-		Description string
-		Parallelism int
-	}{{
-		Description: "sequential downloads",
-		Parallelism: 1,
-	}, {
-		Description: "parallel downloads",
-		Parallelism: 3,
-	}}
-
-	for _, test := range tests {
-		t.Run(test.Description, func(t *testing.T) {
-			config := &geoipupdate.Config{
-				EditionIDs:  editions,
-				Parallelism: test.Parallelism,
-			}
-
-			doneCh := make(chan struct{})
-
-			var lock sync.Mutex
-			runningGoroutines := 0
-			maxConcurrentGoroutines := 0
-
-			// A mock download function that is used to gather data
-			// about the number of goroutines called.
-			//nolint:unparam // downloadFunc signature cannot be changed
-			downloadFunc := func(_ string) error {
-				lock.Lock()
-				runningGoroutines++
-				if runningGoroutines > maxConcurrentGoroutines {
-					maxConcurrentGoroutines = runningGoroutines
-				}
-				lock.Unlock()
-
-				time.Sleep(simulatedDownloadDuration)
-
-				lock.Lock()
-				runningGoroutines--
-				lock.Unlock()
-				return nil
-			}
-
-			// Execute run in a goroutine so that we can exit early if the test
-			// hangs or takes too long to execute.
-			go func() {
-				err := run(config, downloadFunc)
-				assert.NoError(t, err, "run executed successfully")
-				close(doneCh)
-			}()
-
-			// Wait for run to complete or timeout after a certain duration
-			select {
-			case <-doneCh:
-			case <-time.After(1000 * time.Millisecond):
-				t.Errorf("Timeout waiting for function completion")
-			}
-
-			// The maximum number of parallel downloads executed should not exceed
-			// the number defined in the configuration.
-			if maxConcurrentGoroutines > config.Parallelism {
-				t.Errorf("Expected %d concurrent download processes, but got %d",
-					config.Parallelism,
-					maxConcurrentGoroutines,
-				)
-			}
-		})
 	}
 }

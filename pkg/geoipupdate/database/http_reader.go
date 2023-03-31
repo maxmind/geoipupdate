@@ -34,6 +34,9 @@ type HTTPDatabaseReader struct {
 	// processor is used to parallelize and limit the number of workers
 	// processing read requests.
 	processor *errgroup.Group
+	// processorFunc is the function that each worker runs to process requests.
+	// It will mostly be customized for test purposes.
+	processorFunc func(Writer, string) error
 	// ctx is the context associated with the lifecycle of the download queue.
 	//nolint: containedctx // context is stored here to keep the api intact.
 	//                        it should be removed and properly propagated
@@ -50,7 +53,7 @@ func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Read
 	processor := new(errgroup.Group)
 	processor.SetLimit(config.Parallelism)
 
-	return &HTTPDatabaseReader{
+	h := &HTTPDatabaseReader{
 		client:            client,
 		retryFor:          config.RetryFor,
 		url:               config.URL,
@@ -62,6 +65,10 @@ func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Read
 		ctx:               ctx,
 		cancel:            cancel,
 	}
+	h.processorFunc = func(w Writer, s string) error {
+		return h.Get(w, s)
+	}
+	return h
 }
 
 // Queue is a wrapper around `Get` that starts the read job as a background
@@ -69,7 +76,7 @@ func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Read
 // concurrent requests handled at a certain time.
 func (reader *HTTPDatabaseReader) Queue(destination Writer, editionID string) {
 	reader.processor.Go(func() error {
-		return reader.Get(destination, editionID)
+		return reader.processorFunc(destination, editionID)
 	})
 }
 

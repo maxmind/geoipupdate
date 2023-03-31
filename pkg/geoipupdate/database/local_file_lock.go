@@ -23,9 +23,8 @@ func NewFileLock(lockFilePath string, verbose bool) (*FileLock, error) {
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("database directory does not exist: %w", err)
-		} else {
-			return nil, fmt.Errorf("error checking database directory: %w", err)
 		}
+		return nil, fmt.Errorf("error checking database directory: %w", err)
 	}
 
 	if !databaseDir.IsDir() {
@@ -52,8 +51,8 @@ func (f *FileLock) Close() error {
 
 // acquireLock tries to acquire the file lock.
 // It is possible for multiple goroutines within the same process
-// to aquire the same lock, so aquireLock is not thread safe in
-// that sense, but protects access accross different processes.
+// to acquire the same lock, so acquireLock is not thread safe in
+// that sense, but protects access across different processes.
 func (f *FileLock) acquireLock() (*flock.Flock, error) {
 	ok, err := f.lock.TryLock()
 	if err != nil {

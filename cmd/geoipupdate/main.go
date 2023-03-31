@@ -70,7 +70,7 @@ func run(client *http.Client, config *geoipupdate.Config) error {
 	}
 	defer func() {
 		if err := fileLock.Close(); err != nil {
-			log.Printf("error closing file lock: %w", err)
+			log.Printf("error closing file lock: %s", err)
 		}
 	}()
 
