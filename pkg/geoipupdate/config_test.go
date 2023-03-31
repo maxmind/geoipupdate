@@ -17,6 +17,7 @@ func TestNewConfig(t *testing.T) {
 	tests := []struct {
 		Description string
 		Input       string
+		Flags       []Option
 		Output      *Config
 		Err         string
 	}{
@@ -302,6 +303,24 @@ Parallelism 0`,
 			Err: "parallelism should be greater than 0, got '0'",
 		},
 		{
+			Description: "Parallelism overridden by flag",
+			Input: `AccountID 999999
+LicenseKey abcd
+EditionIDs GeoIP2-City
+Parallelism 2`,
+			Flags: []Option{WithParallelism(4)},
+			Output: &Config{
+				AccountID:         999999,
+				DatabaseDirectory: filepath.Clean("/tmp"),
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "abcd",
+				LockFile:          filepath.Clean("/tmp/.geoipupdate.lock"),
+				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
+				Parallelism:       4,
+			},
+		},
+		{
 			Description: "AccountID 999999 with a non-000000000000 LicenseKey is treated normally",
 			Input: `AccountID 999999
 LicenseKey abcd
@@ -402,7 +421,7 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
 			require.NoError(t, ioutil.WriteFile(tempName, []byte(test.Input), 0o600))
-			config, err := NewConfig(tempName, DefaultDatabaseDirectory, "/tmp", false, 0)
+			config, err := NewConfig(tempName, DefaultDatabaseDirectory, "/tmp", false, test.Flags...)
 			if test.Err == "" {
 				assert.NoError(t, err, test.Description)
 			} else {

@@ -28,13 +28,35 @@ type Config struct {
 	Parallelism       int
 }
 
+// Option is a function type that modifies a configuration object.
+// It is used to define functions that override a config with
+// values set as command line arguments.
+type Option func(f *Config) error
+
+// WithParallelism returns an Option that sets the Parallelism
+// value of a config.
+func WithParallelism(i int) Option {
+	return func(c *Config) error {
+		if i < 0 {
+			return fmt.Errorf("parallelism can't be negative, got '%d'", i)
+		}
+		if i > 0 {
+			c.Parallelism = i
+		}
+		return nil
+	}
+}
+
 // NewConfig parses the configuration file.
+// flagOptions is provided to provide optional flag overrides to the config
+// file. databaseDirectory and verbose should be moved to flagOptions
+// in the next major release.
 func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 	file,
 	defaultDatabaseDirectory,
 	databaseDirectory string,
 	verbose bool,
-	parallelism int,
+	flagOptions ...Option,
 ) (*Config, error) {
 	fh, err := os.Open(filepath.Clean(file))
 	if err != nil {
@@ -43,11 +65,18 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 
 	defer fh.Close()
 
-	config := &Config{}
+	// config defaults
+	config := &Config{
+		URL:               "https://updates.maxmind.com",
+		DatabaseDirectory: filepath.Clean(defaultDatabaseDirectory),
+		RetryFor:          5 * time.Minute,
+		Parallelism:       1,
+	}
+
 	scanner := bufio.NewScanner(fh)
 	lineNumber := 0
 	keysSeen := map[string]struct{}{}
-	var host, proxy, proxyUserPassword string
+	var proxy, proxyUserPassword string
 	for scanner.Scan() {
 		lineNumber++
 		line := strings.TrimSpace(scanner.Text())
@@ -83,7 +112,7 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 			keysSeen["EditionIDs"] = struct{}{}
 			keysSeen["ProductIds"] = struct{}{}
 		case "Host":
-			host = value
+			config.URL = "https://" + value
 		case "LicenseKey":
 			config.LicenseKey = value
 		case "LockFile":
@@ -137,40 +166,22 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		return nil, fmt.Errorf("the `LicenseKey` option is required")
 	}
 
-	// Set defaults & post-process.
-
-	if _, ok := keysSeen["RetryFor"]; !ok {
-		config.RetryFor = 5 * time.Minute
-	}
-
-	if _, ok := keysSeen["Parallelism"]; !ok {
-		config.Parallelism = 1
-	}
-
-	// Argument takes precedence.
+	// Post-processing: Argument takes precedence.
 	if databaseDirectory != "" {
 		config.DatabaseDirectory = filepath.Clean(databaseDirectory)
 	}
 
-	if config.DatabaseDirectory == "" {
-		config.DatabaseDirectory = filepath.Clean(defaultDatabaseDirectory)
-	}
-
-	if parallelism > 0 {
-		config.Parallelism = parallelism
+	for _, option := range flagOptions {
+		if err := option(config); err != nil {
+			return nil, fmt.Errorf("error applying flag to config: %w", err)
+		}
 	}
 
 	config.Verbose = verbose
 
-	if host == "" {
-		host = "updates.maxmind.com"
-	}
-
 	if config.LockFile == "" {
 		config.LockFile = filepath.Join(config.DatabaseDirectory, ".geoipupdate.lock")
 	}
-
-	config.URL = "https://" + host
 
 	config.Proxy, err = parseProxy(proxy, proxyUserPassword)
 	if err != nil {
