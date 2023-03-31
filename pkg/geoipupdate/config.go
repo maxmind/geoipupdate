@@ -25,7 +25,11 @@ type Config struct {
 	PreserveFileTimes bool
 	Verbose           bool
 	RetryFor          time.Duration
-	Parallelism       int
+	// Parallelism defines the number of concurrent downloads that
+	// can be triggered at the same time. It defaults to 1, which
+	// wouldn't change the existing behaviour of downloading files
+	// sequentially.
+	Parallelism int
 }
 
 // Option is a function type that modifies a configuration object.

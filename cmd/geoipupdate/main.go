@@ -10,7 +10,6 @@ import (
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/database"
-	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -58,60 +57,29 @@ func main() {
 
 	client := geoipupdate.NewClient(config)
 
-	downloadFunc := func(editionID string) error {
-		return download(client, config, editionID)
-	}
-
-	if err = run(config, downloadFunc); err != nil {
+	if err = run(client, config); err != nil {
 		fatalLogger("error retrieving updates", err)
 	}
 }
 
-// run concurrently downloads GeoIP databases using the provided config.
-// `config.Parallelism` limits the number of concurrent downloads that can be
-// executed and setting it to 1 would just mean databases would download
-// sequencially.
-func run(
-	config *geoipupdate.Config,
-	downloadFunc func(string) error,
-) error {
-	g := new(errgroup.Group)
-	waitChan := make(chan struct{}, config.Parallelism)
-	for _, editionID := range config.EditionIDs {
-		waitChan <- struct{}{}
-		editionID := editionID
-		g.Go(func() error {
-			defer func() { <-waitChan }()
-			return downloadFunc(editionID)
-		})
-	}
-
-	if err := g.Wait(); err != nil {
-		return fmt.Errorf("download error: %w", err)
-	}
-	return nil
-}
-
-// download fetches a specific database edition and writes it to a local file.
-func download(
-	client *http.Client,
-	config *geoipupdate.Config,
-	editionID string,
-) error {
-	filename, err := geoipupdate.GetFilename(config, editionID, client)
-	if err != nil {
-		return fmt.Errorf("error retrieving filename for %s: %w", editionID, err)
-	}
-
-	filePath := filepath.Join(config.DatabaseDirectory, filename)
-	dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, config.LockFile, config.Verbose)
-	if err != nil {
-		return fmt.Errorf("error creating database writer for %s: %w", editionID, err)
-	}
-
+func run(client *http.Client, config *geoipupdate.Config) error {
 	dbReader := database.NewHTTPDatabaseReader(client, config)
-	if err := dbReader.Get(dbWriter, editionID); err != nil {
-		return fmt.Errorf("error while getting database for %s: %w", editionID, err)
+
+	for _, editionID := range config.EditionIDs {
+		filename, err := geoipupdate.GetFilename(config, editionID, client)
+		if err != nil {
+			return fmt.Errorf("error retrieving filename for %s: %w", editionID, err)
+		}
+		filePath := filepath.Join(config.DatabaseDirectory, filename)
+		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, config.LockFile, config.Verbose)
+		if err != nil {
+			return fmt.Errorf("error creating database writer for %s: %w", editionID, err)
+		}
+		dbReader.Queue(dbWriter, editionID)
+	}
+
+	if err := dbReader.Wait(); err != nil {
+		return fmt.Errorf("download error: %w", err)
 	}
 	return nil
 }

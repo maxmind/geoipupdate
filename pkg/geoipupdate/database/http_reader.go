@@ -4,6 +4,7 @@ package database
 
 import (
 	"compress/gzip"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/internal"
+	"golang.org/x/sync/errgroup"
 )
 
 // HTTPDatabaseReader is a Reader that uses an HTTP client to retrieve
@@ -28,11 +30,26 @@ type HTTPDatabaseReader struct {
 	accountID         int
 	preserveFileTimes bool
 	verbose           bool
+
+	// processor is used to parallelize and limit the number of workers
+	// processing read requests.
+	processor *errgroup.Group
+	// ctx is the context associated with the lifecycle of the download queue.
+	//nolint: containedctx // context is stored here to keep the api intact.
+	//                        it should be removed and properly propagated
+	//                        in a future refactor.
+	ctx context.Context
+	// cancel cancels the context and stops the processing of the queue.
+	cancel context.CancelFunc
 }
 
 // NewHTTPDatabaseReader creates a Reader that downloads database updates via
 // HTTP.
 func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Reader {
+	ctx, cancel := context.WithCancel(context.Background())
+	processor := new(errgroup.Group)
+	processor.SetLimit(config.Parallelism)
+
 	return &HTTPDatabaseReader{
 		client:            client,
 		retryFor:          config.RetryFor,
@@ -41,12 +58,43 @@ func NewHTTPDatabaseReader(client *http.Client, config *geoipupdate.Config) Read
 		accountID:         config.AccountID,
 		preserveFileTimes: config.PreserveFileTimes,
 		verbose:           config.Verbose,
+		processor:         processor,
+		ctx:               ctx,
+		cancel:            cancel,
 	}
+}
+
+// Queue is a wrapper around `Get` that starts the read job as a background
+// process. It makes use of a errgroup.Group to limit the number of
+// concurrent requests handled at a certain time.
+func (reader *HTTPDatabaseReader) Queue(destination Writer, editionID string) {
+	reader.processor.Go(func() error {
+		return reader.Get(destination, editionID)
+	})
+}
+
+// Wait waits for the queue to finish processing and returns the first
+// error encountered, if any.
+func (reader *HTTPDatabaseReader) Wait() error {
+	if err := reader.processor.Wait(); err != nil {
+		return fmt.Errorf("error downloading database: %w", err)
+	}
+	return nil
+}
+
+// Stop cancels the execution of the queue.
+func (reader *HTTPDatabaseReader) Stop() error {
+	reader.cancel()
+	return reader.Wait()
 }
 
 // Get retrieves the given edition ID using an HTTP client, writes it to the
 // Writer, and validates the hash before committing.
 func (reader *HTTPDatabaseReader) Get(destination Writer, editionID string) error {
+	if err := reader.ctx.Err(); err != nil {
+		return fmt.Errorf("error processing %s: %w", editionID, err)
+	}
+
 	defer func() {
 		if err := destination.Close(); err != nil {
 			log.Println(err)
