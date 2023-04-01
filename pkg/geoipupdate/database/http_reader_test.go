@@ -128,11 +128,6 @@ func TestHTTPDatabaseReader(t *testing.T) {
 
 	updateRE := regexp.MustCompile(`\A/geoip/databases/\S+/update\z`)
 
-	tempDir, err := ioutil.TempDir("", "gutest-")
-	require.NoError(t, err)
-	err = os.RemoveAll(tempDir)
-	require.NoError(t, err)
-
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
 			server := httptest.NewServer(
@@ -182,7 +177,10 @@ func TestHTTPDatabaseReader(t *testing.T) {
 				),
 			)
 
-			defer server.Close()
+			tempDir, err := ioutil.TempDir("", "gutest-")
+			require.NoError(t, err)
+			err = os.RemoveAll(tempDir)
+			require.NoError(t, err)
 
 			config := &geoipupdate.Config{
 				AccountID:         123,
@@ -233,6 +231,8 @@ func TestHTTPDatabaseReader(t *testing.T) {
 				// regex because some errors have filenames.
 				assert.Regexp(t, test.Err, err.Error(), test.Description)
 			}
+
+			server.Close()
 
 			if test.DatabaseAfter != "" {
 				buf, err := ioutil.ReadFile(filepath.Clean(currentDatabasePath))
