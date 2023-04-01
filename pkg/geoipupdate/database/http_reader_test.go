@@ -217,10 +217,6 @@ func TestHTTPDatabaseReader(t *testing.T) {
 			dbReader := NewHTTPDatabaseReader(client, config)
 			fileLock, err := NewFileLock(config.LockFile, config.Verbose)
 			assert.NoError(t, err, test.Description)
-			defer func() {
-				err := fileLock.Close()
-				assert.NoError(t, err, test.Description)
-			}()
 			dbWriter, err := NewLocalFileDatabaseWriter(currentDatabasePath, fileLock, config.Verbose)
 			assert.NoError(t, err, test.Description)
 
@@ -233,6 +229,8 @@ func TestHTTPDatabaseReader(t *testing.T) {
 			}
 
 			server.Close()
+			err = fileLock.Close()
+			assert.NoError(t, err, test.Description)
 
 			if test.DatabaseAfter != "" {
 				buf, err := ioutil.ReadFile(filepath.Clean(currentDatabasePath))
