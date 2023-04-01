@@ -127,6 +127,10 @@ func TestHTTPDatabaseReader(t *testing.T) {
 	}
 
 	updateRE := regexp.MustCompile(`\A/geoip/databases/\S+/update\z`)
+	tempDir, err := ioutil.TempDir("", "gutest-")
+	require.NoError(t, err)
+	err = os.RemoveAll(tempDir)
+	require.NoError(t, err)
 
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
@@ -176,11 +180,6 @@ func TestHTTPDatabaseReader(t *testing.T) {
 					},
 				),
 			)
-
-			tempDir, err := ioutil.TempDir("", "gutest-")
-			require.NoError(t, err)
-			err = os.RemoveAll(tempDir)
-			require.NoError(t, err)
 
 			config := &geoipupdate.Config{
 				AccountID:         123,
