@@ -17,7 +17,7 @@ type FileLock struct {
 
 // NewFileLock creates a new instance of FileLock.
 func NewFileLock(path string, verbose bool) (*FileLock, error) {
-	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	err := os.MkdirAll(filepath.Dir(path), 0o750)
 	if err != nil {
 		return nil, fmt.Errorf("error creating lock file directory: %w", err)
 	}

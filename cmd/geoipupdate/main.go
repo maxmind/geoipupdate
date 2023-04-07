@@ -2,14 +2,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
-	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/vars"
 )
 
 var (
@@ -22,10 +21,10 @@ func main() {
 	log.SetFlags(0)
 
 	if defaultConfigFile == "" {
-		defaultConfigFile = geoipupdate.DefaultConfigFile
+		defaultConfigFile = vars.DefaultConfigFile
 	}
 	if defaultDatabaseDirectory == "" {
-		defaultDatabaseDirectory = geoipupdate.DefaultDatabaseDirectory
+		defaultDatabaseDirectory = vars.DefaultDatabaseDirectory
 	}
 
 	args := getArgs()
@@ -56,39 +55,7 @@ func main() {
 	}
 
 	client := geoipupdate.NewClient(config)
-
-	if err = run(client, config); err != nil {
+	if err = client.Run(context.Background()); err != nil {
 		fatalLogger("error retrieving updates", err)
 	}
-}
-
-func run(client *http.Client, config *geoipupdate.Config) error {
-	dbReader := database.NewHTTPDatabaseReader(client, config)
-	fileLock, err := database.NewFileLock(config.LockFile, config.Verbose)
-	if err != nil {
-		return fmt.Errorf("error initializing file lock: %w", err)
-	}
-	defer func() {
-		if err := fileLock.Close(); err != nil {
-			log.Printf("error closing file lock: %s", err)
-		}
-	}()
-
-	for _, editionID := range config.EditionIDs {
-		filename, err := geoipupdate.GetFilename(config, editionID, client)
-		if err != nil {
-			return fmt.Errorf("error retrieving filename for %s: %w", editionID, err)
-		}
-		filePath := filepath.Join(config.DatabaseDirectory, filename)
-		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, fileLock, config.Verbose)
-		if err != nil {
-			return fmt.Errorf("error creating database writer for %s: %w", editionID, err)
-		}
-		dbReader.Queue(dbWriter, editionID)
-	}
-
-	if err := dbReader.Wait(); err != nil {
-		return fmt.Errorf("download error: %w", err)
-	}
-	return nil
 }

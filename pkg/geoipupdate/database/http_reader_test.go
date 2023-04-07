@@ -3,7 +3,6 @@ package database
 import (
 	"bytes"
 	"compress/gzip"
-	"context"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -13,14 +12,12 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/sync/errgroup"
 )
 
 func TestHTTPDatabaseReader(t *testing.T) {
@@ -246,96 +243,6 @@ func TestHTTPDatabaseReader(t *testing.T) {
 			if test.CreateDirectory {
 				err := os.RemoveAll(config.DatabaseDirectory)
 				require.NoError(t, err)
-			}
-		})
-	}
-}
-
-// TestParallelDatabaseDownload tests the parallel database download functionality
-// and ensures that the maximum number of allowed goroutines does not exceed the value
-// set in the config.
-func TestParallelDatabaseDownload(t *testing.T) {
-	simulatedDownloadDuration := 5 * time.Millisecond
-	editions := []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"}
-
-	tests := []struct {
-		Description string
-		Parallelism int
-	}{{
-		Description: "sequential downloads",
-		Parallelism: 1,
-	}, {
-		Description: "parallel downloads",
-		Parallelism: 3,
-	}}
-
-	for _, test := range tests {
-		t.Run(test.Description, func(t *testing.T) {
-			doneCh := make(chan struct{})
-			var lock sync.Mutex
-			runningGoroutines := 0
-			maxConcurrentGoroutines := 0
-
-			// A mock processor function that is used to gather data
-			// about the number of goroutines called.
-			processorFunc := func(_ Writer, _ string) error {
-				lock.Lock()
-				runningGoroutines++
-				if runningGoroutines > maxConcurrentGoroutines {
-					maxConcurrentGoroutines = runningGoroutines
-				}
-				lock.Unlock()
-
-				time.Sleep(simulatedDownloadDuration)
-
-				lock.Lock()
-				runningGoroutines--
-				lock.Unlock()
-				return nil
-			}
-
-			config := &geoipupdate.Config{Parallelism: test.Parallelism}
-			ctx, cancel := context.WithCancel(context.Background())
-			processor := new(errgroup.Group)
-			processor.SetLimit(test.Parallelism)
-			reader := &HTTPDatabaseReader{
-				processor: processor,
-				ctx:       ctx,
-				cancel:    cancel,
-			}
-			reader.processorFunc = processorFunc
-			defer func() {
-				err := reader.Stop()
-				require.NoError(t, err)
-			}()
-
-			for _, edition := range editions {
-				edition := edition
-				reader.Queue(nil, edition)
-			}
-
-			// Execute run in a goroutine so that we can exit early if the test
-			// hangs or takes too long to execute.
-			go func() {
-				err := reader.Wait()
-				require.NoError(t, err)
-				close(doneCh)
-			}()
-
-			// Wait for run to complete or timeout after a certain duration
-			select {
-			case <-doneCh:
-			case <-time.After(1000 * time.Millisecond):
-				t.Errorf("Timeout waiting for function completion")
-			}
-
-			// The maximum number of parallel downloads executed should not exceed
-			// the number defined in the configuration.
-			if maxConcurrentGoroutines > config.Parallelism {
-				t.Errorf("Expected %d concurrent download processes, but got %d",
-					config.Parallelism,
-					maxConcurrentGoroutines,
-				)
 			}
 		})
 	}

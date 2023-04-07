@@ -13,152 +13,230 @@ import (
 	"time"
 )
 
-// LocalFileDatabaseWriter is a database.Writer that stores the database to the
+const (
+	extension     = ".mmdb"
+	tempExtension = ".temporary"
+)
+
+// LocalFileWriter is a database.Writer that stores the database to the
 // local file system.
-type LocalFileDatabaseWriter struct {
-	filePath      string
-	verbose       bool
-	oldHash       string
-	fileWriter    io.Writer
-	temporaryFile *os.File
-	md5Writer     hash.Hash
+type LocalFileWriter struct {
+	dir              string
+	preserveFileTime bool
+	verbose          bool
 }
 
-// NewLocalFileDatabaseWriter create a LocalFileDatabaseWriter. It creates the
-// necessary lock and temporary files to protect the database from concurrent
-// writes.
-func NewLocalFileDatabaseWriter(filePath string, lock *FileLock, verbose bool) (*LocalFileDatabaseWriter, error) {
-	dbWriter := &LocalFileDatabaseWriter{
-		filePath: filePath,
-		verbose:  verbose,
-	}
-
-	if _, err := lock.acquireLock(); err != nil {
-		return nil, err
-	}
-
-	if err := dbWriter.createOldMD5Hash(); err != nil {
-		return nil, err
-	}
-
-	var err error
-	temporaryFilename := fmt.Sprintf("%s.temporary", dbWriter.filePath)
-	//nolint:gosec // We want the permission to be world readable
-	dbWriter.temporaryFile, err = os.OpenFile(
-		temporaryFilename,
-		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		0o644,
-	)
+// NewLocalFileWriter create a LocalFileWriter.
+func NewLocalFileWriter(
+	databaseDir string,
+	preserveFileTime bool,
+	verbose bool,
+) (*LocalFileWriter, error) {
+	err := os.MkdirAll(filepath.Dir(databaseDir), 0o644)
 	if err != nil {
-		return nil, fmt.Errorf("error creating temporary file: %w", err)
+		return nil, fmt.Errorf("error creating database directory: %w", err)
 	}
-	dbWriter.md5Writer = md5.New()
-	dbWriter.fileWriter = io.MultiWriter(dbWriter.md5Writer, dbWriter.temporaryFile)
 
-	return dbWriter, nil
+	return &LocalFileWriter{
+		dir:              databaseDir,
+		preserveFileTime: preserveFileTime,
+		verbose:          verbose,
+	}, nil
 }
 
-func (writer *LocalFileDatabaseWriter) createOldMD5Hash() error {
-	currentDatabaseFile, err := os.Open(writer.filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			writer.oldHash = ZeroMD5
-			return nil
-		}
-		return fmt.Errorf("error opening database: %w", err)
+// Write writes the result struct returned by a Reader to a database file.
+func (w *LocalFileWriter) Write(result *ReadResult) error {
+	// exit early if we've got the latest database version.
+	if strings.EqualFold(result.oldHash, result.newHash) {
+		log.Printf("Database %s up to date", result.editionID)
+		return nil
 	}
 
 	defer func() {
-		err := currentDatabaseFile.Close()
-		if err != nil {
-			log.Println(fmt.Errorf("error closing database: %w", err))
+		if err := result.reader.Close(); err != nil {
+			log.Printf("error closing reader for %s: %w", result.editionID, err)
 		}
 	}()
-	oldHash := md5.New()
-	if _, err := io.Copy(oldHash, currentDatabaseFile); err != nil {
-		return fmt.Errorf("error calculating database hash: %w", err)
+
+	databaseFilePath := w.getFilePath(result.editionID)
+
+	// write the Reader's result into a temporary file.
+	fw, err := newFileWriter(databaseFilePath + tempExtension)
+	if err != nil {
+		return fmt.Errorf("error setting up database writer for %s: %w", result.editionID, err)
 	}
-	writer.oldHash = fmt.Sprintf("%x", oldHash.Sum(nil))
-	if writer.verbose {
-		log.Printf("Calculated MD5 sum for %s: %s", writer.filePath, writer.oldHash)
+	defer func() {
+		if err := fw.close(); err != nil {
+			log.Printf("error closing file writer: %+v", err)
+		}
+	}()
+
+	if err := fw.write(result.reader); err != nil {
+		return fmt.Errorf("error writing to the temp file for %s: %w", result.editionID, err)
 	}
+
+	// make sure the hash of the temp file matches the expected hash.
+	if err := fw.validateHash(result.newHash); err != nil {
+		return fmt.Errorf("error validating hash for %s: %w", result.editionID, err)
+	}
+
+	// move the temoporary database file into it's final location and
+	// sync the directory.
+	if err := fw.syncAndRename(databaseFilePath); err != nil {
+		return fmt.Errorf("error renaming temp file: %w", err)
+	}
+
+	// sync database directory.
+	if err := syncDir(filepath.Dir(databaseFilePath)); err != nil {
+		return fmt.Errorf("error syncing database directory: %w", err)
+	}
+
+	// check if we need to set the file's modified at time
+	if w.preserveFileTime {
+		if err := setModifiedAtTime(databaseFilePath, result.modifiedAt); err != nil {
+			return err
+		}
+	}
+
+	log.Printf("Database %s successfully updated: %+v", result.editionID, result.newHash)
+
 	return nil
 }
 
-// Write writes to the temporary file.
-func (writer *LocalFileDatabaseWriter) Write(p []byte) (int, error) {
-	n, err := writer.fileWriter.Write(p)
+// GetHash returns the hash of the current database file.
+func (w *LocalFileWriter) GetHash(editionID string) (string, error) {
+	databaseFilePath := w.getFilePath(editionID)
+	database, err := os.Open(databaseFilePath)
 	if err != nil {
-		return 0, fmt.Errorf("error writing: %w", err)
+		if os.IsNotExist(err) {
+			if w.verbose {
+				log.Print("Database does not exist, returning zeroed hash")
+			}
+			return ZeroMD5, nil
+		}
+		return "", fmt.Errorf("error opening database: %w", err)
 	}
-	return n, nil
+
+	defer func() {
+		if err := database.Close(); err != nil {
+			log.Println(fmt.Errorf("error closing database: %w", err))
+		}
+	}()
+
+	hash := md5.New()
+	if _, err := io.Copy(hash, database); err != nil {
+		return "", fmt.Errorf("error calculating database hash: %w", err)
+	}
+
+	result := byteToString(hash.Sum(nil))
+	if w.verbose {
+		log.Printf("Calculated MD5 sum for %s: %s", databaseFilePath, result)
+	}
+	return result, nil
 }
 
-// Close closes the temporary file.
-func (writer *LocalFileDatabaseWriter) Close() error {
-	err := writer.temporaryFile.Close()
+// getFilePath construct the file path for a database edition.
+func (w *LocalFileWriter) getFilePath(editionID string) string {
+	return filepath.Join(w.dir, editionID) + extension
+}
+
+// fileWriter is used to write the content of a Reader's response
+// into a file.
+type fileWriter struct {
+	// file is used for writing the Reader's response.
+	file *os.File
+	// md5Writer is used to verify the integrity of the received data.
+	md5Writer hash.Hash
+}
+
+// newFileWriter initializes a new fileWriter struct.
+func newFileWriter(path string) (*fileWriter, error) {
+	// prepare temp file for initial writing.
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
+		return nil, fmt.Errorf("error creating temporary file at %s: %w", path, err)
+	}
+
+	return &fileWriter{
+		file:      file,
+		md5Writer: md5.New(),
+	}, nil
+}
+
+// close closes and deletes the file.
+func (w *fileWriter) close() error {
+	if err := w.file.Close(); err != nil {
 		var perr *os.PathError
 		if !errors.As(err, &perr) || !errors.Is(perr.Err, os.ErrClosed) {
 			return fmt.Errorf("error closing temporary file: %w", err)
 		}
 	}
 
-	if err := os.Remove(writer.temporaryFile.Name()); err != nil && !os.IsNotExist(err) {
+	if err := os.Remove(w.file.Name()); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("error removing temporary file: %w", err)
 	}
+
 	return nil
 }
 
-// ValidHash checks that the temporary file's MD5 matches the given hash.
-func (writer *LocalFileDatabaseWriter) ValidHash(expectedHash string) error {
-	actualHash := fmt.Sprintf("%x", writer.md5Writer.Sum(nil))
-	if !strings.EqualFold(actualHash, expectedHash) {
-		return fmt.Errorf("md5 of new database (%s) does not match expected md5 (%s)", actualHash, expectedHash)
+// write writes the content of reader to the file.
+func (w *fileWriter) write(r io.Reader) error {
+	writer := io.MultiWriter(w.md5Writer, w.file)
+	if _, err := io.Copy(writer, r); err != nil {
+		return fmt.Errorf("error writing database: %w", err)
 	}
 	return nil
 }
 
-// SetFileModificationTime sets the database's file access and modified times
-// to the given time.
-func (writer *LocalFileDatabaseWriter) SetFileModificationTime(lastModified time.Time) error {
-	if err := os.Chtimes(writer.filePath, lastModified, lastModified); err != nil {
-		return fmt.Errorf("error setting times on file: %w", err)
+// validateHash validates the hash of the file against a known value.
+func (w *fileWriter) validateHash(hash string) error {
+	tempFileHash := byteToString(w.md5Writer.Sum(nil))
+	if !strings.EqualFold(hash, tempFileHash) {
+		return fmt.Errorf("md5 of new database (%s) does not match expected md5 (%s)", tempFileHash, hash)
 	}
 	return nil
 }
 
-// Commit renames the temporary file to the name of the database file and syncs
-// the directory.
-func (writer *LocalFileDatabaseWriter) Commit() error {
-	if err := writer.temporaryFile.Sync(); err != nil {
+// syncAndRename syncs the content of the file to storage and renames it.
+func (w *fileWriter) syncAndRename(name string) error {
+	if err := w.file.Sync(); err != nil {
 		return fmt.Errorf("error syncing temporary file: %w", err)
 	}
-	if err := writer.temporaryFile.Close(); err != nil {
-		return fmt.Errorf("error closing temporary file: %w", err)
-	}
-	if err := os.Rename(writer.temporaryFile.Name(), writer.filePath); err != nil {
+	if err := os.Rename(w.file.Name(), name); err != nil {
 		return fmt.Errorf("error moving database into place: %w", err)
 	}
+	return nil
+}
 
+// syncDir syncs the content of a directory to storage
+func syncDir(path string) error {
 	// fsync the directory. http://austingroupbugs.net/view.php?id=672
-	dh, err := os.Open(filepath.Dir(writer.filePath))
+	d, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("error opening database directory: %w", err)
+		return fmt.Errorf("error opening database directory %s: %w", path, err)
 	}
+	defer func() {
+		if err := d.Close(); err != nil {
+			log.Printf("closing directory %s: %w", path, err)
+		}
+	}()
 
 	// We ignore Sync errors as they primarily happen on file systems that do
 	// not support sync.
 	//nolint:errcheck // See above.
-	_ = dh.Sync()
+	_ = d.Sync()
+	return nil
+}
 
-	if err := dh.Close(); err != nil {
-		return fmt.Errorf("closing directory: %w", err)
+// setModifiedAtTime sets the times for a database file to a certain value.
+func setModifiedAtTime(path string, t time.Time) error {
+	if err := os.Chtimes(path, t, t); err != nil {
+		return fmt.Errorf("error setting times on file %s: %w", path, err)
 	}
 	return nil
 }
 
-// GetHash returns the hash of the current database file.
-func (writer *LocalFileDatabaseWriter) GetHash() string {
-	return writer.oldHash
+// byteToString returns the base16 representation of a byte array.
+func byteToString(b []byte) string {
+	return fmt.Sprintf("%x", b)
 }

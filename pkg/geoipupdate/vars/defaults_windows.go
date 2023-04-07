@@ -1,4 +1,4 @@
-package geoipupdate
+package vars
 
 import (
 	"os"

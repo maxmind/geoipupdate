@@ -1,7 +1,7 @@
 //go:build !windows
 // +build !windows
 
-package geoipupdate
+package vars
 
 var (
 	// These match what you'd get building the C geoipupdate from source.

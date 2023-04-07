@@ -11,7 +11,7 @@ import (
 // JobProcessor runs jobs with a set number of workers.
 type JobProcessor struct {
 	// sync.Mutex prevents adding new jobs while the processor is running.
-	sync.Mutex
+	mu sync.Mutex
 	// processor is used to parallelize and limit the number of workers
 	// processing read requests.
 	processor *errgroup.Group
@@ -34,16 +34,16 @@ func NewJobProcessor(ctx context.Context, workers int) *JobProcessor {
 
 // Add queues a job for processing.
 func (j *JobProcessor) Add(job func(context.Context) error) {
-	j.Lock()
-	defer j.Unlock()
+	j.mu.Lock()
+	defer j.mu.Unlock()
 
 	j.jobs = append(j.jobs, job)
 }
 
 // Run processes the job queue and returns the first error encountered, if any.
 func (j *JobProcessor) Run(ctx context.Context) error {
-	j.Lock()
-	defer j.Unlock()
+	j.mu.Lock()
+	defer j.mu.Unlock()
 
 	ctx, j.cancel = context.WithCancel(ctx)
 	for _, job := range j.jobs {
