@@ -3,247 +3,158 @@ package database
 import (
 	"bytes"
 	"compress/gzip"
-	"crypto/md5"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
-	"regexp"
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestHTTPDatabaseReader(t *testing.T) {
+// TestHTTPReader tests the functionality of the HTTPReader.Read method.
+func TestHTTPReader(t *testing.T) {
+	testTime := time.Date(2023, 4, 10, 12, 47, 31, 0, time.UTC)
+
 	tests := []struct {
-		Description     string
-		CreateDirectory bool
-		DatabaseBefore  string
-		DatabaseAfter   string
-		DownloadStatus  int
-		DownloadBody    string
-		DownloadHeaders map[string]string
-		ExpectedTime    time.Time
-		Err             string
+		description    string
+		checkErr       func(require.TestingT, error, ...interface{})
+		requestEdition string
+		requestHash    string
+		responseStatus int
+		responseBody   string
+		responseHash   string
+		responseTime   string
+		result         *ReadResult
 	}{
 		{
-			Description:     "Initial download, success",
-			CreateDirectory: true,
-			DatabaseAfter:   "database goes here",
-			DownloadStatus:  http.StatusOK,
-			DownloadBody:    "database goes here",
-		},
-		{
-			Description:     "No update, success",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "database goes here",
-			DownloadStatus:  http.StatusNotModified,
-			DownloadBody:    "database goes here",
-		},
-		{
-			Description:     "Update, success",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "new database goes here",
-			DownloadStatus:  http.StatusOK,
-			DownloadBody:    "new database goes here",
-		},
-		{
-			Description:     "Update, success, and modification time is set",
-			CreateDirectory: true,
-			DatabaseBefore:  "new database goes here",
-			DatabaseAfter:   "newer database goes here",
-			DownloadStatus:  http.StatusOK,
-			DownloadBody:    "newer database goes here",
-			DownloadHeaders: map[string]string{
-				"Last-Modified": time.Date(2018, 7, 24, 0, 0, 0, 0, time.UTC).Format(time.RFC1123),
+			description:    "success",
+			checkErr:       require.NoError,
+			requestEdition: "GeoIP2-City",
+			requestHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+			responseStatus: http.StatusOK,
+			responseBody:   "database content",
+			responseHash:   "cfa36ddc8279b5483a5aa25e9a6151f4",
+			responseTime:   testTime.Format(time.RFC1123),
+			result: &ReadResult{
+				reader:     getReader(t, "database content"),
+				editionID:  "GeoIP2-City",
+				oldHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+				newHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
+				modifiedAt: testTime,
 			},
-			ExpectedTime: time.Date(2018, 7, 24, 0, 0, 0, 0, time.UTC),
-		},
-		{
-			Description:     "Download request fails",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "database goes here",
-			DownloadStatus:  http.StatusBadRequest,
-			Err:             "unexpected HTTP status code: received HTTP status code: 400",
-		},
-		{
-			Description:     "Download request is missing X-Database-MD5",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "database goes here",
-			DownloadStatus:  http.StatusOK,
-			DownloadBody:    "new database goes here",
-			DownloadHeaders: map[string]string{
-				"X-Database-MD5": "",
+		}, {
+			description:    "no new update",
+			checkErr:       require.NoError,
+			requestEdition: "GeoIP2-City",
+			requestHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+			responseStatus: http.StatusNotModified,
+			responseBody:   "",
+			responseHash:   "",
+			responseTime:   "",
+			result: &ReadResult{
+				reader:     nil,
+				editionID:  "GeoIP2-City",
+				oldHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+				newHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+				modifiedAt: time.Time{},
 			},
-			Err: "no X-Database-MD5 header found",
-		},
-		{
-			Description:     "Download fails because provided checksum does not match",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "database goes here",
-			DownloadStatus:  http.StatusOK,
-			DownloadBody:    "new database goes here",
-			DownloadHeaders: map[string]string{
-				"X-Database-MD5": "5d41402abc4b2a76b9719d911017c592", // "hello"
-			},
-			//nolint: lll
-			Err: `md5 of new database \(985ecf3d7959b146208b3dc0189b21a5\) does not match expected md5 \(5d41402abc4b2a76b9719d911017c592\)`,
-		},
-		{
-			Description:     "Download request redirects are followed",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "database goes here",
-			DownloadStatus:  http.StatusMovedPermanently,
-			DownloadHeaders: map[string]string{
-				"Location": "/go-here",
-			},
-		},
-		{
-			Description:     "MD5 sums are case insensitive",
-			CreateDirectory: true,
-			DatabaseBefore:  "database goes here",
-			DatabaseAfter:   "new database goes here",
-			DownloadStatus:  http.StatusOK,
-			DownloadBody:    "new database goes here",
-			DownloadHeaders: map[string]string{
-				"X-Database-MD5": "985ECF3D7959B146208B3DC0189B21A5",
-			},
+		}, {
+			description:    "bad request",
+			checkErr:       require.Error,
+			requestEdition: "GeoIP2-City",
+			requestHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+			responseStatus: http.StatusBadRequest,
+			responseBody:   "",
+			responseHash:   "",
+			responseTime:   "",
+		}, {
+			description:    "missing hash header",
+			checkErr:       require.Error,
+			requestEdition: "GeoIP2-City",
+			requestHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+			responseStatus: http.StatusOK,
+			responseBody:   "database content",
+			responseHash:   "",
+			responseTime:   testTime.Format(time.RFC1123),
+		}, {
+			description:    "modified time header wrong format",
+			checkErr:       require.Error,
+			requestEdition: "GeoIP2-City",
+			requestHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+			responseStatus: http.StatusOK,
+			responseBody:   "database content",
+			responseHash:   "fbe1786bfd80e1db9dc42ddaff868f38",
+			responseTime:   testTime.Format(time.Kitchen),
 		},
 	}
 
-	updateRE := regexp.MustCompile(`\A/geoip/databases/\S+/update\z`)
-	tempDir, err := ioutil.TempDir("", "gutest-")
-	require.NoError(t, err)
-	err = os.RemoveAll(tempDir)
-	require.NoError(t, err)
-
 	for _, test := range tests {
-		t.Run(test.Description, func(t *testing.T) {
+		t.Run(test.description, func(t *testing.T) {
 			server := httptest.NewServer(
 				http.HandlerFunc(
-					func(rw http.ResponseWriter, r *http.Request) {
-						if updateRE.MatchString(r.URL.Path) {
-							buf := &bytes.Buffer{}
-							gzWriter := gzip.NewWriter(buf)
-							md5Writer := md5.New()
-							multiWriter := io.MultiWriter(gzWriter, md5Writer)
-							_, err := multiWriter.Write([]byte(test.DownloadBody))
-							require.NoError(t, err)
-							err = gzWriter.Close()
-							require.NoError(t, err)
-
-							rw.Header().Set(
-								"X-Database-MD5",
-								fmt.Sprintf("%x", md5Writer.Sum(nil)),
-							)
-							if test.DownloadStatus == http.StatusOK {
-								rw.Header().Set(
-									"Last-Modified",
-									time.Now().Format(time.RFC1123),
-								)
-							}
-							for k, v := range test.DownloadHeaders {
-								rw.Header().Set(k, v)
-							}
-
-							rw.WriteHeader(test.DownloadStatus)
-
-							if test.DownloadStatus == http.StatusOK {
-								_, err := rw.Write(buf.Bytes())
-								require.NoError(t, err)
-							}
-
+					func(w http.ResponseWriter, r *http.Request) {
+						if test.responseStatus != http.StatusOK {
+							w.WriteHeader(test.responseStatus)
 							return
 						}
 
-						if r.URL.Path == "/go-here" {
-							rw.WriteHeader(http.StatusNotModified)
-							return
-						}
+						w.Header().Set("X-Database-MD5", fmt.Sprintf("%s", test.responseHash))
+						w.Header().Set("Last-Modified", test.responseTime)
 
-						rw.WriteHeader(http.StatusBadRequest)
+						buf := &bytes.Buffer{}
+						gzWriter := gzip.NewWriter(buf)
+						_, err := gzWriter.Write([]byte(test.responseBody))
+						require.NoError(t, err)
+						require.NoError(t, gzWriter.Flush())
+						require.NoError(t, gzWriter.Close())
+						_, err = w.Write(buf.Bytes())
+						require.NoError(t, err)
 					},
 				),
 			)
+			defer server.Close()
 
-			config := &geoipupdate.Config{
-				AccountID:         123,
-				DatabaseDirectory: tempDir,
-				EditionIDs:        []string{"GeoIP2-City"},
-				LicenseKey:        "testing",
-				LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
-				URL:               server.URL,
-			}
-			if !test.ExpectedTime.IsZero() {
-				config.PreserveFileTimes = true
-			}
-
-			if test.CreateDirectory {
-				//nolint:gosec // seems ok in test
-				err := os.Mkdir(config.DatabaseDirectory, 0o755)
-				require.NoError(t, err)
-			}
-
-			currentDatabasePath := filepath.Join(
-				config.DatabaseDirectory,
-				"GeoIP2-City.mmdb",
+			reader := NewHTTPReader(
+				nil,           // request proxy.
+				server.URL,    // fixed, as the server is mocked above.
+				10,            // fixed, as it's not valuable for the purpose of the test.
+				"license",     // fixed, as it's not valuable for the purpose of the test.
+				0*time.Second, // retry is tested in the internal package.
+				false,         // verbose
 			)
-			if test.DatabaseBefore != "" {
-				err := ioutil.WriteFile(
-					currentDatabasePath,
-					[]byte(test.DatabaseBefore),
-					0o600,
-				)
-				require.NoError(t, err)
-			}
 
-			client := geoipupdate.NewClient(config)
-			dbReader := NewHTTPDatabaseReader(client, config)
-			fileLock, err := NewFileLock(config.LockFile, config.Verbose)
-			assert.NoError(t, err, test.Description)
-			dbWriter, err := NewLocalFileDatabaseWriter(currentDatabasePath, fileLock, config.Verbose)
-			assert.NoError(t, err, test.Description)
+			result, err := reader.Read(context.Background(), test.requestEdition, test.requestHash)
+			test.checkErr(t, err)
+			if err == nil {
+				require.Equal(t, result.editionID, test.result.editionID)
+				require.Equal(t, result.oldHash, test.result.oldHash)
+				require.Equal(t, result.newHash, test.result.newHash)
+				require.Equal(t, result.modifiedAt, test.result.modifiedAt)
 
-			err = dbReader.Get(dbWriter, config.EditionIDs[0])
-			if test.Err == "" {
-				assert.NoError(t, err, test.Description)
-			} else {
-				// regex because some errors have filenames.
-				assert.Regexp(t, test.Err, err.Error(), test.Description)
-			}
-
-			server.Close()
-			err = fileLock.Close()
-			assert.NoError(t, err, test.Description)
-
-			if test.DatabaseAfter != "" {
-				buf, err := ioutil.ReadFile(filepath.Clean(currentDatabasePath))
-				require.NoError(t, err, test.Description)
-				assert.Equal(t, test.DatabaseAfter, string(buf))
-			}
-
-			if !test.ExpectedTime.IsZero() {
-				fi, err := os.Stat(currentDatabasePath)
-				require.NoError(t, err)
-				assert.WithinDuration(t, test.ExpectedTime, fi.ModTime(), 0)
-			}
-
-			if test.CreateDirectory {
-				err := os.RemoveAll(config.DatabaseDirectory)
-				require.NoError(t, err)
+				if test.result.reader != nil && result.reader != nil {
+					defer result.reader.Close()
+					defer test.result.reader.Close()
+					resultDatabase, _ := ioutil.ReadAll(test.result.reader)
+					expectedDatabase, _ := ioutil.ReadAll(result.reader)
+					require.Equal(t, resultDatabase, expectedDatabase)
+				}
 			}
 		})
 	}
+}
+
+func getReader(t *testing.T, s string) io.ReadCloser {
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	_, err := gz.Write([]byte(s))
+	require.NoError(t, err)
+	require.NoError(t, gz.Close())
+	require.NoError(t, gz.Flush())
+	r, err := gzip.NewReader(&buf)
+	require.NoError(t, err)
+	return r
 }

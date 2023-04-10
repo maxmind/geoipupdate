@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/database"
 	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/internal"
@@ -16,21 +15,11 @@ import (
 // process for GeoIP databases.
 type Client struct {
 	config *Config
-	client *http.Client
 }
 
 // NewClient initialized a new Client struct.
 func NewClient(config *Config) *Client {
-	transport := http.DefaultTransport
-	if config.Proxy != nil {
-		proxy := http.ProxyURL(config.Proxy)
-		transport.(*http.Transport).Proxy = proxy
-	}
-
-	return &Client{
-		config: config,
-		client: &http.Client{Transport: transport},
-	}
+	return &Client{config: config}
 }
 
 // Run starts the download or update process.
@@ -51,7 +40,7 @@ func (c *Client) Run(ctx context.Context) error {
 	jobProcessor := internal.NewJobProcessor(ctx, c.config.Parallelism)
 
 	reader := database.NewHTTPReader(
-		c.client,
+		c.config.Proxy,
 		c.config.URL,
 		c.config.AccountID,
 		c.config.LicenseKey,

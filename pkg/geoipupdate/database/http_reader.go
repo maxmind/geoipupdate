@@ -40,15 +40,21 @@ type HTTPReader struct {
 // NewHTTPReader creates a Reader that downloads database updates via
 // HTTP.
 func NewHTTPReader(
-	client *http.Client,
+	proxy *url.URL,
 	path string,
 	accountID int,
 	licenseKey string,
 	retryFor time.Duration,
 	verbose bool,
 ) Reader {
+	transport := http.DefaultTransport
+	if proxy != nil {
+		proxyFunc := http.ProxyURL(proxy)
+		transport.(*http.Transport).Proxy = proxyFunc
+	}
+
 	return &HTTPReader{
-		client:     client,
+		client:     &http.Client{Transport: transport},
 		path:       path,
 		accountID:  accountID,
 		licenseKey: licenseKey,
@@ -60,7 +66,7 @@ func NewHTTPReader(
 // Read attempts to fetch database updates for a specific editionID.
 // It takes an editionID and it's previously downloaded hash if available
 // as arguments and returns a ReadResult struct as a response.
-// It's the responsability of the Writer to close the io.ReadCloser
+// It's the responsibility of the Writer to close the io.ReadCloser
 // included in the response after consumption.
 func (r *HTTPReader) Read(ctx context.Context, editionID string, hash string) (*ReadResult, error) {
 	var result *ReadResult
@@ -128,11 +134,11 @@ func (r *HTTPReader) get(
 			Body:       string(buf),
 			StatusCode: response.StatusCode,
 		}
-		return nil, fmt.Errorf("unexpected HTTP status code: %w", httpErr)
+		return nil, fmt.Errorf("unexpcted HTTP status code: %w", httpErr)
 	}
 
 	newHash := response.Header.Get("X-Database-MD5")
-	if hash == "" {
+	if newHash == "" {
 		return nil, errors.New("no X-Database-MD5 header found")
 	}
 

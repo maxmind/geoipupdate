@@ -32,7 +32,7 @@ func NewLocalFileWriter(
 	preserveFileTime bool,
 	verbose bool,
 ) (*LocalFileWriter, error) {
-	err := os.MkdirAll(filepath.Dir(databaseDir), 0o644)
+	err := os.MkdirAll(filepath.Dir(databaseDir), 0o750)
 	if err != nil {
 		return nil, fmt.Errorf("error creating database directory: %w", err)
 	}
@@ -54,7 +54,7 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 
 	defer func() {
 		if err := result.reader.Close(); err != nil {
-			log.Printf("error closing reader for %s: %w", result.editionID, err)
+			log.Printf("error closing reader for %s: %+v", result.editionID, err)
 		}
 	}()
 
@@ -217,7 +217,7 @@ func syncDir(path string) error {
 	}
 	defer func() {
 		if err := d.Close(); err != nil {
-			log.Printf("closing directory %s: %w", path, err)
+			log.Printf("closing directory %s: %+v", path, err)
 		}
 	}()
 
