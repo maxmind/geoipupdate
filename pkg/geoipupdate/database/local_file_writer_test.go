@@ -14,11 +14,13 @@ func TestLocalFileWriterWrite(t *testing.T) {
 	testTime := time.Date(2023, 4, 10, 12, 47, 31, 0, time.UTC)
 
 	tests := []struct {
-		description      string
+		description string
+		//nolint:revive // support older versions
 		checkErr         func(require.TestingT, error, ...interface{})
 		preserveFileTime bool
-		checkTime        func(require.TestingT, interface{}, interface{}, ...interface{})
-		result           *ReadResult
+		//nolint:revive // support older versions
+		checkTime func(require.TestingT, interface{}, interface{}, ...interface{})
+		result    *ReadResult
 	}{
 		{
 			description:      "success",

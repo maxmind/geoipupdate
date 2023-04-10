@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -21,7 +20,7 @@ func TestHTTPReader(t *testing.T) {
 
 	tests := []struct {
 		description    string
-		checkErr       func(require.TestingT, error, ...interface{})
+		checkErr       func(require.TestingT, error, ...interface{}) //nolint:revive // support older versions
 		requestEdition string
 		requestHash    string
 		responseStatus int
@@ -102,7 +101,7 @@ func TestHTTPReader(t *testing.T) {
 							return
 						}
 
-						w.Header().Set("X-Database-MD5", fmt.Sprintf("%s", test.responseHash))
+						w.Header().Set("X-Database-MD5", test.responseHash)
 						w.Header().Set("Last-Modified", test.responseTime)
 
 						buf := &bytes.Buffer{}
@@ -138,8 +137,10 @@ func TestHTTPReader(t *testing.T) {
 				if test.result.reader != nil && result.reader != nil {
 					defer result.reader.Close()
 					defer test.result.reader.Close()
-					resultDatabase, _ := ioutil.ReadAll(test.result.reader)
-					expectedDatabase, _ := ioutil.ReadAll(result.reader)
+					resultDatabase, err := ioutil.ReadAll(test.result.reader)
+					require.NoError(t, err)
+					expectedDatabase, err := ioutil.ReadAll(result.reader)
+					require.NoError(t, err)
 					require.Equal(t, resultDatabase, expectedDatabase)
 				}
 			}
@@ -147,6 +148,7 @@ func TestHTTPReader(t *testing.T) {
 	}
 }
 
+//nolint:unparam // complains that it always receives the same string to encode. ridiculous.
 func getReader(t *testing.T, s string) io.ReadCloser {
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)

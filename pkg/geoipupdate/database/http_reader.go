@@ -68,7 +68,7 @@ func NewHTTPReader(
 // as arguments and returns a ReadResult struct as a response.
 // It's the responsibility of the Writer to close the io.ReadCloser
 // included in the response after consumption.
-func (r *HTTPReader) Read(ctx context.Context, editionID string, hash string) (*ReadResult, error) {
+func (r *HTTPReader) Read(ctx context.Context, editionID, hash string) (*ReadResult, error) {
 	var result *ReadResult
 	var err error
 	err = internal.RetryWithBackoff(
@@ -126,7 +126,6 @@ func (r *HTTPReader) get(
 		}
 		return &ReadResult{editionID: editionID, oldHash: hash, newHash: hash}, nil
 	case http.StatusOK:
-		break
 	default:
 		//nolint:errcheck // we are already returning an error.
 		buf, _ := ioutil.ReadAll(io.LimitReader(response.Body, 256))

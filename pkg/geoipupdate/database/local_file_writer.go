@@ -106,6 +106,7 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 // GetHash returns the hash of the current database file.
 func (w *LocalFileWriter) GetHash(editionID string) (string, error) {
 	databaseFilePath := w.getFilePath(editionID)
+	//nolint:gosec // we really need to read this file.
 	database, err := os.Open(databaseFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -123,12 +124,12 @@ func (w *LocalFileWriter) GetHash(editionID string) (string, error) {
 		}
 	}()
 
-	hash := md5.New()
-	if _, err := io.Copy(hash, database); err != nil {
+	md5Hash := md5.New()
+	if _, err := io.Copy(md5Hash, database); err != nil {
 		return "", fmt.Errorf("error calculating database hash: %w", err)
 	}
 
-	result := byteToString(hash.Sum(nil))
+	result := byteToString(md5Hash.Sum(nil))
 	if w.verbose {
 		log.Printf("Calculated MD5 sum for %s: %s", databaseFilePath, result)
 	}
@@ -152,7 +153,8 @@ type fileWriter struct {
 // newFileWriter initializes a new fileWriter struct.
 func newFileWriter(path string) (*fileWriter, error) {
 	// prepare temp file for initial writing.
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+	//nolint:gosec // we really need to read this file.
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return nil, fmt.Errorf("error creating temporary file at %s: %w", path, err)
 	}
@@ -189,10 +191,10 @@ func (w *fileWriter) write(r io.Reader) error {
 }
 
 // validateHash validates the hash of the file against a known value.
-func (w *fileWriter) validateHash(hash string) error {
+func (w *fileWriter) validateHash(h string) error {
 	tempFileHash := byteToString(w.md5Writer.Sum(nil))
-	if !strings.EqualFold(hash, tempFileHash) {
-		return fmt.Errorf("md5 of new database (%s) does not match expected md5 (%s)", tempFileHash, hash)
+	if !strings.EqualFold(h, tempFileHash) {
+		return fmt.Errorf("md5 of new database (%s) does not match expected md5 (%s)", tempFileHash, h)
 	}
 	return nil
 }
@@ -208,9 +210,10 @@ func (w *fileWriter) syncAndRename(name string) error {
 	return nil
 }
 
-// syncDir syncs the content of a directory to storage
+// syncDir syncs the content of a directory to storage.
 func syncDir(path string) error {
 	// fsync the directory. http://austingroupbugs.net/view.php?id=672
+	//nolint:gosec // we really need to read this file.
 	d, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("error opening database directory %s: %w", path, err)
