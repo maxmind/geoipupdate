@@ -98,7 +98,9 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 		}
 	}
 
-	log.Printf("Database %s successfully updated: %+v", result.editionID, result.newHash)
+	if w.verbose {
+		log.Printf("Database %s successfully updated: %+v", result.editionID, result.newHash)
+	}
 
 	return nil
 }

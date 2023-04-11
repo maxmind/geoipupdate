@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -60,8 +61,6 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 	)
 	defer server.Close()
 
-	client := server.Client()
-
 	tempDir, err := ioutil.TempDir("", "gutest-")
 	require.NoError(t, err)
 	defer func() {
@@ -82,7 +81,8 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 	logOutput := &bytes.Buffer{}
 	log.SetOutput(logOutput)
 
-	err = run(client, config)
+	client := geoipupdate.NewClient(config)
+	err = client.Run(context.Background())
 	assert.NoError(t, err, "run successfully")
 
 	assert.Equal(t, "", logOutput.String(), "no logged output")
