@@ -113,6 +113,8 @@ func (r *HTTPReader) get(
 	if err != nil {
 		return nil, fmt.Errorf("error performing HTTP request: %w", err)
 	}
+	// It is safe to close the response body reader as it wouldn't be
+	// consumed in case this function returns an error.
 	defer func() {
 		if err != nil {
 			response.Body.Close()
