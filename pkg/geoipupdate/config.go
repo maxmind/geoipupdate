@@ -11,25 +11,41 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/vars"
 )
 
 // Config is a parsed configuration file.
 type Config struct {
-	AccountID         int
+	// AccountID is the account ID.
+	AccountID int
+	// DatabaseDirectory is where database files are going to be
+	// stored.
 	DatabaseDirectory string
-	LicenseKey        string
-	LockFile          string
-	URL               string
-	EditionIDs        []string
-	Proxy             *url.URL
+	// EditionIDs are the database editions to be updated.
+	EditionIDs []string
+	// LicenseKey is the license attached to the account.
+	LicenseKey string
+	// LockFile is the path of a lock file that ensures that only one
+	// geoipupdate process can run at a time.
+	LockFile string
+	// PreserveFileTimes sets whether database modification times
+	// are preserved across downloads.
 	PreserveFileTimes bool
-	Verbose           bool
-	RetryFor          time.Duration
 	// Parallelism defines the number of concurrent downloads that
 	// can be triggered at the same time. It defaults to 1, which
 	// wouldn't change the existing behaviour of downloading files
 	// sequentially.
 	Parallelism int
+	// Proxy is host name or IP address of a proxy server.
+	Proxy *url.URL
+	// RetryFor is the retry timeout for HTTP requests. It defaults
+	// to 5 minutes.
+	RetryFor time.Duration
+	// URL points to maxmind servers.
+	URL string
+	// Verbose turns on debug statements.
+	Verbose bool
 }
 
 // Option is a function type that modifies a configuration object.
@@ -51,18 +67,31 @@ func WithParallelism(i int) Option {
 	}
 }
 
+// WithDatabaseDirectory returns an Option that sets the DatabaseDirectory
+// value of a config.
+func WithDatabaseDirectory(dir string) Option {
+	return func(c *Config) error {
+		if dir != "" {
+			c.DatabaseDirectory = filepath.Clean(dir)
+		}
+		return nil
+	}
+}
+
+// WithVerbose returns an Option that sets the Verbose
+// value of a config.
+func WithVerbose(val bool) Option {
+	return func(c *Config) error {
+		c.Verbose = val
+		return nil
+	}
+}
+
 // NewConfig parses the configuration file.
 // flagOptions is provided to provide optional flag overrides to the config
-// file. databaseDirectory and verbose should be moved to flagOptions
-// in the next major release.
-func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
-	file,
-	defaultDatabaseDirectory,
-	databaseDirectory string,
-	verbose bool,
-	flagOptions ...Option,
-) (*Config, error) {
-	fh, err := os.Open(filepath.Clean(file))
+// file.
+func NewConfig(path string, flagOptions ...Option) (*Config, error) {
+	fh, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return nil, fmt.Errorf("error opening file: %w", err)
 	}
@@ -72,7 +101,7 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 	// config defaults
 	config := &Config{
 		URL:               "https://updates.maxmind.com",
-		DatabaseDirectory: filepath.Clean(defaultDatabaseDirectory),
+		DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 		RetryFor:          5 * time.Minute,
 		Parallelism:       1,
 	}
@@ -158,6 +187,7 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		return nil, fmt.Errorf("error reading file: %w", err)
 	}
 
+	// Mandatory values.
 	if _, ok := keysSeen["EditionIDs"]; !ok {
 		return nil, fmt.Errorf("the `EditionIDs` option is required")
 	}
@@ -170,18 +200,12 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		return nil, fmt.Errorf("the `LicenseKey` option is required")
 	}
 
-	// Post-processing: Argument takes precedence.
-	if databaseDirectory != "" {
-		config.DatabaseDirectory = filepath.Clean(databaseDirectory)
-	}
-
+	// Overrides.
 	for _, option := range flagOptions {
 		if err := option(config); err != nil {
 			return nil, fmt.Errorf("error applying flag to config: %w", err)
 		}
 	}
-
-	config.Verbose = verbose
 
 	if config.LockFile == "" {
 		config.LockFile = filepath.Join(config.DatabaseDirectory, ".geoipupdate.lock")

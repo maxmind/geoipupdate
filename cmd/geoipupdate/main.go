@@ -12,9 +12,8 @@ import (
 )
 
 var (
-	version                  = "unknown"
-	defaultConfigFile        string
-	defaultDatabaseDirectory string
+	version           = "unknown"
+	defaultConfigFile string
 )
 
 func main() {
@@ -22,9 +21,6 @@ func main() {
 
 	if defaultConfigFile == "" {
 		defaultConfigFile = vars.DefaultConfigFile
-	}
-	if defaultDatabaseDirectory == "" {
-		defaultDatabaseDirectory = vars.DefaultDatabaseDirectory
 	}
 
 	args := getArgs()
@@ -39,10 +35,9 @@ func main() {
 
 	config, err := geoipupdate.NewConfig(
 		args.ConfigFile,
-		defaultDatabaseDirectory,
-		args.DatabaseDirectory,
-		args.Verbose,
+		geoipupdate.WithDatabaseDirectory(args.DatabaseDirectory),
 		geoipupdate.WithParallelism(args.Parallelism),
+		geoipupdate.WithVerbose(args.Verbose),
 	)
 	if err != nil {
 		fatalLogger(fmt.Sprintf("error loading configuration file %s", args.ConfigFile), err)
