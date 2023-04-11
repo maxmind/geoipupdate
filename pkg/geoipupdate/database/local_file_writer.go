@@ -206,6 +206,9 @@ func (w *fileWriter) syncAndRename(name string) error {
 	if err := w.file.Sync(); err != nil {
 		return fmt.Errorf("error syncing temporary file: %w", err)
 	}
+	if err := w.file.Close(); err != nil {
+		return fmt.Errorf("error closing temporary file: %w", err)
+	}
 	if err := os.Rename(w.file.Name(), name); err != nil {
 		return fmt.Errorf("error moving database into place: %w", err)
 	}
