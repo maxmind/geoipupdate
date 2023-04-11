@@ -90,7 +90,10 @@ func WithVerbose(val bool) Option {
 // NewConfig parses the configuration file.
 // flagOptions is provided to provide optional flag overrides to the config
 // file.
-func NewConfig(path string, flagOptions ...Option) (*Config, error) {
+func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
+	path string,
+	flagOptions ...Option,
+) (*Config, error) {
 	fh, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return nil, fmt.Errorf("error opening file: %w", err)

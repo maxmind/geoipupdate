@@ -70,11 +70,7 @@ func (c *Client) Run(ctx context.Context) error {
 				return err
 			}
 
-			if err := writer.Write(result); err != nil {
-				return err
-			}
-
-			return nil
+			return writer.Write(result)
 		}
 
 		jobProcessor.Add(processFunc)
