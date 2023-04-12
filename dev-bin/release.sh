@@ -37,7 +37,7 @@ fi
 
 tag="v$version"
 
-perl -pi -e "s/(?<=Version = \").+?(?=\")/$version/g" pkg/geoipupdate/version.go
+perl -pi -e "s/(?<=Version = \").+?(?=\")/$version/g" pkg/geoipupdate/vars/version.go
 
 echo $'\nRelease notes:'
 echo "$notes"
