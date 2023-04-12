@@ -37,7 +37,7 @@ fi
 
 tag="v$version"
 
-perl -pi -e "s/(?<=Version = \").+?(?=\")/$version/g" pkg/geoipupdate/version.go
+perl -pi -e "s/(?<=Version = \").+?(?=\")/$version/g" pkg/geoipupdate/vars/version.go
 
 echo $'\nRelease notes:'
 echo "$notes"
@@ -49,7 +49,9 @@ if [ "$ok" != "y" ]; then
     exit 1
 fi
 
-git commit -m "Update for $tag" -a
+if [ -n "$(git status --porcelain)" ]; then
+    git commit -m "Update for $tag" -a
+fi
 
 git push
 
@@ -61,8 +63,6 @@ $notes"
 
 git tag -a -m "$message" "$tag"
 
-# It's important to push before running any hub commands as hub works off
-# what's pushed.
 git push
 
 # goreleaser's `--rm-dist' should clear out `dist', but it didn't work for me.

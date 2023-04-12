@@ -3,26 +3,84 @@
 package geoipupdate
 
 import (
-	"net/http"
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/internal"
 )
 
-// NewClient creates an *http.Client for use in updating.
-func NewClient(
-	config *Config,
-) *http.Client {
-	transport := http.DefaultTransport
-	if config.Proxy != nil {
-		proxy := http.ProxyURL(config.Proxy)
-		transport.(*http.Transport).Proxy = proxy
-	}
-	return &http.Client{Transport: transport}
+// Client uses config data to initiate a download or update
+// process for GeoIP databases.
+type Client struct {
+	config *Config
 }
 
-// GetFilename returns the filename for the given edition ID.
-func GetFilename(
-	_ *Config,
-	editionID string,
-	_ *http.Client,
-) (string, error) { //nolint:unparam // the error return value was kept for API compatibility
-	return editionID + ".mmdb", nil
+// NewClient initialized a new Client struct.
+func NewClient(config *Config) *Client {
+	return &Client{config: config}
+}
+
+// Run starts the download or update process.
+func (c *Client) Run(ctx context.Context) error {
+	fileLock, err := internal.NewFileLock(c.config.LockFile, c.config.Verbose)
+	if err != nil {
+		return fmt.Errorf("error initializing file lock: %w", err)
+	}
+	if err := fileLock.Acquire(); err != nil {
+		return fmt.Errorf("error acquiring file lock: %w", err)
+	}
+	defer func() {
+		if err := fileLock.Release(); err != nil {
+			log.Printf("error releasing file lock: %s", err)
+		}
+	}()
+
+	jobProcessor := internal.NewJobProcessor(ctx, c.config.Parallelism)
+
+	reader := database.NewHTTPReader(
+		c.config.Proxy,
+		c.config.URL,
+		c.config.AccountID,
+		c.config.LicenseKey,
+		c.config.RetryFor,
+		c.config.Verbose,
+	)
+
+	writer, err := database.NewLocalFileWriter(
+		c.config.DatabaseDirectory,
+		c.config.PreserveFileTimes,
+		c.config.Verbose,
+	)
+	if err != nil {
+		return fmt.Errorf("error initializing database writer: %w", err)
+	}
+
+	for _, editionID := range c.config.EditionIDs {
+		editionID := editionID
+		processFunc := func(ctx context.Context) error {
+			editionHash, err := writer.GetHash(editionID)
+			if err != nil {
+				return err
+			}
+
+			result, err := reader.Read(ctx, editionID, editionHash)
+			if err != nil {
+				return err
+			}
+
+			return writer.Write(result)
+		}
+
+		jobProcessor.Add(processFunc)
+	}
+
+	// Run blocks until all jobs are processed or exits early after
+	// the first encountered error.
+	if err := jobProcessor.Run(ctx); err != nil {
+		return fmt.Errorf("error running the job processor: %w", err)
+	}
+
+	return nil
 }

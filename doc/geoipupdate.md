@@ -28,6 +28,10 @@ open.
 :   The configuration file to use. See `GeoIP.conf` and its documentation for
     more information. This is optional. It defaults to CONFFILE.
 
+`--parallelism`
+
+:	Set the number of parallel database downloads.
+
 `-h`, `--help`
 
 :   Display help and exit.

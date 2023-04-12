@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 5.0.0 (2023-04-12)
+
+* Redefined the `Reader` and `Writer` interface apis in
+  `pkg/geoipupdate/database`. This change aims to to make it easier to
+  introduce custom implementations of these interfaces.
+* Changed the signature of `NewConfig` in `pkg/geoipupdate` to accept
+  optional parameters. This change allows the introduction of new
+  flags or config options without making breaking changes to the function's
+  signature.
+* Introduced `Parallelism` as a new flag and config option to enable
+  concurrent database updates.
+
 ## 4.11.1 (2023-03-16)
 
 * Removed extra underscore in script variables preventing the Docker
