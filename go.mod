@@ -1,4 +1,4 @@
-module github.com/maxmind/geoipupdate/v4
+module github.com/maxmind/geoipupdate/v5
 
 go 1.13
 

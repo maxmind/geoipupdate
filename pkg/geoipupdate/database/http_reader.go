@@ -14,8 +14,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/internal"
-	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/internal"
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
 )
 
 const urlFormat = "%s/geoip/databases/%s/update?db_md5=%s"

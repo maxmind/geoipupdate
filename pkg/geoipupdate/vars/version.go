@@ -2,4 +2,4 @@
 package vars
 
 // Version defines current geoipupdate version.
-const Version = "4.11.1"
+const Version = "5.0.0"
