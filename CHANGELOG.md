@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 5.0.0 (2023-04-11)
+## 5.0.0 (2023-04-12)
 
 * Redefined the `Reader` and `Writer` interface apis in
   `pkg/geoipupdate/database`. This change aims to to make it easier to
