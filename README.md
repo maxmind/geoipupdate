@@ -19,12 +19,12 @@ guide](https://dev.maxmind.com/geoip/upgrading-geoip-update?lang=en).
 ### Installing on Linux via the tarball
 
 Download and extract the appropriate tarball for your system. You will end
-up with a directory named something like `geoipupdate_4.0.0_linux_amd64`
+up with a directory named something like `geoipupdate_5.0.0_linux_amd64`
 depending on the version and architecture.
 
 Copy `geoipupdate` to where you want it to live. To install it to
 `/usr/local/bin/geoipupdate`, run the equivalent of `sudo cp
-geoipupdate_4.0.0_linux_amd64/geoipupdate /usr/local/bin`.
+geoipupdate_5.0.0_linux_amd64/geoipupdate /usr/local/bin`.
 
 `geoipupdate` looks for the config file `/usr/local/etc/GeoIP.conf` by
 default.
@@ -51,7 +51,7 @@ You can also use the tarball.
 
 Download the appropriate .deb for your system.
 
-Run `dpkg -i path/to/geoipupdate_4.0.0_linux_amd64.deb` (replacing the
+Run `dpkg -i path/to/geoipupdate_5.0.0_linux_amd64.deb` (replacing the
 version number and architecture as necessary). You will need to be root.
 For Ubuntu you can prefix the command with `sudo`. This will install
 `geoipupdate` to `/usr/bin/geoipupdate`.
@@ -64,7 +64,7 @@ You can also use the tarball.
 
 Download the appropriate .rpm for your system.
 
-Run `rpm -Uvhi path/to/geoipupdate_4.0.0_linux_amd64.rpm` (replacing the
+Run `rpm -Uvhi path/to/geoipupdate_5.0.0_linux_amd64.rpm` (replacing the
 version number and architecture as necessary). You will need to be root.
 This will install `geoipupdate` to `/usr/bin/geoipupdate`.
 
@@ -87,7 +87,7 @@ $ brew install geoipupdate
 ### Installing on Windows
 
 Download and extract the appropriate zip for your system. You will end up
-with a directory named something like `geoipupdate_4.0.0_windows_amd64`
+with a directory named something like `geoipupdate_5.0.0_windows_amd64`
 depending on the version and architecture.
 
 Copy `geoipupdate.exe` to where you want it to live.
@@ -107,7 +107,7 @@ website](https://golang.org).
 
 The easiest way is via `go get`:
 
-    $ env GO111MODULE=on go get -u github.com/maxmind/geoipupdate/v4/cmd/geoipupdate
+    $ env GO111MODULE=on go get -u github.com/maxmind/geoipupdate/v5/cmd/geoipupdate
 
 This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 

@@ -72,6 +72,12 @@ sensitive.
     followed by a unit suffix. Valid time units are `ns`, `us` (or `µs`), `ms`,
     `s`, `m`, `h`. The default is `5m` (5 minutes).
 
+`Parallelism`
+
+:	The maximum number of parallel database downloads. The default is
+	1, which means that databases will be downloaded sequentially. This can be
+	overriden at runtime by the `--parallelism` command line argument.
+
 ## Deprecated settings:
 
 The following are deprecated and will be ignored if present:

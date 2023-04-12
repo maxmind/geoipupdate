@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -16,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -60,8 +61,6 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 	)
 	defer server.Close()
 
-	client := server.Client()
-
 	tempDir, err := ioutil.TempDir("", "gutest-")
 	require.NoError(t, err)
 	defer func() {
@@ -76,12 +75,14 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 		LicenseKey:        "testing",
 		LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
 		URL:               server.URL,
+		Parallelism:       1,
 	}
 
 	logOutput := &bytes.Buffer{}
 	log.SetOutput(logOutput)
 
-	err = run(client, config)
+	client := geoipupdate.NewClient(config)
+	err = client.Run(context.Background())
 	assert.NoError(t, err, "run successfully")
 
 	assert.Equal(t, "", logOutput.String(), "no logged output")

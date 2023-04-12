@@ -2,30 +2,25 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"path/filepath"
 
-	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate"
-	"github.com/maxmind/geoipupdate/v4/pkg/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate"
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
 )
 
 var (
-	version                  = "unknown"
-	defaultConfigFile        string
-	defaultDatabaseDirectory string
+	version           = "unknown"
+	defaultConfigFile string
 )
 
 func main() {
 	log.SetFlags(0)
 
 	if defaultConfigFile == "" {
-		defaultConfigFile = geoipupdate.DefaultConfigFile
-	}
-	if defaultDatabaseDirectory == "" {
-		defaultDatabaseDirectory = geoipupdate.DefaultDatabaseDirectory
+		defaultConfigFile = vars.DefaultConfigFile
 	}
 
 	args := getArgs()
@@ -39,7 +34,11 @@ func main() {
 	}
 
 	config, err := geoipupdate.NewConfig(
-		args.ConfigFile, defaultDatabaseDirectory, args.DatabaseDirectory, args.Verbose)
+		args.ConfigFile,
+		geoipupdate.WithDatabaseDirectory(args.DatabaseDirectory),
+		geoipupdate.WithParallelism(args.Parallelism),
+		geoipupdate.WithVerbose(args.Verbose),
+	)
 	if err != nil {
 		fatalLogger(fmt.Sprintf("error loading configuration file %s", args.ConfigFile), err)
 	}
@@ -51,28 +50,7 @@ func main() {
 	}
 
 	client := geoipupdate.NewClient(config)
-
-	if err = run(client, config); err != nil {
+	if err = client.Run(context.Background()); err != nil {
 		fatalLogger("error retrieving updates", err)
 	}
-}
-
-func run(client *http.Client, config *geoipupdate.Config) error {
-	dbReader := database.NewHTTPDatabaseReader(client, config)
-
-	for _, editionID := range config.EditionIDs {
-		filename, err := geoipupdate.GetFilename(config, editionID, client)
-		if err != nil {
-			return fmt.Errorf("error retrieving filename for %s: %w", editionID, err)
-		}
-		filePath := filepath.Join(config.DatabaseDirectory, filename)
-		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, config.LockFile, config.Verbose)
-		if err != nil {
-			return fmt.Errorf("error creating database writer for %s: %w", editionID, err)
-		}
-		if err := dbReader.Get(dbWriter, editionID); err != nil {
-			return fmt.Errorf("error while getting database for %s: %w", editionID, err)
-		}
-	}
-	return nil
 }
