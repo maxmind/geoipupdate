@@ -1,8 +1,7 @@
 # Releasing
 
-* Make sure you have [`hub`](https://github.com/github/hub),
-  [`goreleaser`](https://goreleaser.com/), rpmbuild, and pandoc installed.
-  (rpmbuild is in the Ubuntu package `rpm`).
+* Make sure you have [`goreleaser`](https://goreleaser.com/), rpmbuild,
+  and pandoc installed. (rpmbuild is in the Ubuntu package `rpm`).
 * Set release date in `CHANGELOG.md` and commit it.
 * Ensure you can run `docker` commands as your user (e.g., `docker
   images`).

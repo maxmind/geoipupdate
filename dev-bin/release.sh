@@ -61,8 +61,6 @@ $notes"
 
 git tag -a -m "$message" "$tag"
 
-# It's important to push before running any hub commands as hub works off
-# what's pushed.
 git push
 
 # goreleaser's `--rm-dist' should clear out `dist', but it didn't work for me.
