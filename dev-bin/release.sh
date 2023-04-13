@@ -65,6 +65,6 @@ git tag -a -m "$message" "$tag"
 
 git push
 
-# goreleaser's `--rm-dist' should clear out `dist', but it didn't work for me.
+# goreleaser's `--clean' should clear out `dist', but it didn't work for me.
 rm -rf dist
-goreleaser release --rm-dist -f .goreleaser.yml --release-notes <(echo "$notes")
+goreleaser release --clean -f .goreleaser.yml --release-notes <(echo "$notes")
