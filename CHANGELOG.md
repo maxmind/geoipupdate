@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 5.0.2
+
+* "Database ... up to date" messages are now only shown if the verbose
+  flag is set. Pull request by Adam Weinberger. GitHub #219.
+
 ## 5.0.1 (2023-04-13)
 
 * The 5.0.0 release mistakenly set the file permissions on downloaded
