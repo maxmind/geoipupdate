@@ -8,7 +8,7 @@
 
 ## 5.0.0 (2023-04-12)
 
-* Redefined the `Reader` and `Writer` interface apis in
+* Redefined the `Reader` and `Writer` interface APIs in
   `pkg/geoipupdate/database`. This change aims to to make it easier to
   introduce custom implementations of these interfaces.
 * Changed the signature of `NewConfig` in `pkg/geoipupdate` to accept
