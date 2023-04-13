@@ -47,7 +47,7 @@ func NewLocalFileWriter(
 // Write writes the result struct returned by a Reader to a database file.
 func (w *LocalFileWriter) Write(result *ReadResult) error {
 	// exit early if we've got the latest database version.
-	if strings.EqualFold(result.oldHash, result.newHash) {
+	if w.verbose && strings.EqualFold(result.oldHash, result.newHash) {
 		log.Printf("Database %s up to date", result.editionID)
 		return nil
 	}
