@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 5.0.2
+## 5.0.2 (2023-04-13)
 
 * "Database ... up to date" messages are now only shown if the verbose
   flag is set. Pull request by Adam Weinberger. GitHub #219.
