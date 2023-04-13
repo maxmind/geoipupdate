@@ -1,8 +1,14 @@
 # CHANGELOG
 
-## 5.0.0 (2023-04-11)
+## 5.0.1 (2023-04-13)
 
-* Redefined the `Reader` and `Writer` interface apis in
+* The 5.0.0 release mistakenly set the file permissions on downloaded
+  databases to 0600. This restores the previous behavior of using 0644.
+  Pull request by Josh Samuelson. GitHub #217 and #218.
+
+## 5.0.0 (2023-04-12)
+
+* Redefined the `Reader` and `Writer` interface APIs in
   `pkg/geoipupdate/database`. This change aims to to make it easier to
   introduce custom implementations of these interfaces.
 * Changed the signature of `NewConfig` in `pkg/geoipupdate` to accept
