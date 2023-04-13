@@ -156,7 +156,7 @@ type fileWriter struct {
 func newFileWriter(path string) (*fileWriter, error) {
 	// prepare temp file for initial writing.
 	//nolint:gosec // we really need to read this file.
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return nil, fmt.Errorf("error creating temporary file at %s: %w", path, err)
 	}
