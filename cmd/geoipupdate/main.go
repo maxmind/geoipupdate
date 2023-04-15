@@ -11,16 +11,23 @@ import (
 	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
 )
 
+// These values are set by build scripts. Changing the names of
+// the variables should be considered a breaking change.
 var (
-	version           = "unknown"
-	defaultConfigFile string
+	version                  = "unknown"
+	defaultConfigFile        string
+	defaultDatabaseDirectory string
 )
 
 func main() {
 	log.SetFlags(0)
 
-	if defaultConfigFile == "" {
-		defaultConfigFile = vars.DefaultConfigFile
+	if defaultConfigFile != "" {
+		vars.DefaultConfigFile = defaultConfigFile
+	}
+
+	if defaultDatabaseDirectory != "" {
+		vars.DefaultDatabaseDirectory = defaultDatabaseDirectory
 	}
 
 	args := getArgs()
