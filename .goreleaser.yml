@@ -195,3 +195,4 @@ nfpms:
         type: config
 release:
   name_template: "{{.Version}}"
+  target_commitish: "{{ .FullCommit }}"

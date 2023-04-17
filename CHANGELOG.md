@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 5.0.4 (2023-04-17)
+
+* On releases 4.9.0 through 5.0.3, the incorrect commit was tagged.
+  This release attempts to fix the release process to prevent this
+  issue. There are no code changes to the binaries provided by
+  MaxMind, either on the GitHub Release page or the MaxMind PPA.
+
 ## 5.0.3 (2023-04-15)
 
 * On 5.0.0 through 5.0.2, the default database directory was not being
