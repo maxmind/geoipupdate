@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
 	flag "github.com/spf13/pflag"
 )
 
@@ -20,7 +21,7 @@ func getArgs() *Args {
 	configFile := flag.StringP(
 		"config-file",
 		"f",
-		defaultConfigFile,
+		vars.DefaultConfigFile,
 		"Configuration file",
 	)
 	databaseDirectory := flag.StringP(

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 5.0.3 (2023-04-15)
+
+* On 5.0.0 through 5.0.2, the default database directory was not being
+  correctly set for Debian and RPM package builds. The directory
+  `/usr/local/share/GeoIP` was being used rather than `/usr/share/GeoIP`.
+  This build restores `/usr/share/GeoIP` as the default directory for
+  these builds. Reported by Yvan. GitHub #222.
+
 ## 5.0.2 (2023-04-13)
 
 * "Database ... up to date" messages are now only shown if the verbose
