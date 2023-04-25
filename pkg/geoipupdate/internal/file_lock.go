@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/gofrs/flock"
 )
@@ -12,6 +13,7 @@ import (
 // FileLock provides a file lock mechanism based on flock.
 type FileLock struct {
 	lock    *flock.Flock
+	path    string
 	verbose bool
 }
 
@@ -28,6 +30,7 @@ func NewFileLock(path string, verbose bool) (*FileLock, error) {
 
 	return &FileLock{
 		lock:    flock.New(path),
+		path:    path,
 		verbose: verbose,
 	}, nil
 }
@@ -54,6 +57,10 @@ func (f *FileLock) Acquire() error {
 	}
 	if !ok {
 		return fmt.Errorf("lock %s already acquired by another process", f.lock.Path())
+	}
+	now := time.Now()
+	if err := os.Chtimes(f.path, now, now); err != nil {
+		return fmt.Errorf("error setting times on lock file %s: %w", f.path, err)
 	}
 	if f.verbose {
 		log.Printf("Acquired lock file at %s", f.lock.Path())

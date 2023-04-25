@@ -46,6 +46,7 @@ cat <<EOF > "$conf_file"
 AccountID $GEOIPUPDATE_ACCOUNT_ID
 LicenseKey $GEOIPUPDATE_LICENSE_KEY
 EditionIDs $GEOIPUPDATE_EDITION_IDS
+DatabaseDirectory $database_dir
 EOF
 
 if [ ! -z "$GEOIPUPDATE_HOST" ]; then
@@ -64,13 +65,17 @@ if [ ! -z "$GEOIPUPDATE_PRESERVE_FILE_TIMES" ]; then
     echo "PreserveFileTimes $GEOIPUPDATE_PRESERVE_FILE_TIMES" >> "$conf_file"
 fi
 
+if [ ! -z "$GEOIPUPDATE_PARALLELISM" ]; then
+    echo "Parallelism $GEOIPUPDATE_PARALLELISM" >> "$conf_file"
+fi
+
 if [ "$GEOIPUPDATE_VERBOSE" ]; then
     flags="-v"
 fi
 
 while true; do
     echo "# STATE: Running geoipupdate"
-    /usr/bin/geoipupdate -d "$database_dir" -f "$conf_file" $flags
+    /usr/bin/geoipupdate -f "$conf_file" $flags
     if [ "$frequency" -eq 0 ]; then
         break
     fi

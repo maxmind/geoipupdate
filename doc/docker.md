@@ -38,6 +38,8 @@ The following are optional:
   written. The default is `/etc/GeoIP.conf`.
 * `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download the
   databases. The default is `/usr/share/GeoIP`.
+* `GEOIPUPDATE_PARALLELISM` - The number of parallel database downloads. The
+  default is `1`.
 
 The environment variables can be placed in a file with one per line and
 passed in with the `--env-file` flag. Alternatively, you may pass them in
