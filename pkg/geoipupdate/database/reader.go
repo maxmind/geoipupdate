@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"time"
 )
@@ -44,7 +45,11 @@ func (r ReadResult) MarshalJSON() ([]byte, error) {
 		s.CheckedAt = r.CheckedAt.Unix()
 	}
 
-	return json.Marshal(s)
+	res, err := json.Marshal(s)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling ReadResult: %w", err)
+	}
+	return res, nil
 }
 
 // UnmarshalJSON is a custom json unmarshaler that converts timestamps to go
@@ -59,7 +64,7 @@ func (r *ReadResult) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &s)
 	if err != nil {
-		return err
+		return fmt.Errorf("error unmarshaling json into ReadResult: %w", err)
 	}
 
 	result := ReadResult(s.partialResult)

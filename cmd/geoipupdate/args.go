@@ -37,11 +37,11 @@ func getArgs() (*Args, error) {
 	flag.Parse()
 
 	if *configFile == "" {
-		return nil, errors.New("You must provide a configuration file.")
+		return nil, errors.New("missing configuration file")
 	}
 
 	if *parallelism < 0 {
-		return nil, errors.New("Parallelism must be a positive number")
+		return nil, errors.New("parallelism must be a positive number")
 	}
 
 	return &Args{

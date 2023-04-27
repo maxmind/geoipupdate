@@ -75,6 +75,7 @@ func main() {
 func exitWithCode(msg string, exitCode int) {
 	log := vars.NewBareStderrLogger()
 	log.Print(msg)
+	//nolint: revive // deep exit from main package
 	os.Exit(exitCode)
 }
 
@@ -86,5 +87,6 @@ func printUsage(err error) {
 	}
 	log.Printf("Usage: %s <arguments>\n", os.Args[0])
 	flag.PrintDefaults()
+	//nolint: revive // deep exit from main package
 	os.Exit(1)
 }

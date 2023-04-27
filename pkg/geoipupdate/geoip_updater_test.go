@@ -85,12 +85,12 @@ type mockReader struct {
 	result []database.ReadResult
 }
 
-func (mr *mockReader) Read(ctx context.Context, _ string, _ string) (*database.ReadResult, error) {
+func (mr *mockReader) Read(_ context.Context, _, _ string) (*database.ReadResult, error) {
 	if mr.i >= len(mr.result) {
 		return nil, errors.New("out of bounds")
 	}
 	res := mr.result[mr.i]
-	mr.i += 1
+	mr.i++
 	return &res, nil
 }
 

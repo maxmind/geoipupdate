@@ -38,9 +38,9 @@ func NewLocalFileWriter(
 	preserveFileTime bool,
 	verbose bool,
 ) (*LocalFileWriter, error) {
-	log := vars.NewDiscardLogger("writer")
+	logger := vars.NewDiscardLogger("writer")
 	if verbose {
-		log.SetOutput(os.Stderr)
+		logger.SetOutput(os.Stderr)
 	}
 
 	err := os.MkdirAll(filepath.Dir(databaseDir), 0o750)
@@ -51,7 +51,7 @@ func NewLocalFileWriter(
 	return &LocalFileWriter{
 		dir:              databaseDir,
 		preserveFileTime: preserveFileTime,
-		log:              log,
+		log:              logger,
 	}, nil
 }
 
@@ -150,7 +150,6 @@ func (w *LocalFileWriter) getFilePath(editionID string) string {
 // syncDir syncs the content of a directory to storage.
 func (w *LocalFileWriter) syncDir() error {
 	// fsync the directory. http://austingroupbugs.net/view.php?id=672
-	//nolint:gosec // we really need to read this file.
 	d, err := os.Open(w.dir)
 	if err != nil {
 		return fmt.Errorf("error opening database directory %s: %w", w.dir, err)

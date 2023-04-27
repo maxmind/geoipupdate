@@ -48,9 +48,9 @@ func NewHTTPReader(
 	retryFor time.Duration,
 	verbose bool,
 ) Reader {
-	log := vars.NewDiscardLogger("reader")
+	logger := vars.NewDiscardLogger("reader")
 	if verbose {
-		log.SetOutput(os.Stderr)
+		logger.SetOutput(os.Stderr)
 	}
 
 	transport := http.DefaultTransport
@@ -65,7 +65,7 @@ func NewHTTPReader(
 		accountID:  accountID,
 		licenseKey: licenseKey,
 		retryFor:   retryFor,
-		log:        log,
+		log:        logger,
 	}
 }
 

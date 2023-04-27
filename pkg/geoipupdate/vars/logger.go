@@ -23,7 +23,7 @@ func NewBareDiscardLogger() *log.Logger {
 	return log.New(io.Discard, "", 0)
 }
 
-// NewBareLogger returns a bare stderr logger mainly used to output messages
+// NewBareStderrLogger returns a bare stderr logger mainly used to output messages
 // without any formatting.
 func NewBareStderrLogger() *log.Logger {
 	return log.New(os.Stderr, "", 0)
