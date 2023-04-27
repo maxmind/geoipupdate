@@ -3,7 +3,7 @@
 set -e
 
 # 2 minutes are added to the update frequency threshold to make room for slower starts.
-cutoff_duration=$(($GEOIPUPDATE_FREQUENCY * 62 * 60))
+cutoff_duration=$(($GEOIPUPDATE_FREQUENCY * 60 * 60 + 120))
 current_time=$(date +%s)
 cutoff_date=$(($current_time - $cutoff_duration))
 
