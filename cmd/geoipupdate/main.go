@@ -3,12 +3,12 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 
 	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate"
 	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
-	flag "github.com/spf13/pflag"
 )
 
 // These values are set by build scripts. Changing the names of
