@@ -2,25 +2,25 @@ package vars
 
 import (
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 )
 
-// NewDiscardLogger returns a logger with an io.Discard writer that should
+// NewDiscardLogger returns a logger with an ioutil.Discard writer that should
 // be replaced with another writer according to need.
 // It takes a string reference as an argument to be used as the prefix for
 // all log entries.
 func NewDiscardLogger(s string) *log.Logger {
-	return log.New(io.Discard, prefix(s), log.LstdFlags)
+	return log.New(ioutil.Discard, prefix(s), log.LstdFlags)
 }
 
-// NewBareDiscardLogger returns a logger with an io.Discard writer that should
+// NewBareDiscardLogger returns a logger with an ioutil.Discard writer that should
 // be replaced with another writer according to need. It's mainly used to output
 // messages without any formatting.
 func NewBareDiscardLogger() *log.Logger {
-	return log.New(io.Discard, "", 0)
+	return log.New(ioutil.Discard, "", 0)
 }
 
 // NewBareStderrLogger returns a bare stderr logger mainly used to output messages
