@@ -1,17 +1,18 @@
 #!/bin/sh
 
-database_dir=/usr/share/GeoIP
-if ! [ -z "$GEOIPUPDATE_DB_DIR" ]; then
-  database_dir=$GEOIPUPDATE_DB_DIR
-fi
+set -e
 
-# The health check is done by checking if the database directory is modified within the
-# update period minus 1 minute. The 1 minute is a threshold for allowing slower starts.
-# Without the LockFile in the database directory, this check is not going to be working
-# since database files are not going to be modified when there are no updates.
-cutoff_date=$(($(date +%s) - $GEOIPUPDATE_FREQUENCY * 60 * 61 ))
-modified_at=$(find $datbase_dir -type f -exec stat -c "%Y" {} + | sort -nr | head -n 1)
+# 2 minutes are added to the update frequency threshold to make room for slower starts.
+cutoff_duration=$(($GEOIPUPDATE_FREQUENCY * 62 * 60))
+current_time=$(date +%s)
+cutoff_date=$(($current_time - $cutoff_duration))
 
-if [[ "$modified_at" -lt "$cutoff_date" ]]; then
-	exit 1
+log_file="/var/lib/geoipupdate/.healthcheck"
+editions=$(cat "$log_file" | jq -r '.[] | select(.checked_at > '$cutoff_date') | .edition_id')
+checked_editions=$(echo "$editions" | wc -l)
+desired_editions=$(echo "$GEOIPUPDATE_EDITION_IDS" | awk -F' ' '{print NF}')
+
+if [ "$checked_editions" != "$desired_editions" ]; then
+  echo "healtcheck editions number $checked_editions is less than the desired editions number $desired_editions"
+  exit 1
 fi
