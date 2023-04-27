@@ -16,7 +16,7 @@ import (
 )
 
 func TestClientOutput(t *testing.T) {
-	now := time.Now()
+	now := time.Now().Truncate(time.Second).In(time.UTC)
 	testTime := time.Date(2023, 4, 27, 12, 4, 48, 0, time.UTC)
 	databases := []database.ReadResult{
 		{
@@ -76,7 +76,7 @@ func TestClientOutput(t *testing.T) {
 		require.Equal(t, databases[i].OldHash, outputDatabases[i].OldHash)
 		require.Equal(t, databases[i].NewHash, outputDatabases[i].NewHash)
 		require.Equal(t, databases[i].ModifiedAt, outputDatabases[i].ModifiedAt)
-		require.Greater(t, outputDatabases[i].CheckedAt, now)
+		require.GreaterOrEqual(t, outputDatabases[i].CheckedAt, now)
 	}
 }
 

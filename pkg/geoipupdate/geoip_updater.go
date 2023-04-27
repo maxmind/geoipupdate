@@ -106,7 +106,7 @@ func (c *Client) Run(ctx context.Context) error {
 			if err := writer.Write(edition); err != nil {
 				return err
 			}
-			edition.CheckedAt = time.Now()
+			edition.CheckedAt = time.Now().In(time.UTC)
 
 			mu.Lock()
 			editions = append(editions, *edition)
