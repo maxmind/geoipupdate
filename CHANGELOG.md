@@ -2,6 +2,8 @@
 
 ## 5.0.5
 
+* Output a json log to stdout describing the result of the download
+  operation if the verbose flag is set to true.
 * Fixed the docker healthcheck script to pick up the correct time
   the last update was attempted. Reported by cford1080. Github #225.
 
