@@ -76,7 +76,10 @@ func TestClientOutput(t *testing.T) {
 		require.Equal(t, databases[i].OldHash, outputDatabases[i].OldHash)
 		require.Equal(t, databases[i].NewHash, outputDatabases[i].NewHash)
 		require.Equal(t, databases[i].ModifiedAt, outputDatabases[i].ModifiedAt)
-		require.GreaterOrEqual(t, outputDatabases[i].CheckedAt, now)
+		// comparing time wasn't supported with require in older go versions.
+		if !afterOrEqual(outputDatabases[i].CheckedAt, now) {
+			t.Errorf("database %s was not updated", outputDatabases[i].EditionID)
+		}
 	}
 }
 
@@ -98,3 +101,7 @@ type mockWriter struct{}
 
 func (w *mockWriter) Write(_ *database.ReadResult) error { return nil }
 func (w mockWriter) GetHash(_ string) (string, error)    { return "", nil }
+
+func afterOrEqual(t1, t2 time.Time) bool {
+	return t1.After(t2) || t1.Equal(t2)
+}
