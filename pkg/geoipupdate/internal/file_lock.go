@@ -2,36 +2,38 @@ package internal
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/gofrs/flock"
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
 )
+
+var log = vars.NewDiscardLogger("flock")
 
 // FileLock provides a file lock mechanism based on flock.
 type FileLock struct {
-	lock    *flock.Flock
-	path    string
-	verbose bool
+	lock *flock.Flock
+	path string
 }
 
 // NewFileLock creates a new instance of FileLock.
 func NewFileLock(path string, verbose bool) (*FileLock, error) {
+	if verbose {
+		log.SetOutput(os.Stderr)
+	}
+
 	err := os.MkdirAll(filepath.Dir(path), 0o750)
 	if err != nil {
 		return nil, fmt.Errorf("error creating lock file directory: %w", err)
 	}
 
-	if verbose {
-		log.Printf("Initializing file lock at %s", path)
-	}
+	log.Printf("Initializing file lock at %s", path)
 
 	return &FileLock{
-		lock:    flock.New(path),
-		path:    path,
-		verbose: verbose,
+		lock: flock.New(path),
+		path: path,
 	}, nil
 }
 
@@ -40,9 +42,7 @@ func (f *FileLock) Release() error {
 	if err := f.lock.Unlock(); err != nil {
 		return fmt.Errorf("error releasing file lock at %s: %w", f.lock.Path(), err)
 	}
-	if f.verbose {
-		log.Printf("Lock file %s successfully released", f.lock.Path())
-	}
+	log.Printf("Lock file %s successfully released", f.lock.Path())
 	return nil
 }
 
@@ -62,8 +62,6 @@ func (f *FileLock) Acquire() error {
 	if err := os.Chtimes(f.path, now, now); err != nil {
 		return fmt.Errorf("error setting times on lock file %s: %w", f.path, err)
 	}
-	if f.verbose {
-		log.Printf("Acquired lock file at %s", f.lock.Path())
-	}
+	log.Printf("Acquired lock file at %s", f.lock.Path())
 	return nil
 }

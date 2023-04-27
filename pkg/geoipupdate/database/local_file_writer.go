@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
 )
 
 const (
@@ -21,9 +23,13 @@ const (
 // LocalFileWriter is a database.Writer that stores the database to the
 // local file system.
 type LocalFileWriter struct {
-	dir              string
+	// dir is the path where databases are going to be written to.
+	dir string
+	// preserveFileTime indicates whether we need to preserve file download
+	// times as received from the GeoIP download servers.
 	preserveFileTime bool
-	verbose          bool
+	// log is the writer's logger.
+	log *log.Logger
 }
 
 // NewLocalFileWriter create a LocalFileWriter.
@@ -32,6 +38,11 @@ func NewLocalFileWriter(
 	preserveFileTime bool,
 	verbose bool,
 ) (*LocalFileWriter, error) {
+	log := vars.NewDiscardLogger("writer")
+	if verbose {
+		log.SetOutput(os.Stderr)
+	}
+
 	err := os.MkdirAll(filepath.Dir(databaseDir), 0o750)
 	if err != nil {
 		return nil, fmt.Errorf("error creating database directory: %w", err)
@@ -40,46 +51,44 @@ func NewLocalFileWriter(
 	return &LocalFileWriter{
 		dir:              databaseDir,
 		preserveFileTime: preserveFileTime,
-		verbose:          verbose,
+		log:              log,
 	}, nil
 }
 
 // Write writes the result struct returned by a Reader to a database file.
 func (w *LocalFileWriter) Write(result *ReadResult) error {
 	// exit early if we've got the latest database version.
-	if strings.EqualFold(result.oldHash, result.newHash) {
-		if w.verbose {
-			log.Printf("Database %s up to date", result.editionID)
-		}
+	if strings.EqualFold(result.OldHash, result.NewHash) {
+		w.log.Printf("Database %s up to date", result.EditionID)
 		return nil
 	}
 
 	defer func() {
 		if err := result.reader.Close(); err != nil {
-			log.Printf("error closing reader for %s: %+v", result.editionID, err)
+			w.log.Printf("error closing reader for %s: %+v", result.EditionID, err)
 		}
 	}()
 
-	databaseFilePath := w.getFilePath(result.editionID)
+	databaseFilePath := w.getFilePath(result.EditionID)
 
 	// write the Reader's result into a temporary file.
 	fw, err := newFileWriter(databaseFilePath + tempExtension)
 	if err != nil {
-		return fmt.Errorf("error setting up database writer for %s: %w", result.editionID, err)
+		return fmt.Errorf("error setting up database writer for %s: %w", result.EditionID, err)
 	}
 	defer func() {
 		if err := fw.close(); err != nil {
-			log.Printf("error closing file writer: %+v", err)
+			w.log.Printf("error closing file writer: %+v", err)
 		}
 	}()
 
 	if err := fw.write(result.reader); err != nil {
-		return fmt.Errorf("error writing to the temp file for %s: %w", result.editionID, err)
+		return fmt.Errorf("error writing to the temp file for %s: %w", result.EditionID, err)
 	}
 
 	// make sure the hash of the temp file matches the expected hash.
-	if err := fw.validateHash(result.newHash); err != nil {
-		return fmt.Errorf("error validating hash for %s: %w", result.editionID, err)
+	if err := fw.validateHash(result.NewHash); err != nil {
+		return fmt.Errorf("error validating hash for %s: %w", result.EditionID, err)
 	}
 
 	// move the temoporary database file into it's final location and
@@ -89,21 +98,18 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 	}
 
 	// sync database directory.
-	if err := syncDir(filepath.Dir(databaseFilePath)); err != nil {
+	if err := w.syncDir(); err != nil {
 		return fmt.Errorf("error syncing database directory: %w", err)
 	}
 
 	// check if we need to set the file's modified at time
 	if w.preserveFileTime {
-		if err := setModifiedAtTime(databaseFilePath, result.modifiedAt); err != nil {
+		if err := setModifiedAtTime(databaseFilePath, result.ModifiedAt); err != nil {
 			return err
 		}
 	}
 
-	if w.verbose {
-		log.Printf("Database %s successfully updated: %+v", result.editionID, result.newHash)
-	}
-
+	w.log.Printf("Database %s successfully updated: %+v", result.EditionID, result.NewHash)
 	return nil
 }
 
@@ -114,9 +120,7 @@ func (w *LocalFileWriter) GetHash(editionID string) (string, error) {
 	database, err := os.Open(databaseFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if w.verbose {
-				log.Print("Database does not exist, returning zeroed hash")
-			}
+			w.log.Print("Database does not exist, returning zeroed hash")
 			return ZeroMD5, nil
 		}
 		return "", fmt.Errorf("error opening database: %w", err)
@@ -124,7 +128,7 @@ func (w *LocalFileWriter) GetHash(editionID string) (string, error) {
 
 	defer func() {
 		if err := database.Close(); err != nil {
-			log.Println(fmt.Errorf("error closing database: %w", err))
+			w.log.Printf("error closing database: %+v", err)
 		}
 	}()
 
@@ -134,15 +138,34 @@ func (w *LocalFileWriter) GetHash(editionID string) (string, error) {
 	}
 
 	result := byteToString(md5Hash.Sum(nil))
-	if w.verbose {
-		log.Printf("Calculated MD5 sum for %s: %s", databaseFilePath, result)
-	}
+	w.log.Printf("Calculated MD5 sum for %s: %s", databaseFilePath, result)
 	return result, nil
 }
 
 // getFilePath construct the file path for a database edition.
 func (w *LocalFileWriter) getFilePath(editionID string) string {
 	return filepath.Join(w.dir, editionID) + extension
+}
+
+// syncDir syncs the content of a directory to storage.
+func (w *LocalFileWriter) syncDir() error {
+	// fsync the directory. http://austingroupbugs.net/view.php?id=672
+	//nolint:gosec // we really need to read this file.
+	d, err := os.Open(w.dir)
+	if err != nil {
+		return fmt.Errorf("error opening database directory %s: %w", w.dir, err)
+	}
+	defer func() {
+		if err := d.Close(); err != nil {
+			w.log.Printf("closing directory %s: %+v", w.dir, err)
+		}
+	}()
+
+	// We ignore Sync errors as they primarily happen on file systems that do
+	// not support sync.
+	//nolint:errcheck // See above.
+	_ = d.Sync()
+	return nil
 }
 
 // fileWriter is used to write the content of a Reader's response
@@ -214,27 +237,6 @@ func (w *fileWriter) syncAndRename(name string) error {
 	if err := os.Rename(w.file.Name(), name); err != nil {
 		return fmt.Errorf("error moving database into place: %w", err)
 	}
-	return nil
-}
-
-// syncDir syncs the content of a directory to storage.
-func syncDir(path string) error {
-	// fsync the directory. http://austingroupbugs.net/view.php?id=672
-	//nolint:gosec // we really need to read this file.
-	d, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("error opening database directory %s: %w", path, err)
-	}
-	defer func() {
-		if err := d.Close(); err != nil {
-			log.Printf("closing directory %s: %+v", path, err)
-		}
-	}()
-
-	// We ignore Sync errors as they primarily happen on file systems that do
-	// not support sync.
-	//nolint:errcheck // See above.
-	_ = d.Sync()
 	return nil
 }
 

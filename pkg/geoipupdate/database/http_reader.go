@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/internal"
@@ -33,8 +34,8 @@ type HTTPReader struct {
 	licenseKey string
 	// retryFor sets the timeout for when a request can no longuer be retried.
 	retryFor time.Duration
-	// verbose turns on/off debug logs.
-	verbose bool
+	// log is the reader's logger.
+	log *log.Logger
 }
 
 // NewHTTPReader creates a Reader that downloads database updates via
@@ -47,6 +48,11 @@ func NewHTTPReader(
 	retryFor time.Duration,
 	verbose bool,
 ) Reader {
+	log := vars.NewDiscardLogger("reader")
+	if verbose {
+		log.SetOutput(os.Stderr)
+	}
+
 	transport := http.DefaultTransport
 	if proxy != nil {
 		proxyFunc := http.ProxyURL(proxy)
@@ -59,7 +65,7 @@ func NewHTTPReader(
 		accountID:  accountID,
 		licenseKey: licenseKey,
 		retryFor:   retryFor,
-		verbose:    verbose,
+		log:        log,
 	}
 }
 
@@ -98,9 +104,7 @@ func (r *HTTPReader) get(
 		url.QueryEscape(hash),
 	)
 
-	if r.verbose {
-		log.Printf("Requesting updates for %s: %s", editionID, requestURL)
-	}
+	r.log.Printf("Requesting updates for %s: %s", editionID, requestURL)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
@@ -123,10 +127,8 @@ func (r *HTTPReader) get(
 
 	switch response.StatusCode {
 	case http.StatusNotModified:
-		if r.verbose {
-			log.Printf("No new updates available for %s", editionID)
-		}
-		return &ReadResult{editionID: editionID, oldHash: hash, newHash: hash}, nil
+		r.log.Printf("No new updates available for %s", editionID)
+		return &ReadResult{EditionID: editionID, OldHash: hash, NewHash: hash}, nil
 	case http.StatusOK:
 	default:
 		//nolint:errcheck // we are already returning an error.
@@ -153,16 +155,14 @@ func (r *HTTPReader) get(
 		return nil, fmt.Errorf("encountered an error creating GZIP reader: %w", err)
 	}
 
-	if r.verbose {
-		log.Printf("Updates available for %s", editionID)
-	}
+	r.log.Printf("Updates available for %s", editionID)
 
 	return &ReadResult{
 		reader:     gzReader,
-		editionID:  editionID,
-		oldHash:    hash,
-		newHash:    newHash,
-		modifiedAt: modifiedAt,
+		EditionID:  editionID,
+		OldHash:    hash,
+		NewHash:    newHash,
+		ModifiedAt: modifiedAt,
 	}, nil
 }
 
