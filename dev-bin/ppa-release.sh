@@ -4,7 +4,7 @@ set -e
 set -x
 set -u
 
-DISTS=( lunar kinetic jammy focal bionic )
+DISTS=( lunar jammy focal )
 
 VERSION=$(perl -MFile::Slurper=read_text -MDateTime <<EOF
 use v5.16;
