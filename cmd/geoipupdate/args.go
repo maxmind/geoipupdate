@@ -14,6 +14,7 @@ type Args struct {
 	DatabaseDirectory string
 	StackTrace        bool
 	Verbose           bool
+	Output            bool
 	Parallelism       int
 }
 
@@ -31,10 +32,11 @@ func getArgs() *Args {
 		"Store databases in this directory (uses config if not specified)",
 	)
 	help := flag.BoolP("help", "h", false, "Display help and exit")
-	stackTrace := flag.Bool("stack-trace", false, "Show a stack trace along with any error message.")
+	stackTrace := flag.Bool("stack-trace", false, "Show a stack trace along with any error message")
 	verbose := flag.BoolP("verbose", "v", false, "Use verbose output")
+	output := flag.BoolP("output", "o", false, "Output download/update results in JSON format")
 	displayVersion := flag.BoolP("version", "V", false, "Display the version and exit")
-	parallelism := flag.Int("parallelism", 0, "Set the number of parallel database downloads.")
+	parallelism := flag.Int("parallelism", 0, "Set the number of parallel database downloads")
 
 	flag.Parse()
 
@@ -62,6 +64,7 @@ func getArgs() *Args {
 		DatabaseDirectory: *databaseDirectory,
 		StackTrace:        *stackTrace,
 		Verbose:           *verbose,
+		Output:            *output,
 		Parallelism:       *parallelism,
 	}
 }

@@ -47,25 +47,25 @@ func NewLocalFileWriter(
 // Write writes the result struct returned by a Reader to a database file.
 func (w *LocalFileWriter) Write(result *ReadResult) error {
 	// exit early if we've got the latest database version.
-	if strings.EqualFold(result.oldHash, result.newHash) {
+	if strings.EqualFold(result.OldHash, result.NewHash) {
 		if w.verbose {
-			log.Printf("Database %s up to date", result.editionID)
+			log.Printf("Database %s up to date", result.EditionID)
 		}
 		return nil
 	}
 
 	defer func() {
 		if err := result.reader.Close(); err != nil {
-			log.Printf("error closing reader for %s: %+v", result.editionID, err)
+			log.Printf("error closing reader for %s: %+v", result.EditionID, err)
 		}
 	}()
 
-	databaseFilePath := w.getFilePath(result.editionID)
+	databaseFilePath := w.getFilePath(result.EditionID)
 
 	// write the Reader's result into a temporary file.
 	fw, err := newFileWriter(databaseFilePath + tempExtension)
 	if err != nil {
-		return fmt.Errorf("error setting up database writer for %s: %w", result.editionID, err)
+		return fmt.Errorf("error setting up database writer for %s: %w", result.EditionID, err)
 	}
 	defer func() {
 		if err := fw.close(); err != nil {
@@ -74,12 +74,12 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 	}()
 
 	if err := fw.write(result.reader); err != nil {
-		return fmt.Errorf("error writing to the temp file for %s: %w", result.editionID, err)
+		return fmt.Errorf("error writing to the temp file for %s: %w", result.EditionID, err)
 	}
 
 	// make sure the hash of the temp file matches the expected hash.
-	if err := fw.validateHash(result.newHash); err != nil {
-		return fmt.Errorf("error validating hash for %s: %w", result.editionID, err)
+	if err := fw.validateHash(result.NewHash); err != nil {
+		return fmt.Errorf("error validating hash for %s: %w", result.EditionID, err)
 	}
 
 	// move the temoporary database file into it's final location and
@@ -95,13 +95,13 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 
 	// check if we need to set the file's modified at time
 	if w.preserveFileTime {
-		if err := setModifiedAtTime(databaseFilePath, result.modifiedAt); err != nil {
+		if err := setModifiedAtTime(databaseFilePath, result.ModifiedAt); err != nil {
 			return err
 		}
 	}
 
 	if w.verbose {
-		log.Printf("Database %s successfully updated: %+v", result.editionID, result.newHash)
+		log.Printf("Database %s successfully updated: %+v", result.EditionID, result.NewHash)
 	}
 
 	return nil
