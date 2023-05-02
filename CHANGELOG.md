@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 5.1.0
+
+* Output a json log to stdout describing the result of the download if using
+  the --output flag.
+* Fixed the docker healthcheck script to pick up the correct time
+  the last update was attempted. Reported by cford1080. Github #225.
+
 ## 5.0.4 (2023-04-17)
 
 * On releases 4.9.0 through 5.0.3, the incorrect commit was tagged.

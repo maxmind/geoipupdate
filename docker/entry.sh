@@ -16,7 +16,9 @@ trap 'kill ${!}; term_handler' SIGTERM
 pid=0
 conf_file=/etc/GeoIP.conf
 database_dir=/usr/share/GeoIP
-flags=
+log_dir="/var/lib/geoipupdate"
+log_file="$log_dir/.healthcheck"
+flags="--output"
 frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
 
 if ! [ -z "$GEOIPUPDATE_CONF_FILE" ]; then
@@ -65,12 +67,14 @@ if [ ! -z "$GEOIPUPDATE_PRESERVE_FILE_TIMES" ]; then
 fi
 
 if [ "$GEOIPUPDATE_VERBOSE" ]; then
-    flags="-v"
+    flags="$flags -v"
 fi
+
+mkdir -p $log_dir
 
 while true; do
     echo "# STATE: Running geoipupdate"
-    /usr/bin/geoipupdate -d "$database_dir" -f "$conf_file" $flags
+    /usr/bin/geoipupdate -d "$database_dir" -f "$conf_file" $flags 1>$log_file
     if [ "$frequency" -eq 0 ]; then
         break
     fi
