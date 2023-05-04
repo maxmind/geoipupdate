@@ -46,6 +46,8 @@ type Config struct {
 	URL string
 	// Verbose turns on debug statements.
 	Verbose bool
+	// Output turns on sending the download/update result to stdout as JSON.
+	Output bool
 }
 
 // Option is a function type that modifies a configuration object.
@@ -83,6 +85,15 @@ func WithDatabaseDirectory(dir string) Option {
 func WithVerbose(val bool) Option {
 	return func(c *Config) error {
 		c.Verbose = val
+		return nil
+	}
+}
+
+// WithOutput returns an Option that sets the Output
+// value of a config.
+func WithOutput(val bool) Option {
+	return func(c *Config) error {
+		c.Output = val
 		return nil
 	}
 }
