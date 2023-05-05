@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -12,12 +10,7 @@ import (
 // TestAcquireFileLock tests that a lock can be acquired multile times
 // within a same process.
 func TestAcquireFileLock(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "gutest-")
-	require.NoError(t, err)
-	defer func() {
-		err = os.RemoveAll(tempDir)
-		require.NoError(t, err)
-	}()
+	tempDir := t.TempDir()
 
 	fl, err := NewFileLock(filepath.Join(tempDir, ".geoipupdate.lock"), false)
 	require.NoError(t, err)

@@ -1,7 +1,6 @@
 package database
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -75,14 +74,8 @@ func TestLocalFileWriterWrite(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			tempDir, err := ioutil.TempDir("", "gutest-")
-			require.NoError(t, err)
-			defer func() {
-				err := os.RemoveAll(tempDir)
-				require.NoError(t, err)
-
-				test.result.reader.Close()
-			}()
+			tempDir := t.TempDir()
+			defer test.result.reader.Close()
 
 			fw, err := NewLocalFileWriter(tempDir, test.preserveFileTime, false)
 			require.NoError(t, err)
@@ -109,14 +102,9 @@ func TestLocalFileWriterGetHash(t *testing.T) {
 		ModifiedAt: time.Time{},
 	}
 
-	tempDir, err := ioutil.TempDir("", "gutest-")
-	require.NoError(t, err)
-	defer func() {
-		err := os.RemoveAll(tempDir)
-		require.NoError(t, err)
+	tempDir := t.TempDir()
 
-		result.reader.Close()
-	}()
+	defer result.reader.Close()
 
 	fw, err := NewLocalFileWriter(tempDir, false, false)
 	require.NoError(t, err)

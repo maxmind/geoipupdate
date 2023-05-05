@@ -7,7 +7,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -61,12 +60,7 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 	)
 	defer server.Close()
 
-	tempDir, err := ioutil.TempDir("", "gutest-")
-	require.NoError(t, err)
-	defer func() {
-		err := os.RemoveAll(tempDir)
-		require.NoError(t, err)
-	}()
+	tempDir := t.TempDir()
 
 	config := &geoipupdate.Config{
 		AccountID:         123,
@@ -82,14 +76,14 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 	log.SetOutput(logOutput)
 
 	client := geoipupdate.NewClient(config)
-	err = client.Run(context.Background())
+	err := client.Run(context.Background())
 	assert.NoError(t, err, "run successfully")
 
 	assert.Equal(t, "", logOutput.String(), "no logged output")
 
 	for _, editionID := range config.EditionIDs {
 		path := filepath.Join(config.DatabaseDirectory, editionID+".mmdb")
-		buf, err := ioutil.ReadFile(filepath.Clean(path))
+		buf, err := os.ReadFile(filepath.Clean(path))
 		require.NoError(t, err, "read file")
 		assert.Equal(
 			t,
