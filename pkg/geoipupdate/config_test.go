@@ -2,7 +2,6 @@ package geoipupdate
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -428,7 +427,7 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 		},
 	}
 
-	tempFh, err := ioutil.TempFile("", "conf-test")
+	tempFh, err := os.CreateTemp("", "conf-test")
 	require.NoError(t, err)
 	tempName := tempFh.Name()
 	require.NoError(t, tempFh.Close())
@@ -438,7 +437,7 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
-			require.NoError(t, ioutil.WriteFile(tempName, []byte(test.Input), 0o600))
+			require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
 			config, err := NewConfig(tempName, test.Flags...)
 			if test.Err == "" {
 				assert.NoError(t, err, test.Description)

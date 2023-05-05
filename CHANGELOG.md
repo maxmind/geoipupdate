@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 5.1.0 (2023-05-05)
+
+* Fixed the Docker health-check script to use the correct time of
+  the last update attempt. Reported by cford1080. GitHub #225.
+* Added new `--output` flag to print JSON to standard output describing
+  the result of the run.
+* Compilation with Go versions before 1.19 is no longer supported.
+* When using the provided Docker images, `geoipupdate` no longer runs
+  as root in the container. Based on pull request by Andreas
+  Grünenfelder. GitHub #200.
+
+## 5.0.4 (2023-04-17)
+
+* On releases 4.9.0 through 5.0.3, the incorrect commit was tagged.
+  This release attempts to fix the release process to prevent this
+  issue. There are no code changes to the binaries provided by
+  MaxMind, either on the GitHub Release page or the MaxMind PPA.
+
 ## 5.0.3 (2023-04-15)
 
 * On 5.0.0 through 5.0.2, the default database directory was not being

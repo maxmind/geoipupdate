@@ -49,6 +49,10 @@ open.
 
 :   Enable verbose mode. Prints out the steps that `geoipupdate` takes.
 
+`-o`, `--output`
+
+:   Output download/update results in JSON format.
+
 # EXIT STATUS
 
 `geoipupdate` returns 0 on success and 1 on error.

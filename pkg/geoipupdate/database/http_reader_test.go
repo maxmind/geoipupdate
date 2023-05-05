@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -40,10 +39,10 @@ func TestHTTPReader(t *testing.T) {
 			responseTime:   testTime.Format(time.RFC1123),
 			result: &ReadResult{
 				reader:     getReader(t, "database content"),
-				editionID:  "GeoIP2-City",
-				oldHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
-				newHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
-				modifiedAt: testTime,
+				EditionID:  "GeoIP2-City",
+				OldHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+				NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
+				ModifiedAt: testTime,
 			},
 		}, {
 			description:    "no new update",
@@ -56,10 +55,10 @@ func TestHTTPReader(t *testing.T) {
 			responseTime:   "",
 			result: &ReadResult{
 				reader:     nil,
-				editionID:  "GeoIP2-City",
-				oldHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
-				newHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
-				modifiedAt: time.Time{},
+				EditionID:  "GeoIP2-City",
+				OldHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+				NewHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
+				ModifiedAt: time.Time{},
 			},
 		}, {
 			description:    "bad request",
@@ -129,17 +128,17 @@ func TestHTTPReader(t *testing.T) {
 			result, err := reader.Read(context.Background(), test.requestEdition, test.requestHash)
 			test.checkErr(t, err)
 			if err == nil {
-				require.Equal(t, result.editionID, test.result.editionID)
-				require.Equal(t, result.oldHash, test.result.oldHash)
-				require.Equal(t, result.newHash, test.result.newHash)
-				require.Equal(t, result.modifiedAt, test.result.modifiedAt)
+				require.Equal(t, result.EditionID, test.result.EditionID)
+				require.Equal(t, result.OldHash, test.result.OldHash)
+				require.Equal(t, result.NewHash, test.result.NewHash)
+				require.Equal(t, result.ModifiedAt, test.result.ModifiedAt)
 
 				if test.result.reader != nil && result.reader != nil {
 					defer result.reader.Close()
 					defer test.result.reader.Close()
-					resultDatabase, err := ioutil.ReadAll(test.result.reader)
+					resultDatabase, err := io.ReadAll(test.result.reader)
 					require.NoError(t, err)
-					expectedDatabase, err := ioutil.ReadAll(result.reader)
+					expectedDatabase, err := io.ReadAll(result.reader)
 					require.NoError(t, err)
 					require.Equal(t, resultDatabase, expectedDatabase)
 				}

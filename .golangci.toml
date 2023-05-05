@@ -84,6 +84,17 @@
     "wrapcheck",
   ]
 
+# Please note that we only use depguard for stdlib as gomodguard only
+# supports modules currently. See https://github.com/ryancurrah/gomodguard/issues/12
+[linters-settings.depguard]
+  list-type = "blacklist"
+  include-go-root = true
+  packages = [
+    # ioutil is deprecated. The functions have been moved elsewhere:
+    # https://golang.org/doc/go1.16#ioutil
+    "io/ioutil",
+  ]
+
 [linters-settings.errcheck]
     # Don't allow setting of error to the blank identifier. If there is a legitimate
     # reason, there should be a nolint with an explanation.
@@ -252,7 +263,7 @@
 
 [linters-settings.gofumpt]
     extra-rules = true
-    lang-version = "1.18"
+    lang-version = "1.19"
 
 [linters-settings.gomodguard]
   [[linters-settings.gomodguard.blocked.modules]]

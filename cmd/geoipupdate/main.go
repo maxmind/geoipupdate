@@ -45,6 +45,7 @@ func main() {
 		geoipupdate.WithDatabaseDirectory(args.DatabaseDirectory),
 		geoipupdate.WithParallelism(args.Parallelism),
 		geoipupdate.WithVerbose(args.Verbose),
+		geoipupdate.WithOutput(args.Output),
 	)
 	if err != nil {
 		fatalLogger(fmt.Sprintf("error loading configuration file %s", args.ConfigFile), err)

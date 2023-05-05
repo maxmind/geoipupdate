@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -126,11 +125,11 @@ func (r *HTTPReader) get(
 		if r.verbose {
 			log.Printf("No new updates available for %s", editionID)
 		}
-		return &ReadResult{editionID: editionID, oldHash: hash, newHash: hash}, nil
+		return &ReadResult{EditionID: editionID, OldHash: hash, NewHash: hash}, nil
 	case http.StatusOK:
 	default:
 		//nolint:errcheck // we are already returning an error.
-		buf, _ := ioutil.ReadAll(io.LimitReader(response.Body, 256))
+		buf, _ := io.ReadAll(io.LimitReader(response.Body, 256))
 		httpErr := internal.HTTPError{
 			Body:       string(buf),
 			StatusCode: response.StatusCode,
@@ -159,10 +158,10 @@ func (r *HTTPReader) get(
 
 	return &ReadResult{
 		reader:     gzReader,
-		editionID:  editionID,
-		oldHash:    hash,
-		newHash:    newHash,
-		modifiedAt: modifiedAt,
+		EditionID:  editionID,
+		OldHash:    hash,
+		NewHash:    newHash,
+		ModifiedAt: modifiedAt,
 	}, nil
 }
 

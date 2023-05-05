@@ -5,6 +5,9 @@
 * Set release date in `CHANGELOG.md` and commit it.
 * Ensure you can run `docker` commands as your user (e.g., `docker
   images`).
+* Ensure Docker is set up to do cross-compilation. You can verify this with
+  `docker buildx ls`. It should list `linux/arm64` as an available platform.
+  If not, follow [these instructions](https://docs.docker.com/build/building/multi-platform/).
 * Log in to your Docker Hub account (be sure to be in our organization):
   `docker login`.
 * Run `GITHUB_TOKEN=<your token> ./dev-bin/release.sh`. For `goreleaser` you

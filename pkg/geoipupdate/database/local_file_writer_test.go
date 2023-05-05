@@ -1,7 +1,6 @@
 package database
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -29,10 +28,10 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			checkTime:        require.Equal,
 			result: &ReadResult{
 				reader:     getReader(t, "database content"),
-				editionID:  "GeoIP2-City",
-				oldHash:    "",
-				newHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
-				modifiedAt: testTime,
+				EditionID:  "GeoIP2-City",
+				OldHash:    "",
+				NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
+				ModifiedAt: testTime,
 			},
 		}, {
 			description:      "hash does not match",
@@ -41,10 +40,10 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			checkTime:        require.Equal,
 			result: &ReadResult{
 				reader:     getReader(t, "database content"),
-				editionID:  "GeoIP2-City",
-				oldHash:    "",
-				newHash:    "badhash",
-				modifiedAt: testTime,
+				EditionID:  "GeoIP2-City",
+				OldHash:    "",
+				NewHash:    "badhash",
+				ModifiedAt: testTime,
 			},
 		}, {
 			description:      "hash case does not matter",
@@ -53,10 +52,10 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			checkTime:        require.Equal,
 			result: &ReadResult{
 				reader:     getReader(t, "database content"),
-				editionID:  "GeoIP2-City",
-				oldHash:    "",
-				newHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
-				modifiedAt: testTime,
+				EditionID:  "GeoIP2-City",
+				OldHash:    "",
+				NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
+				ModifiedAt: testTime,
 			},
 		}, {
 			description:      "do not preserve file modification time",
@@ -65,24 +64,18 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			checkTime:        require.NotEqual,
 			result: &ReadResult{
 				reader:     getReader(t, "database content"),
-				editionID:  "GeoIP2-City",
-				oldHash:    "",
-				newHash:    "CFA36DDC8279B5483A5AA25E9A6151F4",
-				modifiedAt: testTime,
+				EditionID:  "GeoIP2-City",
+				OldHash:    "",
+				NewHash:    "CFA36DDC8279B5483A5AA25E9A6151F4",
+				ModifiedAt: testTime,
 			},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			tempDir, err := ioutil.TempDir("", "gutest-")
-			require.NoError(t, err)
-			defer func() {
-				err := os.RemoveAll(tempDir)
-				require.NoError(t, err)
-
-				test.result.reader.Close()
-			}()
+			tempDir := t.TempDir()
+			defer test.result.reader.Close()
 
 			fw, err := NewLocalFileWriter(tempDir, test.preserveFileTime, false)
 			require.NoError(t, err)
@@ -90,7 +83,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			err = fw.Write(test.result)
 			test.checkErr(t, err)
 			if err == nil {
-				database, err := os.Stat(fw.getFilePath(test.result.editionID))
+				database, err := os.Stat(fw.getFilePath(test.result.EditionID))
 				require.NoError(t, err)
 
 				test.checkTime(t, database.ModTime().UTC(), testTime)
@@ -103,20 +96,15 @@ func TestLocalFileWriterWrite(t *testing.T) {
 func TestLocalFileWriterGetHash(t *testing.T) {
 	result := &ReadResult{
 		reader:     getReader(t, "database content"),
-		editionID:  "GeoIP2-City",
-		oldHash:    "",
-		newHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
-		modifiedAt: time.Time{},
+		EditionID:  "GeoIP2-City",
+		OldHash:    "",
+		NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
+		ModifiedAt: time.Time{},
 	}
 
-	tempDir, err := ioutil.TempDir("", "gutest-")
-	require.NoError(t, err)
-	defer func() {
-		err := os.RemoveAll(tempDir)
-		require.NoError(t, err)
+	tempDir := t.TempDir()
 
-		result.reader.Close()
-	}()
+	defer result.reader.Close()
 
 	fw, err := NewLocalFileWriter(tempDir, false, false)
 	require.NoError(t, err)
@@ -125,9 +113,9 @@ func TestLocalFileWriterGetHash(t *testing.T) {
 	require.NoError(t, err)
 
 	// returns the correct hash for an existing database.
-	hash, err := fw.GetHash(result.editionID)
+	hash, err := fw.GetHash(result.EditionID)
 	require.NoError(t, err)
-	require.Equal(t, hash, result.newHash)
+	require.Equal(t, hash, result.NewHash)
 
 	// returns a zero hash for a non existing edition.
 	hash, err = fw.GetHash("NewEdition")
