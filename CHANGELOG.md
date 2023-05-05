@@ -1,11 +1,11 @@
 # CHANGELOG
 
-## 5.1.0
+## 5.1.0 (2023-05-05)
 
-* Output a json log to stdout describing the result of the download if using
-  the --output flag.
-* Fixed the docker healthcheck script to pick up the correct time
-  the last update was attempted. Reported by cford1080. Github #225.
+* Fixed the Docker health-check script to use the correct time of
+  the last update attempt. Reported by cford1080. GitHub #225.
+* Added new `--output` flag to print JSON to standard output describing
+  the result of the run.
 
 ## 5.0.4 (2023-04-17)
 
