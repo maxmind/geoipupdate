@@ -6,6 +6,7 @@
   the last update attempt. Reported by cford1080. GitHub #225.
 * Added new `--output` flag to print JSON to standard output describing
   the result of the run.
+* Compilation with Go versions before 1.19 is no longer supported.
 
 ## 5.0.4 (2023-04-17)
 

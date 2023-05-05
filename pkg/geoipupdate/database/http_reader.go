@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -130,7 +129,7 @@ func (r *HTTPReader) get(
 	case http.StatusOK:
 	default:
 		//nolint:errcheck // we are already returning an error.
-		buf, _ := ioutil.ReadAll(io.LimitReader(response.Body, 256))
+		buf, _ := io.ReadAll(io.LimitReader(response.Body, 256))
 		httpErr := internal.HTTPError{
 			Body:       string(buf),
 			StatusCode: response.StatusCode,

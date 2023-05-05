@@ -5,9 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -35,12 +33,7 @@ func TestClientOutput(t *testing.T) {
 		},
 	}
 
-	tempDir, err := ioutil.TempDir("", "gutest-")
-	require.NoError(t, err)
-	defer func() {
-		err := os.RemoveAll(tempDir)
-		require.NoError(t, err)
-	}()
+	tempDir := t.TempDir()
 
 	config := &Config{
 		EditionIDs:  []string{"GeoLite2-City", "GeoLite2-Country"},
@@ -65,7 +58,7 @@ func TestClientOutput(t *testing.T) {
 	}
 
 	// run the client
-	err = c.Run(context.Background())
+	err := c.Run(context.Background())
 	require.NoError(t, err)
 
 	// make sure the expected output matches the input.

@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -137,9 +136,9 @@ func TestHTTPReader(t *testing.T) {
 				if test.result.reader != nil && result.reader != nil {
 					defer result.reader.Close()
 					defer test.result.reader.Close()
-					resultDatabase, err := ioutil.ReadAll(test.result.reader)
+					resultDatabase, err := io.ReadAll(test.result.reader)
 					require.NoError(t, err)
-					expectedDatabase, err := ioutil.ReadAll(result.reader)
+					expectedDatabase, err := io.ReadAll(result.reader)
 					require.NoError(t, err)
 					require.Equal(t, resultDatabase, expectedDatabase)
 				}
