@@ -7,6 +7,9 @@
 * Added new `--output` flag to print JSON to standard output describing
   the result of the run.
 * Compilation with Go versions before 1.19 is no longer supported.
+* When using the provided Docker images, `geoipupdate` no longer runs
+  as root in the container. Based on pull request by Andreas
+  Grünenfelder. GitHub #200.
 
 ## 5.0.4 (2023-04-17)
 
