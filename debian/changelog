@@ -1,3 +1,9 @@
+geoipupdate (5.1.0-0+maxmind1) lunar; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Fri, 05 May 2023 15:24:38 -0700
+
 geoipupdate (5.0.3-0+maxmind2) lunar; urgency=low
 
   * Build with Go 1.20.
