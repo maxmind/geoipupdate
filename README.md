@@ -105,9 +105,9 @@ Please see our [Docker documentation](doc/docker.md).
 You need the Go compiler (1.13+). You can get it at the [Go
 website](https://golang.org).
 
-The easiest way is via `go get`:
+The easiest way is via `go install`:
 
-    $ env GO111MODULE=on go get -u github.com/maxmind/geoipupdate/v5/cmd/geoipupdate
+    $ go install github.com/maxmind/geoipupdate/v5/cmd/geoipupdate@latest
 
 This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 
