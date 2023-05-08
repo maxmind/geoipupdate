@@ -14,7 +14,7 @@ term_handler() {
 trap 'kill ${!}; term_handler' SIGTERM
 
 pid=0
-conf_file=/etc/GeoIP.conf
+conf_file=/var/lib/geoipupdate/GeoIP.conf
 database_dir=/usr/share/GeoIP
 log_dir="/var/lib/geoipupdate"
 log_file="$log_dir/.healthcheck"
