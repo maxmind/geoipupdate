@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 5.1.1 (2023-05-08)
+
+* Based on feedback, the change to use a non-root user in 5.1.0
+  when using the Docker image has been reverted. There are no
+  non-Docker changes in this release. See GitHub #233.
+
 ## 5.1.0 (2023-05-05)
 
 * Fixed the Docker health-check script to use the correct time of
