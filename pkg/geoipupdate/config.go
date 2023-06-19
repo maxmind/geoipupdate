@@ -107,7 +107,7 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 ) (*Config, error) {
 	fh, err := os.Open(filepath.Clean(path))
 	if err != nil {
-		return nil, fmt.Errorf("error opening file: %w", err)
+		return nil, fmt.Errorf("opening file: %w", err)
 	}
 
 	defer fh.Close()
@@ -198,7 +198,7 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading file: %w", err)
+		return nil, fmt.Errorf("reading file: %w", err)
 	}
 
 	// Mandatory values.
@@ -217,7 +217,7 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 	// Overrides.
 	for _, option := range flagOptions {
 		if err := option(config); err != nil {
-			return nil, fmt.Errorf("error applying flag to config: %w", err)
+			return nil, fmt.Errorf("applying flag to config: %w", err)
 		}
 	}
 
@@ -267,7 +267,7 @@ func parseProxy(
 	// Now that we have a scheme, we should be able to parse.
 	u, err := url.Parse(proxyURL)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing proxy URL: %w", err)
+		return nil, fmt.Errorf("parsing proxy URL: %w", err)
 	}
 
 	if !strings.Contains(u.Host, ":") {

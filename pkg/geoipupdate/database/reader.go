@@ -47,7 +47,7 @@ func (r ReadResult) MarshalJSON() ([]byte, error) {
 
 	res, err := json.Marshal(s)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling ReadResult: %w", err)
+		return nil, fmt.Errorf("marshaling ReadResult: %w", err)
 	}
 	return res, nil
 }
@@ -64,7 +64,7 @@ func (r *ReadResult) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &s)
 	if err != nil {
-		return fmt.Errorf("error unmarshaling json into ReadResult: %w", err)
+		return fmt.Errorf("unmarshaling json into ReadResult: %w", err)
 	}
 
 	result := ReadResult(s.partialResult)

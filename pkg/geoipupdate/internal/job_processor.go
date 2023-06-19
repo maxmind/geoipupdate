@@ -63,7 +63,7 @@ func (j *JobProcessor) Run(ctx context.Context) error {
 // error encountered, if any.
 func (j *JobProcessor) Wait() error {
 	if err := j.processor.Wait(); err != nil {
-		return fmt.Errorf("error running job: %w", err)
+		return fmt.Errorf("running job: %w", err)
 	}
 	return nil
 }

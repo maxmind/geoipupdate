@@ -19,7 +19,7 @@ type FileLock struct {
 func NewFileLock(path string, verbose bool) (*FileLock, error) {
 	err := os.MkdirAll(filepath.Dir(path), 0o750)
 	if err != nil {
-		return nil, fmt.Errorf("error creating lock file directory: %w", err)
+		return nil, fmt.Errorf("creating lock file directory: %w", err)
 	}
 
 	if verbose {
@@ -35,7 +35,7 @@ func NewFileLock(path string, verbose bool) (*FileLock, error) {
 // Release unlocks the file lock.
 func (f *FileLock) Release() error {
 	if err := f.lock.Unlock(); err != nil {
-		return fmt.Errorf("error releasing file lock at %s: %w", f.lock.Path(), err)
+		return fmt.Errorf("releasing file lock at %s: %w", f.lock.Path(), err)
 	}
 	if f.verbose {
 		log.Printf("Lock file %s successfully released", f.lock.Path())
@@ -50,7 +50,7 @@ func (f *FileLock) Release() error {
 func (f *FileLock) Acquire() error {
 	ok, err := f.lock.TryLock()
 	if err != nil {
-		return fmt.Errorf("error acquiring file lock at %s: %w", f.lock.Path(), err)
+		return fmt.Errorf("acquiring file lock at %s: %w", f.lock.Path(), err)
 	}
 	if !ok {
 		return fmt.Errorf("lock %s already acquired by another process", f.lock.Path())

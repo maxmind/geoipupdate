@@ -104,7 +104,7 @@ func (r *HTTPReader) Read(ctx context.Context, editionID, hash string) (*ReadRes
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("error getting update for %s: %w", editionID, err)
+		return nil, fmt.Errorf("getting update for %s: %w", editionID, err)
 	}
 
 	return result, nil
@@ -129,14 +129,14 @@ func (r *HTTPReader) get(
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
+		return nil, fmt.Errorf("creating request: %w", err)
 	}
 	req.Header.Add("User-Agent", "geoipupdate/"+vars.Version)
 	req.SetBasicAuth(fmt.Sprintf("%d", r.accountID), r.licenseKey)
 
 	response, err := r.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error performing HTTP request: %w", err)
+		return nil, fmt.Errorf("performing HTTP request: %w", err)
 	}
 	// It is safe to close the response body reader as it wouldn't be
 	// consumed in case this function returns an error.
@@ -170,7 +170,7 @@ func (r *HTTPReader) get(
 
 	modifiedAt, err := parseTime(response.Header.Get("Last-Modified"))
 	if err != nil {
-		return nil, fmt.Errorf("error reading Last-Modified header: %w", err)
+		return nil, fmt.Errorf("reading Last-Modified header: %w", err)
 	}
 
 	gzReader, err := gzip.NewReader(response.Body)
@@ -196,7 +196,7 @@ func (r *HTTPReader) get(
 func parseTime(s string) (time.Time, error) {
 	t, err := time.ParseInLocation(time.RFC1123, s, time.UTC)
 	if err != nil {
-		return time.Time{}, fmt.Errorf("error parsing time: %w", err)
+		return time.Time{}, fmt.Errorf("parsing time: %w", err)
 	}
 
 	return t, nil
