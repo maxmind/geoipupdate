@@ -13,6 +13,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
+
 	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/internal"
 	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
 )
@@ -70,15 +72,36 @@ func NewHTTPReader(
 func (r *HTTPReader) Read(ctx context.Context, editionID, hash string) (*ReadResult, error) {
 	var result *ReadResult
 	var err error
-	err = internal.RetryWithBackoff(
+
+	// RetryFor value of 0 means that no retries should be performed.
+	// Max zero retries has to be set to achieve that
+	// because the backoff never stops if MaxElapsedTime is zero.
+	exp := backoff.NewExponentialBackOff()
+	exp.MaxElapsedTime = r.retryFor
+	b := backoff.BackOff(exp)
+	if exp.MaxElapsedTime == 0 {
+		b = backoff.WithMaxRetries(exp, 0)
+	}
+	err = backoff.RetryNotify(
 		func() error {
 			result, err = r.get(ctx, editionID, hash)
-			if r.verbose && err != nil {
-				log.Printf("Couldn't download %s, retrying: %v", editionID, err)
+			if err == nil {
+				return nil
 			}
+
+			var httpErr internal.HTTPError
+			if errors.As(err, &httpErr) && httpErr.StatusCode >= 400 && httpErr.StatusCode < 500 {
+				return backoff.Permanent(err)
+			}
+
 			return err
 		},
-		r.retryFor,
+		b,
+		func(err error, d time.Duration) {
+			if r.verbose {
+				log.Printf("Couldn't download %s, retrying in %v: %v", editionID, d, err)
+			}
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error getting update for %s: %w", editionID, err)
