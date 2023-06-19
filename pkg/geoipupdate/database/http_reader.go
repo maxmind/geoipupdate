@@ -160,7 +160,7 @@ func (r *HTTPReader) get(
 			Body:       string(buf),
 			StatusCode: response.StatusCode,
 		}
-		return nil, fmt.Errorf("unexpcted HTTP status code: %w", httpErr)
+		return nil, fmt.Errorf("unexpected HTTP status code: %w", httpErr)
 	}
 
 	newHash := response.Header.Get("X-Database-MD5")
