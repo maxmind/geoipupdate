@@ -73,6 +73,9 @@ func (r *HTTPReader) Read(ctx context.Context, editionID, hash string) (*ReadRes
 	err = internal.RetryWithBackoff(
 		func() error {
 			result, err = r.get(ctx, editionID, hash)
+			if r.verbose && err != nil {
+				log.Printf("Couldn't download %s, retrying: %v", editionID, err)
+			}
 			return err
 		},
 		r.retryFor,
