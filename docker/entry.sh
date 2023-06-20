@@ -42,33 +42,11 @@ if [ -z "$GEOIPUPDATE_ACCOUNT_ID" ] || [ -z  "$GEOIPUPDATE_LICENSE_KEY" ] || [ -
     exit 1
 fi
 
-# Create configuration file
+# Create an empty configuration file. All configuration is provided via
+# environment variables or command line options, but geoipupdate still
+# expects a configuration file to exist.
 echo "# STATE: Creating configuration file at $conf_file"
-cat <<EOF > "$conf_file"
-AccountID $GEOIPUPDATE_ACCOUNT_ID
-LicenseKey $GEOIPUPDATE_LICENSE_KEY
-EditionIDs $GEOIPUPDATE_EDITION_IDS
-EOF
-
-if [ ! -z "$GEOIPUPDATE_HOST" ]; then
-    echo "Host $GEOIPUPDATE_HOST" >> "$conf_file"
-fi
-
-if [ ! -z "$GEOIPUPDATE_PROXY" ]; then
-    echo "Proxy $GEOIPUPDATE_PROXY" >> "$conf_file"
-fi
-
-if [ ! -z "$GEOIPUPDATE_PROXY_USER_PASSWORD" ]; then
-    echo "ProxyUserPassword $GEOIPUPDATE_PROXY_USER_PASSWORD" >> "$conf_file"
-fi
-
-if [ ! -z "$GEOIPUPDATE_PRESERVE_FILE_TIMES" ]; then
-    echo "PreserveFileTimes $GEOIPUPDATE_PRESERVE_FILE_TIMES" >> "$conf_file"
-fi
-
-if [ "$GEOIPUPDATE_VERBOSE" ]; then
-    flags="$flags -v"
-fi
+touch "$conf_file"
 
 mkdir -p $log_dir
 
