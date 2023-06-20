@@ -102,9 +102,10 @@ func WithOutput(val bool) Option {
 	}
 }
 
-// NewConfig parses the configuration file.
-// flagOptions is provided to provide optional flag overrides to the config
-// file.
+// NewConfig create a new configuration and populates it based on a config
+// file point to by 'path', then by various environment variables, and then
+// finally by flag overrides provided by flagOptions. Values from the later
+// override the former.
 func NewConfig(
 	path string,
 	flagOptions ...Option,
@@ -119,6 +120,12 @@ func NewConfig(
 
 	// Override config with values from the config file.
 	err := setConfigFromFile(config, path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Override config with values from environment variables.
+	err = setConfigFromEnv(config)
 	if err != nil {
 		return nil, err
 	}
@@ -247,6 +254,84 @@ func setConfigFromFile(config *Config, path string) error {
 
 	if err := scanner.Err(); err != nil {
 		return fmt.Errorf("error reading file: %w", err)
+	}
+
+	return nil
+}
+
+// setConfigFromEnv sets Config fields based on environment variables.
+func setConfigFromEnv(config *Config) error {
+	if value, ok := os.LookupEnv("GEOIPUPDATE_ACCOUNT_ID"); ok {
+		var err error
+		config.AccountID, err = strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("invalid account ID format: %w", err)
+		}
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_DB_DIR"); ok {
+		config.DatabaseDirectory = value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_EDITION_IDS"); ok {
+		config.EditionIDs = strings.Fields(value)
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_HOST"); ok {
+		config.URL = "https://" + value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_LICENSE_KEY"); ok {
+		config.LicenseKey = value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_LOCK_FILE"); ok {
+		config.LockFile = value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_PARALLELISM"); ok {
+		parallelism, err := strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("'%s' is not a valid parallelism value: %w", value, err)
+		}
+		if parallelism <= 0 {
+			return fmt.Errorf("parallelism should be greater than 0, got '%d'", parallelism)
+		}
+		config.Parallelism = parallelism
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_PRESERVE_FILE_TIMES"); ok {
+		if value != "0" && value != "1" {
+			return errors.New("`PreserveFileTimes' must be 0 or 1")
+		}
+		if value == "1" {
+			config.PreserveFileTimes = true
+		}
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_PROXY"); ok {
+		config.proxyURL = value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_PROXY_USER_PASSWORD"); ok {
+		config.proxyUserInfo = value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_RETRY_FOR"); ok {
+		dur, err := time.ParseDuration(value)
+		if err != nil || dur < 0 {
+			return fmt.Errorf("'%s' is not a valid duration", value)
+		}
+		config.RetryFor = dur
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_VERBOSE"); ok {
+		if value != "0" && value != "1" {
+			return errors.New("'Verbose' must be 0 or 1")
+		}
+		if value == "1" {
+			config.Verbose = true
+		}
 	}
 
 	return nil
