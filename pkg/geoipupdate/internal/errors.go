@@ -1,3 +1,4 @@
+// Package internal provides internal structures.
 package internal
 
 import (
