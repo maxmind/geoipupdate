@@ -195,6 +195,8 @@ Parallelism 3
 					User:   url.UserPassword("username", "password"),
 					Host:   "127.0.0.1:8888",
 				},
+				proxyURL:          "",
+				proxyUserInfo:     "",
 				PreserveFileTimes: true,
 				URL:               "https://updates.example.com",
 				RetryFor:          10 * time.Minute,
@@ -445,6 +447,214 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				assert.EqualError(t, err, test.Err, test.Description)
 			}
 			assert.Equal(t, test.Output, config, test.Description)
+		})
+	}
+}
+
+func TestSetConfigFromFile(t *testing.T) {
+	tests := []struct {
+		Description string
+		Input       string
+		Expected    Config
+		Err         string
+	}{
+		{
+			Description: "All config file related variables",
+			Input: `AccountID 1
+			DatabaseDirectory /tmp/db
+			EditionIDs GeoLite2-Country GeoLite2-City
+			Host updates.maxmind.com
+			LicenseKey 000000000001
+			LockFile /tmp/lock
+			Parallelism 2
+			PreserveFileTimes 1
+			Proxy 127.0.0.1:8888
+			ProxyUserPassword username:password
+			RetryFor 1m
+	`,
+			Expected: Config{
+				AccountID:         1,
+				DatabaseDirectory: filepath.Clean("/tmp/db"),
+				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
+				LicenseKey:        "000000000001",
+				LockFile:          filepath.Clean("/tmp/lock"),
+				Parallelism:       2,
+				PreserveFileTimes: true,
+				proxyURL:          "127.0.0.1:8888",
+				proxyUserInfo:     "username:password",
+				RetryFor:          1 * time.Minute,
+				URL:               "https://updates.maxmind.com",
+			},
+		},
+		{
+			Description: "Empty config",
+			Input:       "",
+			Expected:    Config{},
+		},
+		{
+			Description: "Invalid account ID",
+			Input:       "AccountID 1a",
+			Err:         `invalid account ID format: strconv.Atoi: parsing "1a": invalid syntax`,
+		},
+		{
+			Description: "Invalid PreserveFileTimes",
+			Input:       "PreserveFileTimes 1a",
+			Err:         "`PreserveFileTimes' must be 0 or 1",
+		},
+		{
+			Description: "RetryFor needs a unit",
+			Input:       "RetryFor 5",
+			Err:         "'5' is not a valid duration",
+		},
+		{
+			Description: "RetryFor needs to be non-negative",
+			Input:       "RetryFor -5m",
+			Err:         "'-5m' is not a valid duration",
+		},
+		{
+			Description: "Parallelism should be a number",
+			Input:       "Parallelism a",
+			Err:         "'a' is not a valid parallelism value: strconv.Atoi: parsing \"a\": invalid syntax",
+		},
+		{
+			Description: "Parallelism should be a positive number",
+			Input:       "Parallelism 0",
+			Err:         "parallelism should be greater than 0, got '0'",
+		},
+	}
+
+	tempFh, err := os.CreateTemp("", "conf-test")
+	require.NoError(t, err)
+	tempName := tempFh.Name()
+	require.NoError(t, tempFh.Close())
+	defer func() {
+		_ = os.Remove(tempName)
+	}()
+
+	for _, test := range tests {
+		t.Run(test.Description, func(t *testing.T) {
+			require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
+
+			var config Config
+
+			err := setConfigFromFile(&config, tempName)
+			if test.Err == "" {
+				assert.NoError(t, err, test.Description)
+			} else {
+				assert.EqualError(t, err, test.Err, test.Description)
+			}
+			assert.Equal(t, test.Expected, config, test.Description)
+		})
+	}
+}
+
+func TestSetConfigFromFlags(t *testing.T) {
+	tests := []struct {
+		Description string
+		Flags       []Option
+		Expected    Config
+		Err         string
+	}{
+		{
+			Description: "All option flag related config set",
+			Flags: []Option{
+				WithDatabaseDirectory("/tmp/db"),
+				WithOutput(true),
+				WithParallelism(2),
+				WithVerbose(true),
+			},
+			Expected: Config{
+				DatabaseDirectory: filepath.Clean("/tmp/db"),
+				Output:            true,
+				Parallelism:       2,
+				Verbose:           true,
+			},
+		},
+		{
+			Description: "Empty config",
+			Flags:       []Option{},
+			Expected:    Config{},
+		},
+		{
+			Description: "Parallelism should be a positive number",
+			Flags:       []Option{WithParallelism(-1)},
+			Err:         "error applying flag to config: parallelism can't be negative, got '-1'",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Description, func(t *testing.T) {
+			var config Config
+
+			err := setConfigFromFlags(&config, test.Flags...)
+			if test.Err == "" {
+				assert.NoError(t, err, test.Description)
+			} else {
+				assert.EqualError(t, err, test.Err, test.Description)
+			}
+			assert.Equal(t, test.Expected, config, test.Description)
+		})
+	}
+}
+
+func TestValidateConfig(t *testing.T) {
+	tests := []struct {
+		Description string
+		Config      Config
+		Err         string
+	}{
+		{
+			Description: "Basic config",
+			Config: Config{
+				AccountID:         42,
+				LicenseKey:        "000000000001",
+				DatabaseDirectory: "/tmp/db",
+				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
+				LockFile:          "/tmp/lock",
+				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
+			},
+			Err: "",
+		},
+		{
+			Description: "EditionIDs required",
+			Config:      Config{},
+			Err:         "the `EditionIDs` option is required",
+		},
+		{
+			Description: "AccountID required",
+			Config: Config{
+				EditionIDs: []string{"GeoLite2-Country", "GeoLite2-City"},
+			},
+			Err: "the `AccountID` option is required",
+		},
+		{
+			Description: "LicenseKey required",
+			Config: Config{
+				AccountID:  42,
+				EditionIDs: []string{"GeoLite2-Country", "GeoLite2-City"},
+			},
+			Err: "the `LicenseKey` option is required",
+		},
+		{
+			Description: "Valid AccountID + LicenseKey combination",
+			Config: Config{
+				AccountID:  999999,
+				LicenseKey: "000000000000",
+			},
+			Err: "geoipupdate requires a valid AccountID and LicenseKey combination",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Description, func(t *testing.T) {
+			err := validateConfig(&test.Config)
+			if test.Err == "" {
+				assert.NoError(t, err, test.Description)
+			} else {
+				assert.EqualError(t, err, test.Err, test.Description)
+			}
 		})
 	}
 }
