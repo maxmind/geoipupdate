@@ -19,6 +19,12 @@ sub main {
         "$build_dir/GeoIP.conf.md",
         "$build_dir/GeoIP.conf.5",
     );
+    _make_man(
+        'GeoIP.env',
+        9,
+        "$build_dir/GeoIP.env.md",
+        "$build_dir/GeoIP.env.9",
+    );
     return 1;
 }
 

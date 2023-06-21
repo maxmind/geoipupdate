@@ -72,9 +72,10 @@ runs `geoipupdate` on each Wednesday at noon:
     # end of crontab
 
 
-To use with a proxy server, update your `GeoIP.conf` file as specified
-in the `GeoIP.conf` man page or set the `http_proxy` environment
-variable.
+To use with a proxy server, update your `GeoIP.conf` file as specified in
+the `GeoIP.conf` man page or set the `GEOIPUPDATE_PROXY` environment variable
+as specified in the `GeoIP.env` man page. Alternatively, set the `http_proxy`
+environment variable.
 
 # BUGS
 
@@ -97,3 +98,4 @@ to learn more about the GeoIP2 databases or to sign up for a subscription.
 # SEE ALSO
 
 `GeoIP.conf`(5)
+`GeoIP.env`(9)
