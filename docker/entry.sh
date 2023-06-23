@@ -21,8 +21,8 @@ log_file="$log_dir/.healthcheck"
 flags="--output"
 frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
 
-if ! [ -z "$GEOIPUPDATE_CONF_FILE" ]; then
-  conf_file=$GEOIPUPDATE_CONF_FILE
+if [ -z "$GEOIPUPDATE_CONF_FILE" ]; then
+  GEOIPUPDATE_CONF_FILE="$conf_file"
 fi
 
 if ! [ -z "$GEOIPUPDATE_DB_DIR" ]; then
@@ -45,13 +45,13 @@ fi
 # Create an empty configuration file. All configuration is provided via
 # environment variables or command line options, but geoipupdate still
 # expects a configuration file to exist.
-touch "$conf_file"
+touch "$GEOIPUPDATE_CONF_FILE"
 
 mkdir -p $log_dir
 
 while true; do
     echo "# STATE: Running geoipupdate"
-    /usr/bin/geoipupdate -d "$database_dir" -f "$conf_file" $flags 1>$log_file
+    /usr/bin/geoipupdate -d "$database_dir" $flags 1>$log_file
     if [ "$frequency" -eq 0 ]; then
         break
     fi

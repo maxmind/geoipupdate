@@ -8,6 +8,7 @@
   The following new environment variables are supported:
 
     * `GEOIPUPDATE_ACCOUNT_ID`
+    * `GEOIPUPDATE_CONF_FILE`
     * `GEOIPUPDATE_DB_DIR`
     * `GEOIPUPDATE_EDITION_IDS`
     * `GEOIPUPDATE_HOST`

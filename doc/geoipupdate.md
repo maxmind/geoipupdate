@@ -26,7 +26,8 @@ open.
 `-f`, `--config-file`
 
 :   The configuration file to use. See `GeoIP.conf` and its documentation for
-    more information. This is optional. It defaults to CONFFILE.
+    more information. This is optional. It defaults to the environment variable
+    `GEOIPUPDATE_CONF_FILE` if it is set, or CONFFILE otherwise.
 
 `--parallelism`
 

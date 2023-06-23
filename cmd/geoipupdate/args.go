@@ -19,10 +19,15 @@ type Args struct {
 }
 
 func getArgs() *Args {
+	confFileDefault := vars.DefaultConfigFile
+	if value, ok := os.LookupEnv("GEOIPUPDATE_CONF_FILE"); ok {
+		confFileDefault = value
+	}
+
 	configFile := flag.StringP(
 		"config-file",
 		"f",
-		vars.DefaultConfigFile,
+		confFileDefault,
 		"Configuration file",
 	)
 	databaseDirectory := flag.StringP(
