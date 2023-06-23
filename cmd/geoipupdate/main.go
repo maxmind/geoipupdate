@@ -48,7 +48,7 @@ func main() {
 		geoipupdate.WithOutput(args.Output),
 	)
 	if err != nil {
-		fatalLogger(fmt.Sprintf("error loading configuration file %s", args.ConfigFile), err)
+		fatalLogger(fmt.Sprintf("error loading configuration %s", args.ConfigFile), err)
 	}
 
 	if config.Verbose {
