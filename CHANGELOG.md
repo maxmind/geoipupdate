@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 5.2.0
+
+* `geoipupdate` now supports configuration via environment variables. Any
+  configuration set this way will override any value from the config file,
+  but still be overridden by any associated command line option (if any).
+  The following new environment variables are supported:
+
+    * `GEOIPUPDATE_ACCOUNT_ID`
+    * `GEOIPUPDATE_DB_DIR`
+    * `GEOIPUPDATE_EDITION_IDS`
+    * `GEOIPUPDATE_HOST`
+    * `GEOIPUPDATE_LICENSE_KEY`
+    * `GEOIPUPDATE_LOCK_FILE`
+    * `GEOIPUPDATE_PARALLELISM`
+    * `GEOIPUPDATE_PRESERVE_FILE_TIMES`
+    * `GEOIPUPDATE_PROXY`
+    * `GEOIPUPDATE_PROXY_USER_PASSWORD`
+    * `GEOIPUPDATE_RETRY_FOR`
+    * `GEOIPUPDATE_VERBOSE`
+
 ## 5.1.1 (2023-05-08)
 
 * Based on feedback, the change to use a non-root user in 5.1.0
