@@ -23,8 +23,8 @@ sensitive.
 
 `LicenseKey`
 
-:   Your case-sensitive MaxMind license key. This can be overriden at run time
-    by the `GEOIPUPDATE_LICENSE_KEY` environment variables.
+:   Your case-sensitive MaxMind license key. This can be overridden at run time
+    by the `GEOIPUPDATE_LICENSE_KEY` environment variable.
 
 `EditionIDs`
 
@@ -59,7 +59,7 @@ sensitive.
 
 :   The proxy user name and password, separated by a colon. For instance,
     `username:password`. This can be overridden at run time by the
-    `GEOIPUPDATE_USER_PASSWORD` environment variable.
+    `GEOIPUPDATE_PROXY_USER_PASSWORD` environment variable.
 
 `PreserveFileTimes`
 
@@ -88,7 +88,7 @@ sensitive.
 
 :	The maximum number of parallel database downloads. The default is
 	1, which means that databases will be downloaded sequentially. This can be
-	overriden at runtime by the `GEOIPUPDATE_PARALLELISM` environment variable
+	overridden at runtime by the `GEOIPUPDATE_PARALLELISM` environment variable
     or the `--parallelism` command line argument.
 
 ## Deprecated settings:

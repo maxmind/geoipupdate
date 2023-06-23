@@ -41,7 +41,7 @@ type Config struct {
 	Proxy *url.URL
 	// proxyURL is the host value of Proxy
 	proxyURL string
-	// proxyUserainfo is the userinfo value of Proxy
+	// proxyUserInfo is the userinfo value of Proxy
 	proxyUserInfo string
 	// RetryFor is the retry timeout for HTTP requests. It defaults
 	// to 5 minutes.
@@ -103,7 +103,7 @@ func WithOutput(val bool) Option {
 }
 
 // NewConfig create a new configuration and populates it based on a config
-// file point to by 'path', then by various environment variables, and then
+// file poinedt to by 'path', then by various environment variables, and then
 // finally by flag overrides provided by flagOptions. Values from the later
 // override the former.
 func NewConfig(
