@@ -25,8 +25,8 @@ if [ -z "$GEOIPUPDATE_CONF_FILE" ]; then
   GEOIPUPDATE_CONF_FILE="$conf_file"
 fi
 
-if ! [ -z "$GEOIPUPDATE_DB_DIR" ]; then
-  database_dir=$GEOIPUPDATE_DB_DIR
+if [ -z "$GEOIPUPDATE_DB_DIR" ]; then
+  GEOIPUPDATE_DB_DIR="$database_dir"
 fi
 
 if [ ! -z "$GEOIPUPDATE_ACCOUNT_ID_FILE" ]; then
@@ -51,7 +51,7 @@ mkdir -p $log_dir
 
 while true; do
     echo "# STATE: Running geoipupdate"
-    /usr/bin/geoipupdate -d "$database_dir" $flags 1>$log_file
+    /usr/bin/geoipupdate $flags 1>$log_file
     if [ "$frequency" -eq 0 ]; then
         break
     fi
