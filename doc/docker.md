@@ -33,7 +33,7 @@ The following are optional:
   of files downloaded from the server. This option is either `0` or `1`. The
   default is `0`.
 * `GEOIPUPDATE_VERBOSE` - Enable verbose mode. Prints out the steps that
-  `geoipupdate` takes. Set to **anything** (e.g., `1`) to enable.
+  `geoipupdate` takes. Set to `1` to enable.
 * `GEOIPUPDATE_CONF_FILE` - The path where the configuration file will be
   written. The default is `/etc/GeoIP.conf`.
 * `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download the
