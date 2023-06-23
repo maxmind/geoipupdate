@@ -223,9 +223,7 @@ func setConfigFromFile(config *Config, path string) error {
 			if value != "0" && value != "1" {
 				return errors.New("`PreserveFileTimes' must be 0 or 1")
 			}
-			if value == "1" {
-				config.PreserveFileTimes = true
-			}
+			config.PreserveFileTimes = value == "1"
 		case "Proxy":
 			config.proxyURL = value
 		case "ProxyUserPassword":
@@ -304,9 +302,7 @@ func setConfigFromEnv(config *Config) error {
 		if value != "0" && value != "1" {
 			return errors.New("`PreserveFileTimes' must be 0 or 1")
 		}
-		if value == "1" {
-			config.PreserveFileTimes = true
-		}
+		config.PreserveFileTimes = value == "1"
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_PROXY"); ok {
@@ -329,9 +325,7 @@ func setConfigFromEnv(config *Config) error {
 		if value != "0" && value != "1" {
 			return errors.New("'Verbose' must be 0 or 1")
 		}
-		if value == "1" {
-			config.Verbose = true
-		}
+		config.Verbose = value == "1"
 	}
 
 	return nil
