@@ -466,17 +466,10 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 		},
 	}
 
-	tempFh, err := os.CreateTemp("", "conf-test")
-	require.NoError(t, err)
-	tempName := tempFh.Name()
-	require.NoError(t, tempFh.Close())
-	defer func() {
-		_ = os.Remove(tempName)
-	}()
-
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
 			withEnvVars(t, test.Env, func() {
+				tempName := filepath.Join(t.TempDir(), "/GeoIP-test.conf")
 				require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
 				config, err := NewConfig(tempName, test.Flags...)
 				if test.Err == "" {
@@ -562,16 +555,9 @@ func TestSetConfigFromFile(t *testing.T) {
 		},
 	}
 
-	tempFh, err := os.CreateTemp("", "conf-test")
-	require.NoError(t, err)
-	tempName := tempFh.Name()
-	require.NoError(t, tempFh.Close())
-	defer func() {
-		_ = os.Remove(tempName)
-	}()
-
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
+			tempName := filepath.Join(t.TempDir(), "/GeoIP-test.conf")
 			require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
 
 			var config Config
