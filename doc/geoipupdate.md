@@ -98,4 +98,3 @@ to learn more about the GeoIP2 databases or to sign up for a subscription.
 # SEE ALSO
 
 `GeoIP.conf`(5)
-`GeoIP.env`(9)

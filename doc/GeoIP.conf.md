@@ -104,4 +104,3 @@ The following are deprecated and will be ignored if present:
 # SEE ALSO
 
 `geoipupdate`(1)
-`GeoIP.env`(9)
