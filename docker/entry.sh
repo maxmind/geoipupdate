@@ -45,7 +45,6 @@ fi
 # Create an empty configuration file. All configuration is provided via
 # environment variables or command line options, but geoipupdate still
 # expects a configuration file to exist.
-echo "# STATE: Creating configuration file at $conf_file"
 touch "$conf_file"
 
 mkdir -p $log_dir
