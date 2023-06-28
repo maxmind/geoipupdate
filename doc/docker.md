@@ -35,7 +35,7 @@ The following are optional:
 * `GEOIPUPDATE_VERBOSE` - Enable verbose mode. Prints out the steps that
   `geoipupdate` takes. Set to `1` to enable.
 * `GEOIPUPDATE_CONF_FILE` - The path of a configuration file to be used by
-  `geoipupdate`. If this file does not exist, an empty file will be created.
+  `geoipupdate`.
   The default is `/etc/GeoIP.conf`.
 * `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download the
   databases. The default is `/usr/share/GeoIP`.

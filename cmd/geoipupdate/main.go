@@ -41,7 +41,7 @@ func main() {
 	}
 
 	config, err := geoipupdate.NewConfig(
-		args.ConfigFile,
+		geoipupdate.WithConfigFile(args.ConfigFile),
 		geoipupdate.WithDatabaseDirectory(args.DatabaseDirectory),
 		geoipupdate.WithParallelism(args.Parallelism),
 		geoipupdate.WithVerbose(args.Verbose),

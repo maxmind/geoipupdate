@@ -471,7 +471,8 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 			withEnvVars(t, test.Env, func() {
 				tempName := filepath.Join(t.TempDir(), "/GeoIP-test.conf")
 				require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
-				config, err := NewConfig(tempName, test.Flags...)
+				testFlags := append([]Option{WithConfigFile(tempName)}, test.Flags...)
+				config, err := NewConfig(testFlags...)
 				if test.Err == "" {
 					assert.NoError(t, err, test.Description)
 				} else {

@@ -54,11 +54,6 @@ func getArgs() *Args {
 		os.Exit(0)
 	}
 
-	if *configFile == "" {
-		log.Printf("You must provide a configuration file.")
-		printUsage()
-	}
-
 	if *parallelism < 0 {
 		log.Printf("Parallelism must be a positive number")
 		printUsage()

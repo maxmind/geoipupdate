@@ -19,6 +19,9 @@ import (
 type Config struct {
 	// AccountID is the account ID.
 	AccountID int
+	// confFile is the path to any configuration file used when
+	// potentially populating Config fields.
+	configFile *string
 	// DatabaseDirectory is where database files are going to be
 	// stored.
 	DatabaseDirectory string
@@ -102,12 +105,23 @@ func WithOutput(val bool) Option {
 	}
 }
 
-// NewConfig create a new configuration and populates it based on a config
-// file poinedt to by 'path', then by various environment variables, and then
-// finally by flag overrides provided by flagOptions. Values from the later
-// override the former.
+// WithConfigFile returns an Option that sets the configuration
+// file to be used.
+func WithConfigFile(file string) Option {
+	return func(c *Config) error {
+		if file != "" {
+			cleanedPath := filepath.Clean(file)
+			c.configFile = &cleanedPath
+		}
+		return nil
+	}
+}
+
+// NewConfig creates a new configuration and populates it based on an optional
+// config file pointed to by an option set with WithConfigFile, then by various
+// environment variables, and then finally by flag overrides provided by
+// flagOptions. Values from the later override the former.
 func NewConfig(
-	path string,
 	flagOptions ...Option,
 ) (*Config, error) {
 	// config defaults
@@ -118,10 +132,19 @@ func NewConfig(
 		Parallelism:       1,
 	}
 
-	// Override config with values from the config file.
-	err := setConfigFromFile(config, path)
+	// Potentially populate config.configFilePath. We will rerun this function
+	// again later to ensure the flag values override env variables.
+	err := setConfigFromFlags(config, flagOptions...)
 	if err != nil {
 		return nil, err
+	}
+
+	// Override config with values from the config file.
+	if confFile := config.configFile; confFile != nil {
+		err = setConfigFromFile(config, *confFile)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Override config with values from environment variables.
@@ -161,6 +184,7 @@ func NewConfig(
 	// Reset values that were only needed to communicate information between
 	// config overrides.
 
+	config.configFile = nil
 	config.proxyURL = ""
 	config.proxyUserInfo = ""
 

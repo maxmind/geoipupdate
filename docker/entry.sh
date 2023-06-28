@@ -14,16 +14,11 @@ term_handler() {
 trap 'kill ${!}; term_handler' SIGTERM
 
 pid=0
-conf_file=/var/lib/geoipupdate/GeoIP.conf
 database_dir=/usr/share/GeoIP
 log_dir="/var/lib/geoipupdate"
 log_file="$log_dir/.healthcheck"
 flags="--output"
 frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
-
-if [ -z "$GEOIPUPDATE_CONF_FILE" ]; then
-  GEOIPUPDATE_CONF_FILE="$conf_file"
-fi
 
 if [ -z "$GEOIPUPDATE_DB_DIR" ]; then
   GEOIPUPDATE_DB_DIR="$database_dir"
@@ -41,11 +36,6 @@ if [ -z "$GEOIPUPDATE_ACCOUNT_ID" ] || [ -z  "$GEOIPUPDATE_LICENSE_KEY" ] || [ -
     echo "ERROR: You must set the environment variables GEOIPUPDATE_ACCOUNT_ID, GEOIPUPDATE_LICENSE_KEY, and GEOIPUPDATE_EDITION_IDS!"
     exit 1
 fi
-
-# Create an empty configuration file. All configuration is provided via
-# environment variables or command line options, but geoipupdate still
-# expects a configuration file to exist.
-touch "$GEOIPUPDATE_CONF_FILE"
 
 mkdir -p $log_dir
 
