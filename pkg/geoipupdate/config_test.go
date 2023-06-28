@@ -659,13 +659,6 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 			Err: "parallelism should be greater than 0, got '0'",
 		},
-		{
-			Description: "Invalid Verbose",
-			Env: map[string]string{
-				"GEOIPUPDATE_VERBOSE": "1a",
-			},
-			Err: "'Verbose' must be 0 or 1",
-		},
 	}
 
 	for _, test := range tests {

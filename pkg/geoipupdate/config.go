@@ -346,10 +346,7 @@ func setConfigFromEnv(config *Config) error {
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_VERBOSE"); ok {
-		if value != "0" && value != "1" {
-			return errors.New("'Verbose' must be 0 or 1")
-		}
-		config.Verbose = value == "1"
+		config.Verbose = value != ""
 	}
 
 	return nil
