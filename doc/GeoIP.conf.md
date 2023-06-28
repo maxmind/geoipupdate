@@ -86,10 +86,10 @@ sensitive.
 
 `Parallelism`
 
-:	The maximum number of parallel database downloads. The default is
-	1, which means that databases will be downloaded sequentially. This can be
-	overridden at runtime by the `GEOIPUPDATE_PARALLELISM` environment variable
-    or the `--parallelism` command line argument.
+:   The maximum number of parallel database downloads. The default is
+    1, which means that databases will be downloaded sequentially. This can be
+    overridden at run time by the `GEOIPUPDATE_PARALLELISM` environment
+    variable or the `--parallelism` command line argument.
 
 ## Deprecated settings:
 

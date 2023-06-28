@@ -36,7 +36,6 @@ The following are optional:
   `geoipupdate` takes. Set to **anything** (e.g., `1`) to enable.
 * `GEOIPUPDATE_CONF_FILE` - The path of a configuration file to be used by
   `geoipupdate`.
-  The default is `/etc/GeoIP.conf`.
 * `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download the
   databases. The default is `/usr/share/GeoIP`.
 
