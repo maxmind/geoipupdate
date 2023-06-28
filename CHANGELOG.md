@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 5.2.0
+## 6.0.0
 
 * `geoipupdate` now supports configuration via environment variables. Any
   configuration set this way will override any value from the config file,
@@ -20,6 +20,11 @@
     * `GEOIPUPDATE_PROXY_USER_PASSWORD`
     * `GEOIPUPDATE_RETRY_FOR`
     * `GEOIPUPDATE_VERBOSE`
+
+* Changed the signature of `NewConfig` in `pkg/geoipupdate` to no longer accept
+  a positional config file path argument, which can now be passed in using the
+  option from `WithConfigFile` along with the other optional parameters.
+* `geoipupdate` and `NewConfig` no longer require a config file to exist.
 
 ## 5.1.1 (2023-05-08)
 
