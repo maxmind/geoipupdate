@@ -21,7 +21,8 @@ open.
 `-d`, `--database-directory`
 
 :   Install databases to a custom directory.  This is optional. If provided, it
-    overrides any `DatabaseDirectory` set in the configuration file.
+    overrides the `DatabaseDirectory` value from the configuration file and the
+    `GEOIPUPDATE_DB_DIR` environment variable.
 
 `-f`, `--config-file`
 
@@ -48,7 +49,8 @@ open.
 
 `-v`, `--verbose`
 
-:   Enable verbose mode. Prints out the steps that `geoipupdate` takes.
+:   Enable verbose mode. Prints out the steps that `geoipupdate` takes. If
+    provided, it overrides any `GEOIPUPDATE_VERBOSE` environment variable.
 
 `-o`, `--output`
 
