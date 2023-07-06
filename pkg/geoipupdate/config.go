@@ -21,7 +21,7 @@ type Config struct {
 	AccountID int
 	// confFile is the path to any configuration file used when
 	// potentially populating Config fields.
-	configFile *string
+	configFile string
 	// DatabaseDirectory is where database files are going to be
 	// stored.
 	DatabaseDirectory string
@@ -110,8 +110,7 @@ func WithOutput(val bool) Option {
 func WithConfigFile(file string) Option {
 	return func(c *Config) error {
 		if file != "" {
-			cleanedPath := filepath.Clean(file)
-			c.configFile = &cleanedPath
+			c.configFile = filepath.Clean(file)
 		}
 		return nil
 	}
@@ -140,8 +139,8 @@ func NewConfig(
 	}
 
 	// Override config with values from the config file.
-	if confFile := config.configFile; confFile != nil {
-		err = setConfigFromFile(config, *confFile)
+	if confFile := config.configFile; confFile != "" {
+		err = setConfigFromFile(config, confFile)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +183,7 @@ func NewConfig(
 	// Reset values that were only needed to communicate information between
 	// config overrides.
 
-	config.configFile = nil
+	config.configFile = ""
 	config.proxyURL = ""
 	config.proxyUserInfo = ""
 
