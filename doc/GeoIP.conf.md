@@ -18,13 +18,14 @@ sensitive.
 `AccountID`
 
 :   Your MaxMind account ID. This was formerly known as `UserId`. This can be
-    overridden at run time by the `GEOIPUPDATE_ACCOUNT_ID` environment
-    variable.
+    overridden at run time by either the `GEOIPUPDATE_ACCOUNT_ID` or the
+    `GEOIPUPDATE_ACCOUNT_ID_FILE` environment variables.
 
 `LicenseKey`
 
 :   Your case-sensitive MaxMind license key. This can be overridden at run time
-    by the `GEOIPUPDATE_LICENSE_KEY` environment variable.
+    by either the `GEOIPUPDATE_LICENSE_KEY` or `GEOIPUPDATE_LICENSE_KEY_FILE`
+    environment variables.
 
 `EditionIDs`
 

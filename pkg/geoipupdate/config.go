@@ -290,6 +290,20 @@ func setConfigFromEnv(config *Config) error {
 		}
 	}
 
+	if value := os.Getenv("GEOIPUPDATE_ACCOUNT_ID_FILE"); value != "" {
+		var err error
+
+		accountID, err := os.ReadFile(filepath.Clean(value))
+		if err != nil {
+			return fmt.Errorf("failed to open GEOIPUPDATE_ACCOUNT_ID_FILE: %w", err)
+		}
+
+		config.AccountID, err = strconv.Atoi(string(accountID))
+		if err != nil {
+			return fmt.Errorf("invalid account ID format: %w", err)
+		}
+	}
+
 	if value, ok := os.LookupEnv("GEOIPUPDATE_DB_DIR"); ok {
 		config.DatabaseDirectory = value
 	}
@@ -304,6 +318,17 @@ func setConfigFromEnv(config *Config) error {
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_LICENSE_KEY"); ok {
 		config.LicenseKey = value
+	}
+
+	if value := os.Getenv("GEOIPUPDATE_LICENSE_KEY_FILE"); value != "" {
+		var err error
+
+		licenseKey, err := os.ReadFile(filepath.Clean(value))
+		if err != nil {
+			return fmt.Errorf("failed to open GEOIPUPDATE_LICENSE_KEY_FILE: %w", err)
+		}
+
+		config.LicenseKey = string(licenseKey)
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_LOCK_FILE"); ok {

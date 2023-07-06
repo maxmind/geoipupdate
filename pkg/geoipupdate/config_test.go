@@ -576,19 +576,23 @@ func TestSetConfigFromFile(t *testing.T) {
 
 func TestSetConfigFromEnv(t *testing.T) {
 	tests := []struct {
-		Description string
-		Env         map[string]string
-		Expected    Config
-		Err         string
+		Description            string
+		AccountIDFileContents  string
+		LicenseKeyFileContents string
+		Env                    map[string]string
+		Expected               Config
+		Err                    string
 	}{
 		{
 			Description: "All config related environment variables",
 			Env: map[string]string{
 				"GEOIPUPDATE_ACCOUNT_ID":          "1",
+				"GEOIPUPDATE_ACCOUNT_ID_FILE":     "",
 				"GEOIPUPDATE_DB_DIR":              "/tmp/db",
 				"GEOIPUPDATE_EDITION_IDS":         "GeoLite2-Country GeoLite2-City",
 				"GEOIPUPDATE_HOST":                "updates.maxmind.com",
 				"GEOIPUPDATE_LICENSE_KEY":         "000000000001",
+				"GEOIPUPDATE_LICENSE_KEY_FILE":    "",
 				"GEOIPUPDATE_LOCK_FILE":           "/tmp/lock",
 				"GEOIPUPDATE_PARALLELISM":         "2",
 				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1",
@@ -602,6 +606,41 @@ func TestSetConfigFromEnv(t *testing.T) {
 				DatabaseDirectory: "/tmp/db",
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
 				LicenseKey:        "000000000001",
+				LockFile:          "/tmp/lock",
+				Parallelism:       2,
+				PreserveFileTimes: true,
+				proxyURL:          "127.0.0.1:8888",
+				proxyUserInfo:     "username:password",
+				RetryFor:          1 * time.Minute,
+				URL:               "https://updates.maxmind.com",
+				Verbose:           true,
+			},
+		},
+		{
+			Description:            "ACCOUNT_ID_FILE and LICENSE_KEY_FILE override",
+			AccountIDFileContents:  "2",
+			LicenseKeyFileContents: "000000000002",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID":          "1",
+				"GEOIPUPDATE_ACCOUNT_ID_FILE":     filepath.Join(t.TempDir(), "accountIDFile"),
+				"GEOIPUPDATE_DB_DIR":              "/tmp/db",
+				"GEOIPUPDATE_EDITION_IDS":         "GeoLite2-Country GeoLite2-City",
+				"GEOIPUPDATE_HOST":                "updates.maxmind.com",
+				"GEOIPUPDATE_LICENSE_KEY":         "000000000001",
+				"GEOIPUPDATE_LICENSE_KEY_FILE":    filepath.Join(t.TempDir(), "licenseKeyFile"),
+				"GEOIPUPDATE_LOCK_FILE":           "/tmp/lock",
+				"GEOIPUPDATE_PARALLELISM":         "2",
+				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1",
+				"GEOIPUPDATE_PROXY":               "127.0.0.1:8888",
+				"GEOIPUPDATE_PROXY_USER_PASSWORD": "username:password",
+				"GEOIPUPDATE_RETRY_FOR":           "1m",
+				"GEOIPUPDATE_VERBOSE":             "1",
+			},
+			Expected: Config{
+				AccountID:         2,
+				DatabaseDirectory: "/tmp/db",
+				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
+				LicenseKey:        "000000000002",
 				LockFile:          "/tmp/lock",
 				Parallelism:       2,
 				PreserveFileTimes: true,
@@ -663,6 +702,17 @@ func TestSetConfigFromEnv(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
+			accountIDFile := test.Env["GEOIPUPDATE_ACCOUNT_ID_FILE"]
+			licenseKeyFile := test.Env["GEOIPUPDATE_LICENSE_KEY_FILE"]
+
+			if test.AccountIDFileContents != "" {
+				require.NoError(t, os.WriteFile(accountIDFile, []byte(test.AccountIDFileContents), 0o600))
+			}
+
+			if test.LicenseKeyFileContents != "" {
+				require.NoError(t, os.WriteFile(licenseKeyFile, []byte(test.LicenseKeyFileContents), 0o600))
+			}
+
 			withEnvVars(t, test.Env, func() {
 				var config Config
 
