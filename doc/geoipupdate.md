@@ -76,9 +76,8 @@ runs `geoipupdate` on each Wednesday at noon:
 
 
 To use with a proxy server, update your `GeoIP.conf` file as specified in
-the `GeoIP.conf` man page or set the `GEOIPUPDATE_PROXY` environment variable
-as specified in the `GeoIP.env` man page. Alternatively, set the `http_proxy`
-environment variable.
+the `GeoIP.conf` man page. Alternatively, set the `GEOIPUPDATE_PROXY` or
+`http_proxy` environment variable.
 
 # BUGS
 
