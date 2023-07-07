@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -48,7 +47,7 @@ func main() {
 		geoipupdate.WithOutput(args.Output),
 	)
 	if err != nil {
-		fatalLogger(fmt.Sprintf("error loading configuration %s", args.ConfigFile), err)
+		fatalLogger("error loading configuration", err)
 	}
 
 	if config.Verbose {
