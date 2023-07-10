@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -41,14 +40,14 @@ func main() {
 	}
 
 	config, err := geoipupdate.NewConfig(
-		args.ConfigFile,
+		geoipupdate.WithConfigFile(args.ConfigFile),
 		geoipupdate.WithDatabaseDirectory(args.DatabaseDirectory),
 		geoipupdate.WithParallelism(args.Parallelism),
 		geoipupdate.WithVerbose(args.Verbose),
 		geoipupdate.WithOutput(args.Output),
 	)
 	if err != nil {
-		fatalLogger(fmt.Sprintf("error loading configuration file %s", args.ConfigFile), err)
+		fatalLogger("error loading configuration", err)
 	}
 
 	if config.Verbose {
