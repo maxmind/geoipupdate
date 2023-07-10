@@ -231,7 +231,7 @@ UserId 456
 			Description: "Invalid account ID",
 			Input: `AccountID 1a
 `,
-			Err: `invalid account ID format: strconv.Atoi: parsing "1a": invalid syntax`,
+			Err: `invalid account ID format`,
 		},
 		{
 			Description: "Invalid PreserveFileTimes",
@@ -394,8 +394,7 @@ SkipPeerVerification 1
 		{
 			Description: "CR line ending does not work",
 			Input:       "AccountID 0\rLicenseKey 123\rEditionIDs GeoIP2-City\r",
-			//nolint: lll
-			Err: `invalid account ID format: strconv.Atoi: parsing "0 LicenseKey 123 EditionIDs GeoIP2-City": invalid syntax`,
+			Err:         `invalid account ID format`,
 		},
 		{
 			Description: "Multiple spaces between option and value works",
@@ -527,7 +526,7 @@ func TestSetConfigFromFile(t *testing.T) {
 		{
 			Description: "Invalid account ID",
 			Input:       "AccountID 1a",
-			Err:         `invalid account ID format: strconv.Atoi: parsing "1a": invalid syntax`,
+			Err:         `invalid account ID format`,
 		},
 		{
 			Description: "Invalid PreserveFileTimes",
@@ -661,7 +660,7 @@ func TestSetConfigFromEnv(t *testing.T) {
 			Env: map[string]string{
 				"GEOIPUPDATE_ACCOUNT_ID": "1a",
 			},
-			Err: `invalid account ID format: strconv.Atoi: parsing "1a": invalid syntax`,
+			Err: `invalid account ID format`,
 		},
 		{
 			Description: "Invalid PreserveFileTimes",

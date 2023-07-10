@@ -225,7 +225,7 @@ func setConfigFromFile(config *Config, path string) error {
 		case "AccountID", "UserId":
 			accountID, err := strconv.Atoi(value)
 			if err != nil {
-				return fmt.Errorf("invalid account ID format: %w", err)
+				return fmt.Errorf("invalid account ID format")
 			}
 			config.AccountID = accountID
 			keysSeen["AccountID"] = struct{}{}
@@ -286,7 +286,7 @@ func setConfigFromEnv(config *Config) error {
 		var err error
 		config.AccountID, err = strconv.Atoi(value)
 		if err != nil {
-			return fmt.Errorf("invalid account ID format: %w", err)
+			return fmt.Errorf("invalid account ID format")
 		}
 	}
 
@@ -300,7 +300,7 @@ func setConfigFromEnv(config *Config) error {
 
 		config.AccountID, err = strconv.Atoi(string(accountID))
 		if err != nil {
-			return fmt.Errorf("invalid account ID format: %w", err)
+			return fmt.Errorf("invalid account ID format")
 		}
 	}
 
