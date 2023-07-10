@@ -10,16 +10,17 @@ The source code is available on [GitHub](https://github.com/maxmind/geoipupdate)
 The Docker image is configured by environment variables. The following
 variables are required:
 
-
 * `GEOIPUPDATE_EDITION_IDS` - List of space-separated database edition IDs.
   Edition IDs may consist of letters, digits, and dashes. For example,
   `GeoIP2-City` would download the GeoIP2 City database (`GeoIP2-City`).
 
 One of:
+
 * `GEOIPUPDATE_ACCOUNT_ID` - Your MaxMind account ID.
-* `GEOIPUPDATE_ACCOUNT_IDFILE` - A file containing your MaxMind account ID.
+* `GEOIPUPDATE_ACCOUNT_ID_FILE` - A file containing your MaxMind account ID.
 
 One of:
+
 * `GEOIPUPDATE_LICENSE_KEY` - Your case-sensitive MaxMind license key.
 * `GEOIPUPDATE_LICENSE_KEY_FILE` - A file containing your case-sensitive
   MaxMind license key.
