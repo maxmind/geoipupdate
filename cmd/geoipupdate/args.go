@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 	flag "github.com/spf13/pflag"
 )
 

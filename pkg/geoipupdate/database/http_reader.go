@@ -15,8 +15,8 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/internal"
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 )
 
 const urlFormat = "%s/geoip/databases/%s/update?db_md5=%s"

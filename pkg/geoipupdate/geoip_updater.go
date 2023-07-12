@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/database"
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/internal"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
 )
 
 // Client uses config data to initiate a download or update

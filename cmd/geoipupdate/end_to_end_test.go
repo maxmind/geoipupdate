@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
