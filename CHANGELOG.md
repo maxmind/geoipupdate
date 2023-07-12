@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 6.0.0
+## 6.0.0 (2023-07-12)
 
 * `geoipupdate` now supports configuration via environment variables. Any
   configuration set this way will override any value from the config file,
