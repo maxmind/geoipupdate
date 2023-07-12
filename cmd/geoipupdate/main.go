@@ -10,10 +10,12 @@ import (
 	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
 )
 
+const unknownVersion = "unknown"
+
 // These values are set by build scripts. Changing the names of
 // the variables should be considered a breaking change.
 var (
-	version                  = "unknown"
+	version                  = unknownVersion
 	defaultConfigFile        string
 	defaultDatabaseDirectory string
 )
