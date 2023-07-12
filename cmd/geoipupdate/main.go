@@ -30,14 +30,6 @@ func main() {
 	}
 
 	args := getArgs()
-	fatalLogger := func(message string, err error) {
-		if args.StackTrace {
-			log.Printf("%s: %+v", message, err)
-		} else {
-			log.Printf("%s: %s", message, err)
-		}
-		os.Exit(1)
-	}
 
 	config, err := geoipupdate.NewConfig(
 		geoipupdate.WithConfigFile(args.ConfigFile),
@@ -47,7 +39,8 @@ func main() {
 		geoipupdate.WithOutput(args.Output),
 	)
 	if err != nil {
-		fatalLogger("error loading configuration", err)
+		log.Printf("error loading configuration: %s", err)
+		os.Exit(1)
 	}
 
 	if config.Verbose {
@@ -58,6 +51,7 @@ func main() {
 
 	client := geoipupdate.NewClient(config)
 	if err = client.Run(context.Background()); err != nil {
-		fatalLogger("error retrieving updates", err)
+		log.Printf("error retrieving updates: %s", err)
+		os.Exit(1)
 	}
 }
