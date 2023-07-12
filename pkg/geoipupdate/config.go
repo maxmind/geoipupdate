@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 )
 
 // Config is a parsed configuration file.
@@ -274,7 +274,7 @@ func setConfigFromFile(config *Config, path string) error {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading file: %w", err)
+		return fmt.Errorf("reading file: %w", err)
 	}
 
 	return nil
@@ -436,7 +436,7 @@ func parseProxy(
 	// Now that we have a scheme, we should be able to parse.
 	u, err := url.Parse(proxyURL)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing proxy URL: %w", err)
+		return nil, fmt.Errorf("parsing proxy URL: %w", err)
 	}
 
 	if !strings.Contains(u.Host, ":") {

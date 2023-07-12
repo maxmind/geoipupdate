@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
 	"github.com/stretchr/testify/require"
 )
 

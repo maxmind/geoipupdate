@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 6.0.0
+## 6.0.0 (2023-07-12)
 
 * `geoipupdate` now supports configuration via environment variables. Any
   configuration set this way will override any value from the config file,
@@ -27,6 +27,8 @@
   a positional config file path argument, which can now be passed in using the
   option from `WithConfigFile` along with the other optional parameters.
 * `geoipupdate` and `NewConfig` no longer require a config file to exist.
+* The `--stack-trace` flag has been removed. This flag has been broken since
+  4.11.0.
 
 ## 5.1.1 (2023-05-08)
 
