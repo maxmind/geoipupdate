@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/database"
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/internal"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
 )
 
 // Client uses config data to initiate a download or update
@@ -57,14 +57,14 @@ func NewClient(config *Config) *Client {
 func (c *Client) Run(ctx context.Context) error {
 	fileLock, err := internal.NewFileLock(c.config.LockFile, c.config.Verbose)
 	if err != nil {
-		return fmt.Errorf("error initializing file lock: %w", err)
+		return fmt.Errorf("initializing file lock: %w", err)
 	}
 	if err := fileLock.Acquire(); err != nil {
-		return fmt.Errorf("error acquiring file lock: %w", err)
+		return fmt.Errorf("acquiring file lock: %w", err)
 	}
 	defer func() {
 		if err := fileLock.Release(); err != nil {
-			log.Printf("error releasing file lock: %s", err)
+			log.Printf("releasing file lock: %s", err)
 		}
 	}()
 
@@ -72,12 +72,12 @@ func (c *Client) Run(ctx context.Context) error {
 
 	reader, err := c.getReader()
 	if err != nil {
-		return fmt.Errorf("error initializing database reader: %w", err)
+		return fmt.Errorf("initializing database reader: %w", err)
 	}
 
 	writer, err := c.getWriter()
 	if err != nil {
-		return fmt.Errorf("error initializing database writer: %w", err)
+		return fmt.Errorf("initializing database writer: %w", err)
 	}
 
 	var editions []database.ReadResult
@@ -113,13 +113,13 @@ func (c *Client) Run(ctx context.Context) error {
 	// Run blocks until all jobs are processed or exits early after
 	// the first encountered error.
 	if err := jobProcessor.Run(ctx); err != nil {
-		return fmt.Errorf("error running the job processor: %w", err)
+		return fmt.Errorf("running the job processor: %w", err)
 	}
 
 	if c.config.Output {
 		result, err := json.Marshal(editions)
 		if err != nil {
-			return fmt.Errorf("error marshaling result log: %w", err)
+			return fmt.Errorf("marshaling result log: %w", err)
 		}
 		c.output.Print(string(result))
 	}

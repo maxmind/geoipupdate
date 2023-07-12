@@ -1,12 +1,13 @@
-module github.com/maxmind/geoipupdate/v5
+module github.com/maxmind/geoipupdate/v6
 
 go 1.19
 
 require (
+	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/gofrs/flock v0.8.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.2
-	golang.org/x/sync v0.2.0
+	github.com/stretchr/testify v1.8.4
+	golang.org/x/sync v0.3.0
 )
 
 require (

@@ -34,7 +34,7 @@ func NewLocalFileWriter(
 ) (*LocalFileWriter, error) {
 	err := os.MkdirAll(filepath.Dir(databaseDir), 0o750)
 	if err != nil {
-		return nil, fmt.Errorf("error creating database directory: %w", err)
+		return nil, fmt.Errorf("creating database directory: %w", err)
 	}
 
 	return &LocalFileWriter{
@@ -56,7 +56,7 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 
 	defer func() {
 		if err := result.reader.Close(); err != nil {
-			log.Printf("error closing reader for %s: %+v", result.EditionID, err)
+			log.Printf("closing reader for %s: %+v", result.EditionID, err)
 		}
 	}()
 
@@ -65,32 +65,32 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 	// write the Reader's result into a temporary file.
 	fw, err := newFileWriter(databaseFilePath + tempExtension)
 	if err != nil {
-		return fmt.Errorf("error setting up database writer for %s: %w", result.EditionID, err)
+		return fmt.Errorf("setting up database writer for %s: %w", result.EditionID, err)
 	}
 	defer func() {
 		if err := fw.close(); err != nil {
-			log.Printf("error closing file writer: %+v", err)
+			log.Printf("closing file writer: %+v", err)
 		}
 	}()
 
 	if err := fw.write(result.reader); err != nil {
-		return fmt.Errorf("error writing to the temp file for %s: %w", result.EditionID, err)
+		return fmt.Errorf("writing to the temp file for %s: %w", result.EditionID, err)
 	}
 
 	// make sure the hash of the temp file matches the expected hash.
 	if err := fw.validateHash(result.NewHash); err != nil {
-		return fmt.Errorf("error validating hash for %s: %w", result.EditionID, err)
+		return fmt.Errorf("validating hash for %s: %w", result.EditionID, err)
 	}
 
 	// move the temoporary database file into it's final location and
 	// sync the directory.
 	if err := fw.syncAndRename(databaseFilePath); err != nil {
-		return fmt.Errorf("error renaming temp file: %w", err)
+		return fmt.Errorf("renaming temp file: %w", err)
 	}
 
 	// sync database directory.
 	if err := syncDir(filepath.Dir(databaseFilePath)); err != nil {
-		return fmt.Errorf("error syncing database directory: %w", err)
+		return fmt.Errorf("syncing database directory: %w", err)
 	}
 
 	// check if we need to set the file's modified at time
@@ -119,18 +119,18 @@ func (w *LocalFileWriter) GetHash(editionID string) (string, error) {
 			}
 			return ZeroMD5, nil
 		}
-		return "", fmt.Errorf("error opening database: %w", err)
+		return "", fmt.Errorf("opening database: %w", err)
 	}
 
 	defer func() {
 		if err := database.Close(); err != nil {
-			log.Println(fmt.Errorf("error closing database: %w", err))
+			log.Println(fmt.Errorf("closing database: %w", err))
 		}
 	}()
 
 	md5Hash := md5.New()
 	if _, err := io.Copy(md5Hash, database); err != nil {
-		return "", fmt.Errorf("error calculating database hash: %w", err)
+		return "", fmt.Errorf("calculating database hash: %w", err)
 	}
 
 	result := byteToString(md5Hash.Sum(nil))
@@ -160,7 +160,7 @@ func newFileWriter(path string) (*fileWriter, error) {
 	//nolint:gosec // we really need to read this file.
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
-		return nil, fmt.Errorf("error creating temporary file at %s: %w", path, err)
+		return nil, fmt.Errorf("creating temporary file at %s: %w", path, err)
 	}
 
 	return &fileWriter{
@@ -174,12 +174,12 @@ func (w *fileWriter) close() error {
 	if err := w.file.Close(); err != nil {
 		var perr *os.PathError
 		if !errors.As(err, &perr) || !errors.Is(perr.Err, os.ErrClosed) {
-			return fmt.Errorf("error closing temporary file: %w", err)
+			return fmt.Errorf("closing temporary file: %w", err)
 		}
 	}
 
 	if err := os.Remove(w.file.Name()); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("error removing temporary file: %w", err)
+		return fmt.Errorf("removing temporary file: %w", err)
 	}
 
 	return nil
@@ -189,7 +189,7 @@ func (w *fileWriter) close() error {
 func (w *fileWriter) write(r io.Reader) error {
 	writer := io.MultiWriter(w.md5Writer, w.file)
 	if _, err := io.Copy(writer, r); err != nil {
-		return fmt.Errorf("error writing database: %w", err)
+		return fmt.Errorf("writing database: %w", err)
 	}
 	return nil
 }
@@ -206,13 +206,13 @@ func (w *fileWriter) validateHash(h string) error {
 // syncAndRename syncs the content of the file to storage and renames it.
 func (w *fileWriter) syncAndRename(name string) error {
 	if err := w.file.Sync(); err != nil {
-		return fmt.Errorf("error syncing temporary file: %w", err)
+		return fmt.Errorf("syncing temporary file: %w", err)
 	}
 	if err := w.file.Close(); err != nil {
-		return fmt.Errorf("error closing temporary file: %w", err)
+		return fmt.Errorf("closing temporary file: %w", err)
 	}
 	if err := os.Rename(w.file.Name(), name); err != nil {
-		return fmt.Errorf("error moving database into place: %w", err)
+		return fmt.Errorf("moving database into place: %w", err)
 	}
 	return nil
 }
@@ -223,7 +223,7 @@ func syncDir(path string) error {
 	//nolint:gosec // we really need to read this file.
 	d, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("error opening database directory %s: %w", path, err)
+		return fmt.Errorf("opening database directory %s: %w", path, err)
 	}
 	defer func() {
 		if err := d.Close(); err != nil {
@@ -241,7 +241,7 @@ func syncDir(path string) error {
 // setModifiedAtTime sets the times for a database file to a certain value.
 func setModifiedAtTime(path string, t time.Time) error {
 	if err := os.Chtimes(path, t, t); err != nil {
-		return fmt.Errorf("error setting times on file %s: %w", path, err)
+		return fmt.Errorf("setting times on file %s: %w", path, err)
 	}
 	return nil
 }

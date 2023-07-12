@@ -10,9 +10,7 @@
     "bidichk",
     "bodyclose",
     "containedctx",
-    # Although this is useful, it complains about quite a few reasonable things,
-    # e.g., using the request context. We should reevaluate in the future.
-    # "contextcheck",
+    "contextcheck",
     "depguard",
     # This is probably worthwhile, but there are a number of false positives
     # that would need to be addressed.
@@ -42,18 +40,29 @@
     "gomodguard",
     "gosec",
     "gosimple",
+    # This only "caught" one thing, and it seemed like a reasonable use
+    # of Han script. Generally, I don't think we want to prevent the use
+    # of particulr scripts. The time.Local checks might be useful, but
+    # this didn't actually catch anything of note there.
+    # "gosmopolitan",
     "govet",
     "grouper",
     "ineffassign",
     "lll",
+    # We don't use these loggers
+    # "loggercheck",
     "makezero",
     # Maintainability Index. Seems like it could be a good idea, but a
     # lot of things fail and we would need to make some decisions about
     # what to allow.
     # "maintidx",
     "misspell",
+    # Causes panics, e.g., when processing mmerrors
+    # "musttag",
     "nakedret",
     "nilerr",
+    # Perhaps too opinionated. We do have some legitimate uses of "return nil, nil"
+    # "nilnil",
     "noctx",
     "nolintlint",
     # We occasionally use named returns for documentation, which is helpful.
@@ -64,13 +73,15 @@
     "nosprintfhostport",
     "predeclared",
     "revive",
-    # XXX - disabled due to lack of 1.18 support.
-    # "rowserrcheck",
+    "rowserrcheck",
     # https://github.com/golangci/golangci-lint/issues/287
     # "safesql",
     "sqlclosecheck",
     "staticcheck",
     "stylecheck",
+    # We have very few structs with multiple tags and for the couple we had, this
+    # actually made it harder to read.
+    # "tagalign",
     "tenv",
     "tparallel",
     "typecheck",
@@ -79,21 +90,22 @@
     "unused",
     "usestdlibvars",
     "vetshadow",
-    # XXX - disabled due to lack of 1.18 support.
-    # "wastedassign",
-    "wrapcheck",
+    "wastedassign",
+    # We don't currently wrap external errors in this module.
+    # "wrapcheck",
   ]
 
 # Please note that we only use depguard for stdlib as gomodguard only
 # supports modules currently. See https://github.com/ryancurrah/gomodguard/issues/12
-[linters-settings.depguard]
-  list-type = "blacklist"
-  include-go-root = true
-  packages = [
-    # ioutil is deprecated. The functions have been moved elsewhere:
-    # https://golang.org/doc/go1.16#ioutil
-    "io/ioutil",
-  ]
+[[linters-settings.depguard.rules.main.deny]]
+pkg = "io/ioutil"
+desc = "Deprecated. Functions have been moved elsewhere."
+
+[[linters-settings.depguard.rules.main.deny]]
+# golang.org/x/exp/slices has better alternatives. The proposal to add this
+# to Go has been accepted, https://github.com/golang/go/issues/57433
+pkg = "sort"
+desc = "Use golang.org/x/exp/slices instead"
 
 [linters-settings.errcheck]
     # Don't allow setting of error to the blank identifier. If there is a legitimate
@@ -129,9 +141,14 @@
 [linters-settings.forbidigo]
     # Forbid the following identifiers
     forbid = [
-        "^minFraud*",
-        "^maxMind*",
-        "^hubSpot*",
+        "Geoip", # use "GeoIP"
+        "^geoIP", # use "geoip"
+        "^hubSpot", # use "hubspot"
+        "Maxmind", # use "MaxMind"
+        "^maxMind", # use "maxmind"
+        "Minfraud", # use "MinFraud"
+        "^minFraud", # use "minfraud"
+        "[Uu]ser[iI][dD]", # use "accountID" or "AccountID"
 
         # use netip.ParsePrefix unless you really need a *net.IPNet
         "^net.ParseCIDR",
@@ -196,8 +213,6 @@
         "importShadow",
         "indexAlloc",
         "initClause",
-        # We still support ancient Go versions for our Ubuntu packages.
-        # "ioutilDeprecated",
         "mapKey",
         "methodExprCall",
         "nestingReduce",
@@ -221,12 +236,15 @@
         # significant changes to regexes as we port stuff from Perl.
         # "regexpSimplify",
         "returnAfterHttpError",
+        "ruleguard",
         "singleCaseSwitch",
         "sliceClear",
         "sloppyLen",
         # This seems like it might also be good, but a lot of existing code
         # fails.
         # "sloppyReassign",
+        # This complains about helper functions in tests.
+        # "sloppyTestFuncName",
         "sloppyTypeAssert",
         "sortSlice",
         "sprintfQuotedString",
@@ -263,7 +281,7 @@
 
 [linters-settings.gofumpt]
     extra-rules = true
-    lang-version = "1.19"
+    lang-version = "1.18"
 
 [linters-settings.gomodguard]
   [[linters-settings.gomodguard.blocked.modules]]
@@ -279,6 +297,11 @@
   [[linters-settings.gomodguard.blocked.modules]]
   [linters-settings.gomodguard.blocked.modules."github.com/gofrs/uuid"]
     recommendations = ["github.com/google/uuid"]
+
+  [[linters-settings.gomodguard.blocked.modules]]
+  [linters-settings.gomodguard.blocked.modules."github.com/pelletier/go-toml"]
+    recommendations = ["github.com/pelletier/go-toml/v2"]
+    reason = "This is an outdated version."
 
   [[linters-settings.gomodguard.blocked.modules]]
   [linters-settings.gomodguard.blocked.modules."github.com/satori/go.uuid"]
@@ -299,7 +322,6 @@
     reason = "This library's data is not actively maintained. Use GeoInfo data."
 
   [linters-settings.gomodguard.blocked.modules."github.com/pkg/errors"]
-    recommendations = ["github.maxmind.com/maxmind/mm_website/go/pkg/mmerrors"]
     reason = "pkg/errors is no longer maintained."
 
   [[linters-settings.gomodguard.blocked.modules]]
@@ -333,6 +355,10 @@
     version = "< 5.0.0"
     reason = "Use github.com/jackc/pgx/v5"
 
+  [[linters-settings.gomodguard.blocked.versions]]
+  [linters-settings.gomodguard.blocked.versions."github.com/stretchr/testify/assert"]
+    reason = "Use github.com/stretchr/testify/assert"
+
   [[linters-settings.gomodguard.blocked.modules]]
   [linters-settings.gomodguard.blocked.modules."inet.af/netaddr"]
     recommendations = ["go4.org/netipx"]
@@ -350,8 +376,19 @@
         "G307",
     ]
 
+
 [linters-settings.govet]
+    # This seems to be duplicate setting, but enable it for good measure.
+    check-shadowing = true
     "enable-all" = true
+
+    #  Although it is very useful in particular cases where we are trying to
+    # use as little memory as possible, there are even more cases where
+    # other organizations may make more sense.
+    disable = ["fieldalignment"]
+
+    [linters-settings.govet.settings.shadow]
+        strict = true
 
 [linters-settings.lll]
     line-length = 120
@@ -394,12 +431,9 @@
     # [[linters-settings.revive.rules]]
     # name = "cognitive-complexity"
 
-    # This interacts poorly with gofumpt, which seems to convert
-    # "//   " to "//<tab>". That is probably a bug in gofumpt, but there
-    # isn't much we can do about it right now.
-    # [[linters-settings.revive.rules]]
-    # name = "comment-spacings"
-    # arguments = ["easyjson", "nolint"]
+    [[linters-settings.revive.rules]]
+    name = "comment-spacings"
+    arguments = ["easyjson", "nolint"]
 
     # Probably a good rule, but we have a lot of names that
     # only have case differences.
@@ -608,23 +642,34 @@ exclude-use-default = false
 
   [[issues.exclude-rules]]
   linters = [
-    "govet"
+    "forbidigo"
   ]
-  # we want to enable almost all govet rules. It is easier to just filter out
-  # the ones we don't want:
-  #
-  # * fieldalignment - way too noisy. Although it is very useful in particular
-  #   cases where we are trying to use as little memory as possible, having
-  #   it go off on every struct isn't helpful.
-  # * shadow - although often useful, it complains about _many_ err
-  #   shadowing assignments and some others where shadowing is clear.
-  text = "^(fieldalignment|shadow)"
+  # This refers to a minFraud field, not the MaxMind Account ID
+  text = "AccountUserID|Account\\.UserID"
+
+  [[issues.exclude-rules]]
+  linters = [
+    "gocritic"
+  ]
+  # For some reason the imports stuff in ruleguard doesn't work in golangci-lint.
+  # Perhaps it has an outdated version or something
+  path = "_test.go"
+  text = "ruleguard: Prefer the alternative Context method instead"
+
+  [[issues.exclude-rules]]
+  linters = [
+    "gocritic"
+  ]
+  # The nolintlint linter behaves oddly with ruleguard rules
+  source = "// *no-ruleguard"
 
   [[issues.exclude-rules]]
   linters = [
     "govet"
   ]
-  text = "shadow: declaration of \"err\" shadows declaration"
+  # These are usually fine to shadow and not allowing shadowing for them can
+  # make the code unnecessarily verbose.
+  text = 'shadow: declaration of "(ctx|err|ok)" shadows declaration'
 
   [[issues.exclude-rules]]
   linters = [
@@ -648,12 +693,6 @@ exclude-use-default = false
   ]
   # SA5008: unknown JSON option "intern" - easyjson specific option.
   text = 'SA5008: unknown JSON option "intern"'
-
-  [[issues.exclude-rules]]
-  linters = [
-    "wrapcheck"
-  ]
-  text = "github.com/maxmind/geoipupdate"
 
   [[issues.exclude-rules]]
   linters = [

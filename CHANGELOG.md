@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## 6.0.0 (2023-07-12)
+
+* `geoipupdate` now supports configuration via environment variables. Any
+  configuration set this way will override any value from the config file,
+  but still be overridden by any associated command line option (if any).
+  The following new environment variables are supported:
+
+    * `GEOIPUPDATE_ACCOUNT_ID`
+    * `GEOIPUPDATE_ACCOUNT_ID_FILE`
+    * `GEOIPUPDATE_CONF_FILE`
+    * `GEOIPUPDATE_DB_DIR`
+    * `GEOIPUPDATE_EDITION_IDS`
+    * `GEOIPUPDATE_HOST`
+    * `GEOIPUPDATE_LICENSE_KEY`
+    * `GEOIPUPDATE_LICENSE_KEY_FILE`
+    * `GEOIPUPDATE_LOCK_FILE`
+    * `GEOIPUPDATE_PARALLELISM`
+    * `GEOIPUPDATE_PRESERVE_FILE_TIMES`
+    * `GEOIPUPDATE_PROXY`
+    * `GEOIPUPDATE_PROXY_USER_PASSWORD`
+    * `GEOIPUPDATE_RETRY_FOR`
+    * `GEOIPUPDATE_VERBOSE`
+
+* Changed the signature of `NewConfig` in `pkg/geoipupdate` to no longer accept
+  a positional config file path argument, which can now be passed in using the
+  option from `WithConfigFile` along with the other optional parameters.
+* `geoipupdate` and `NewConfig` no longer require a config file to exist.
+* The `--stack-trace` flag has been removed. This flag has been broken since
+  4.11.0.
+
+## 5.1.1 (2023-05-08)
+
+* Based on feedback, the change to use a non-root user in 5.1.0
+  when using the Docker image has been reverted. There are no
+  non-Docker changes in this release. See GitHub #233.
+
 ## 5.1.0 (2023-05-05)
 
 * Fixed the Docker health-check script to use the correct time of

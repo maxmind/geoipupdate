@@ -14,67 +14,37 @@ term_handler() {
 trap 'kill ${!}; term_handler' SIGTERM
 
 pid=0
-conf_file=/var/lib/geoipupdate/GeoIP.conf
 database_dir=/usr/share/GeoIP
-log_dir="/var/lib/geoipupdate"
+log_dir="/tmp/geoipupdate"
 log_file="$log_dir/.healthcheck"
 flags="--output"
 frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
+export GEOIPUPDATE_CONF_FILE=""
 
-if ! [ -z "$GEOIPUPDATE_CONF_FILE" ]; then
-  conf_file=$GEOIPUPDATE_CONF_FILE
+if [ -z "$GEOIPUPDATE_DB_DIR" ]; then
+  export GEOIPUPDATE_DB_DIR="$database_dir"
 fi
 
-if ! [ -z "$GEOIPUPDATE_DB_DIR" ]; then
-  database_dir=$GEOIPUPDATE_DB_DIR
-fi
-
-if [ ! -z "$GEOIPUPDATE_ACCOUNT_ID_FILE" ]; then
-  GEOIPUPDATE_ACCOUNT_ID=$( cat "$GEOIPUPDATE_ACCOUNT_ID_FILE" )
-fi
-
-if [ ! -z "$GEOIPUPDATE_LICENSE_KEY_FILE" ]; then
-  GEOIPUPDATE_LICENSE_KEY=$( cat "$GEOIPUPDATE_LICENSE_KEY_FILE" )
-fi
-
-if [ -z "$GEOIPUPDATE_ACCOUNT_ID" ] || [ -z  "$GEOIPUPDATE_LICENSE_KEY" ] || [ -z "$GEOIPUPDATE_EDITION_IDS" ]; then
-    echo "ERROR: You must set the environment variables GEOIPUPDATE_ACCOUNT_ID, GEOIPUPDATE_LICENSE_KEY, and GEOIPUPDATE_EDITION_IDS!"
+if [ -z "$GEOIPUPDATE_ACCOUNT_ID" ] && [ -z  "$GEOIPUPDATE_ACCOUNT_ID_FILE" ]; then
+    echo "ERROR: You must set the environment variable GEOIPUPDATE_ACCOUNT_ID or GEOIPUPDATE_ACCOUNT_ID_FILE!"
     exit 1
 fi
 
-# Create configuration file
-echo "# STATE: Creating configuration file at $conf_file"
-cat <<EOF > "$conf_file"
-AccountID $GEOIPUPDATE_ACCOUNT_ID
-LicenseKey $GEOIPUPDATE_LICENSE_KEY
-EditionIDs $GEOIPUPDATE_EDITION_IDS
-EOF
-
-if [ ! -z "$GEOIPUPDATE_HOST" ]; then
-    echo "Host $GEOIPUPDATE_HOST" >> "$conf_file"
+if [ -z "$GEOIPUPDATE_LICENSE_KEY" ] && [ -z  "$GEOIPUPDATE_LICENSE_KEY_FILE" ]; then
+    echo "ERROR: You must set the environment variable GEOIPUPDATE_LICENSE_KEY or GEOIPUPDATE_LICENSE_KEY_FILE!"
+    exit 1
 fi
 
-if [ ! -z "$GEOIPUPDATE_PROXY" ]; then
-    echo "Proxy $GEOIPUPDATE_PROXY" >> "$conf_file"
-fi
-
-if [ ! -z "$GEOIPUPDATE_PROXY_USER_PASSWORD" ]; then
-    echo "ProxyUserPassword $GEOIPUPDATE_PROXY_USER_PASSWORD" >> "$conf_file"
-fi
-
-if [ ! -z "$GEOIPUPDATE_PRESERVE_FILE_TIMES" ]; then
-    echo "PreserveFileTimes $GEOIPUPDATE_PRESERVE_FILE_TIMES" >> "$conf_file"
-fi
-
-if [ "$GEOIPUPDATE_VERBOSE" ]; then
-    flags="$flags -v"
+if [ -z "$GEOIPUPDATE_EDITION_IDS" ]; then
+    echo "ERROR: You must set the environment variable GEOIPUPDATE_EDITION_IDS!"
+    exit 1
 fi
 
 mkdir -p $log_dir
 
 while true; do
     echo "# STATE: Running geoipupdate"
-    /usr/bin/geoipupdate -d "$database_dir" -f "$conf_file" $flags 1>$log_file
+    /usr/bin/geoipupdate $flags 1>$log_file
     if [ "$frequency" -eq 0 ]; then
         break
     fi

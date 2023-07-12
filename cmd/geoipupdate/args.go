@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 	flag "github.com/spf13/pflag"
 )
 
@@ -12,17 +12,21 @@ import (
 type Args struct {
 	ConfigFile        string
 	DatabaseDirectory string
-	StackTrace        bool
 	Verbose           bool
 	Output            bool
 	Parallelism       int
 }
 
 func getArgs() *Args {
+	confFileDefault := vars.DefaultConfigFile
+	if value, ok := os.LookupEnv("GEOIPUPDATE_CONF_FILE"); ok {
+		confFileDefault = value
+	}
+
 	configFile := flag.StringP(
 		"config-file",
 		"f",
-		vars.DefaultConfigFile,
+		confFileDefault,
 		"Configuration file",
 	)
 	databaseDirectory := flag.StringP(
@@ -32,7 +36,6 @@ func getArgs() *Args {
 		"Store databases in this directory (uses config if not specified)",
 	)
 	help := flag.BoolP("help", "h", false, "Display help and exit")
-	stackTrace := flag.Bool("stack-trace", false, "Show a stack trace along with any error message")
 	verbose := flag.BoolP("verbose", "v", false, "Use verbose output")
 	output := flag.BoolP("output", "o", false, "Output download/update results in JSON format")
 	displayVersion := flag.BoolP("version", "V", false, "Display the version and exit")
@@ -49,11 +52,6 @@ func getArgs() *Args {
 		os.Exit(0)
 	}
 
-	if *configFile == "" {
-		log.Printf("You must provide a configuration file.")
-		printUsage()
-	}
-
 	if *parallelism < 0 {
 		log.Printf("Parallelism must be a positive number")
 		printUsage()
@@ -62,7 +60,6 @@ func getArgs() *Args {
 	return &Args{
 		ConfigFile:        *configFile,
 		DatabaseDirectory: *databaseDirectory,
-		StackTrace:        *stackTrace,
 		Verbose:           *verbose,
 		Output:            *output,
 		Parallelism:       *parallelism,

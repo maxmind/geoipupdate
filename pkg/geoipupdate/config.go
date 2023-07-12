@@ -12,13 +12,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 )
 
 // Config is a parsed configuration file.
 type Config struct {
 	// AccountID is the account ID.
 	AccountID int
+	// confFile is the path to any configuration file used when
+	// potentially populating Config fields.
+	configFile string
 	// DatabaseDirectory is where database files are going to be
 	// stored.
 	DatabaseDirectory string
@@ -39,6 +42,10 @@ type Config struct {
 	Parallelism int
 	// Proxy is host name or IP address of a proxy server.
 	Proxy *url.URL
+	// proxyURL is the host value of Proxy
+	proxyURL string
+	// proxyUserInfo is the userinfo value of Proxy
+	proxyUserInfo string
 	// RetryFor is the retry timeout for HTTP requests. It defaults
 	// to 5 minutes.
 	RetryFor time.Duration
@@ -98,20 +105,24 @@ func WithOutput(val bool) Option {
 	}
 }
 
-// NewConfig parses the configuration file.
-// flagOptions is provided to provide optional flag overrides to the config
-// file.
-func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
-	path string,
+// WithConfigFile returns an Option that sets the configuration
+// file to be used.
+func WithConfigFile(file string) Option {
+	return func(c *Config) error {
+		if file != "" {
+			c.configFile = filepath.Clean(file)
+		}
+		return nil
+	}
+}
+
+// NewConfig creates a new configuration and populates it based on an optional
+// config file pointed to by an option set with WithConfigFile, then by various
+// environment variables, and then finally by flag overrides provided by
+// flagOptions. Values from the later override the former.
+func NewConfig(
 	flagOptions ...Option,
 ) (*Config, error) {
-	fh, err := os.Open(filepath.Clean(path))
-	if err != nil {
-		return nil, fmt.Errorf("error opening file: %w", err)
-	}
-
-	defer fh.Close()
-
 	// config defaults
 	config := &Config{
 		URL:               "https://updates.maxmind.com",
@@ -120,10 +131,77 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		Parallelism:       1,
 	}
 
+	// Potentially populate config.configFilePath. We will rerun this function
+	// again later to ensure the flag values override env variables.
+	err := setConfigFromFlags(config, flagOptions...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Override config with values from the config file.
+	if confFile := config.configFile; confFile != "" {
+		err = setConfigFromFile(config, confFile)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Override config with values from environment variables.
+	err = setConfigFromEnv(config)
+	if err != nil {
+		return nil, err
+	}
+
+	// Override config with values from option flags.
+	err = setConfigFromFlags(config, flagOptions...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set config values that depend on other config values. For instance
+	// proxyURL may have been set by the default config, and proxyUserInfo
+	// by config file. Both of these values need to be combined to create
+	// the public Proxy field that is a *url.URL.
+
+	config.Proxy, err = parseProxy(config.proxyURL, config.proxyUserInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.LockFile == "" {
+		config.LockFile = filepath.Join(config.DatabaseDirectory, ".geoipupdate.lock")
+	}
+
+	// Validate config values now that all config sources have been considered and
+	// any value that may need to be created from other values has been set.
+
+	err = validateConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	// Reset values that were only needed to communicate information between
+	// config overrides.
+
+	config.configFile = ""
+	config.proxyURL = ""
+	config.proxyUserInfo = ""
+
+	return config, nil
+}
+
+// setConfigFromFile sets Config fields based on the configuration file.
+func setConfigFromFile(config *Config, path string) error {
+	fh, err := os.Open(filepath.Clean(path))
+	if err != nil {
+		return fmt.Errorf("error opening file: %w", err)
+	}
+
+	defer fh.Close()
+
 	scanner := bufio.NewScanner(fh)
 	lineNumber := 0
 	keysSeen := map[string]struct{}{}
-	var proxy, proxyUserPassword string
 	for scanner.Scan() {
 		lineNumber++
 		line := strings.TrimSpace(scanner.Text())
@@ -133,13 +211,13 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 
 		fields := strings.Fields(line)
 		if len(fields) < 2 {
-			return nil, fmt.Errorf("invalid format on line %d", lineNumber)
+			return fmt.Errorf("invalid format on line %d", lineNumber)
 		}
 		key := fields[0]
 		value := strings.Join(fields[1:], " ")
 
 		if _, ok := keysSeen[key]; ok {
-			return nil, fmt.Errorf("`%s' is in the config multiple times", key)
+			return fmt.Errorf("`%s' is in the config multiple times", key)
 		}
 		keysSeen[key] = struct{}{}
 
@@ -147,7 +225,7 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 		case "AccountID", "UserId":
 			accountID, err := strconv.Atoi(value)
 			if err != nil {
-				return nil, fmt.Errorf("invalid account ID format: %w", err)
+				return fmt.Errorf("invalid account ID format")
 			}
 			config.AccountID = accountID
 			keysSeen["AccountID"] = struct{}{}
@@ -166,79 +244,170 @@ func NewConfig( //nolint: gocyclo // long but breaking it up may be worse
 			config.LockFile = filepath.Clean(value)
 		case "PreserveFileTimes":
 			if value != "0" && value != "1" {
-				return nil, errors.New("`PreserveFileTimes' must be 0 or 1")
+				return errors.New("`PreserveFileTimes' must be 0 or 1")
 			}
-			if value == "1" {
-				config.PreserveFileTimes = true
-			}
+			config.PreserveFileTimes = value == "1"
 		case "Proxy":
-			proxy = value
+			config.proxyURL = value
 		case "ProxyUserPassword":
-			proxyUserPassword = value
+			config.proxyUserInfo = value
 		case "Protocol", "SkipHostnameVerification", "SkipPeerVerification":
 			// Deprecated.
 		case "RetryFor":
 			dur, err := time.ParseDuration(value)
 			if err != nil || dur < 0 {
-				return nil, fmt.Errorf("'%s' is not a valid duration", value)
+				return fmt.Errorf("'%s' is not a valid duration", value)
 			}
 			config.RetryFor = dur
 		case "Parallelism":
 			parallelism, err := strconv.Atoi(value)
 			if err != nil {
-				return nil, fmt.Errorf("'%s' is not a valid parallelism value: %w", value, err)
+				return fmt.Errorf("'%s' is not a valid parallelism value: %w", value, err)
 			}
 			if parallelism <= 0 {
-				return nil, fmt.Errorf("parallelism should be greater than 0, got '%d'", parallelism)
+				return fmt.Errorf("parallelism should be greater than 0, got '%d'", parallelism)
 			}
 			config.Parallelism = parallelism
 		default:
-			return nil, fmt.Errorf("unknown option on line %d", lineNumber)
+			return fmt.Errorf("unknown option on line %d", lineNumber)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading file: %w", err)
+		return fmt.Errorf("reading file: %w", err)
 	}
 
-	// Mandatory values.
-	if _, ok := keysSeen["EditionIDs"]; !ok {
-		return nil, fmt.Errorf("the `EditionIDs` option is required")
-	}
+	return nil
+}
 
-	if _, ok := keysSeen["AccountID"]; !ok {
-		return nil, fmt.Errorf("the `AccountID` option is required")
-	}
-
-	if _, ok := keysSeen["LicenseKey"]; !ok {
-		return nil, fmt.Errorf("the `LicenseKey` option is required")
-	}
-
-	// Overrides.
-	for _, option := range flagOptions {
-		if err := option(config); err != nil {
-			return nil, fmt.Errorf("error applying flag to config: %w", err)
+// setConfigFromEnv sets Config fields based on environment variables.
+func setConfigFromEnv(config *Config) error {
+	if value, ok := os.LookupEnv("GEOIPUPDATE_ACCOUNT_ID"); ok {
+		var err error
+		config.AccountID, err = strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("invalid account ID format")
 		}
 	}
 
-	if config.LockFile == "" {
-		config.LockFile = filepath.Join(config.DatabaseDirectory, ".geoipupdate.lock")
+	if value := os.Getenv("GEOIPUPDATE_ACCOUNT_ID_FILE"); value != "" {
+		var err error
+
+		accountID, err := os.ReadFile(filepath.Clean(value))
+		if err != nil {
+			return fmt.Errorf("failed to open GEOIPUPDATE_ACCOUNT_ID_FILE: %w", err)
+		}
+
+		config.AccountID, err = strconv.Atoi(string(accountID))
+		if err != nil {
+			return fmt.Errorf("invalid account ID format")
+		}
 	}
 
-	config.Proxy, err = parseProxy(proxy, proxyUserPassword)
-	if err != nil {
-		return nil, err
+	if value, ok := os.LookupEnv("GEOIPUPDATE_DB_DIR"); ok {
+		config.DatabaseDirectory = value
 	}
 
+	if value, ok := os.LookupEnv("GEOIPUPDATE_EDITION_IDS"); ok {
+		config.EditionIDs = strings.Fields(value)
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_HOST"); ok {
+		config.URL = "https://" + value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_LICENSE_KEY"); ok {
+		config.LicenseKey = value
+	}
+
+	if value := os.Getenv("GEOIPUPDATE_LICENSE_KEY_FILE"); value != "" {
+		var err error
+
+		licenseKey, err := os.ReadFile(filepath.Clean(value))
+		if err != nil {
+			return fmt.Errorf("failed to open GEOIPUPDATE_LICENSE_KEY_FILE: %w", err)
+		}
+
+		config.LicenseKey = string(licenseKey)
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_LOCK_FILE"); ok {
+		config.LockFile = value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_PARALLELISM"); ok {
+		parallelism, err := strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("'%s' is not a valid parallelism value: %w", value, err)
+		}
+		if parallelism <= 0 {
+			return fmt.Errorf("parallelism should be greater than 0, got '%d'", parallelism)
+		}
+		config.Parallelism = parallelism
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_PRESERVE_FILE_TIMES"); ok {
+		if value != "0" && value != "1" {
+			return errors.New("`PreserveFileTimes' must be 0 or 1")
+		}
+		config.PreserveFileTimes = value == "1"
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_PROXY"); ok {
+		config.proxyURL = value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_PROXY_USER_PASSWORD"); ok {
+		config.proxyUserInfo = value
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_RETRY_FOR"); ok {
+		dur, err := time.ParseDuration(value)
+		if err != nil || dur < 0 {
+			return fmt.Errorf("'%s' is not a valid duration", value)
+		}
+		config.RetryFor = dur
+	}
+
+	if value, ok := os.LookupEnv("GEOIPUPDATE_VERBOSE"); ok {
+		config.Verbose = value != ""
+	}
+
+	return nil
+}
+
+// setConfigFromFlags sets Config fields based on option flags.
+func setConfigFromFlags(config *Config, flagOptions ...Option) error {
+	for _, option := range flagOptions {
+		if err := option(config); err != nil {
+			return fmt.Errorf("error applying flag to config: %w", err)
+		}
+	}
+	return nil
+}
+
+func validateConfig(config *Config) error {
 	// We used to recommend using 999999 / 000000000000 for free downloads
 	// and many people still use this combination. With a real account id
 	// and license key now being required, we want to give those people a
 	// sensible error message.
 	if (config.AccountID == 0 || config.AccountID == 999999) && config.LicenseKey == "000000000000" {
-		return nil, errors.New("geoipupdate requires a valid AccountID and LicenseKey combination")
+		return errors.New("geoipupdate requires a valid AccountID and LicenseKey combination")
 	}
 
-	return config, nil
+	if len(config.EditionIDs) == 0 {
+		return fmt.Errorf("the `EditionIDs` option is required")
+	}
+
+	if config.AccountID == 0 {
+		return fmt.Errorf("the `AccountID` option is required")
+	}
+
+	if config.LicenseKey == "" {
+		return fmt.Errorf("the `LicenseKey` option is required")
+	}
+
+	return nil
 }
 
 var schemeRE = regexp.MustCompile(`(?i)\A([a-z][a-z0-9+\-.]*)://`)
@@ -267,7 +436,7 @@ func parseProxy(
 	// Now that we have a scheme, we should be able to parse.
 	u, err := url.Parse(proxyURL)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing proxy URL: %w", err)
+		return nil, fmt.Errorf("parsing proxy URL: %w", err)
 	}
 
 	if !strings.Contains(u.Host, ":") {

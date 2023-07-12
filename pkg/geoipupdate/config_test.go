@@ -5,10 +5,11 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,6 +18,7 @@ func TestNewConfig(t *testing.T) {
 	tests := []struct {
 		Description string
 		Input       string
+		Env         map[string]string
 		Flags       []Option
 		Output      *Config
 		Err         string
@@ -195,6 +197,8 @@ Parallelism 3
 					User:   url.UserPassword("username", "password"),
 					Host:   "127.0.0.1:8888",
 				},
+				proxyURL:          "",
+				proxyUserInfo:     "",
 				PreserveFileTimes: true,
 				URL:               "https://updates.example.com",
 				RetryFor:          10 * time.Minute,
@@ -227,7 +231,7 @@ UserId 456
 			Description: "Invalid account ID",
 			Input: `AccountID 1a
 `,
-			Err: `invalid account ID format: strconv.Atoi: parsing "1a": invalid syntax`,
+			Err: `invalid account ID format`,
 		},
 		{
 			Description: "Invalid PreserveFileTimes",
@@ -390,8 +394,7 @@ SkipPeerVerification 1
 		{
 			Description: "CR line ending does not work",
 			Input:       "AccountID 0\rLicenseKey 123\rEditionIDs GeoIP2-City\r",
-			//nolint: lll
-			Err: `invalid account ID format: strconv.Atoi: parsing "0 LicenseKey 123 EditionIDs GeoIP2-City": invalid syntax`,
+			Err:         `invalid account ID format`,
 		},
 		{
 			Description: "Multiple spaces between option and value works",
@@ -425,26 +428,412 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				Parallelism:       1,
 			},
 		},
+		{
+			Description: "Config flags override env vars override config file",
+			Input:       "AccountID\t\t123\nLicenseKey\t\t456\nParallelism\t\t1\n",
+			Env: map[string]string{
+				"GEOIPUPDATE_DB_DIR":              "/tmp/db",
+				"GEOIPUPDATE_EDITION_IDS":         "GeoLite2-Country GeoLite2-City",
+				"GEOIPUPDATE_HOST":                "updates.maxmind.com",
+				"GEOIPUPDATE_LICENSE_KEY":         "000000000001",
+				"GEOIPUPDATE_LOCK_FILE":           "/tmp/lock",
+				"GEOIPUPDATE_PARALLELISM":         "2",
+				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1",
+				"GEOIPUPDATE_PROXY":               "127.0.0.1:8888",
+				"GEOIPUPDATE_PROXY_USER_PASSWORD": "username:password",
+				"GEOIPUPDATE_RETRY_FOR":           "1m",
+				"GEOIPUPDATE_VERBOSE":             "1",
+			},
+			Flags: []Option{WithParallelism(3)},
+			Output: &Config{
+				AccountID:         123,
+				DatabaseDirectory: "/tmp/db",
+				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
+				LicenseKey:        "000000000001",
+				LockFile:          "/tmp/lock",
+				Parallelism:       3,
+				PreserveFileTimes: true,
+				Proxy: &url.URL{
+					Scheme: "http",
+					User:   url.UserPassword("username", "password"),
+					Host:   "127.0.0.1:8888",
+				},
+				RetryFor: 1 * time.Minute,
+				URL:      "https://updates.maxmind.com",
+				Verbose:  true,
+			},
+		},
 	}
-
-	tempFh, err := os.CreateTemp("", "conf-test")
-	require.NoError(t, err)
-	tempName := tempFh.Name()
-	require.NoError(t, tempFh.Close())
-	defer func() {
-		_ = os.Remove(tempName)
-	}()
 
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
+			withEnvVars(t, test.Env, func() {
+				tempName := filepath.Join(t.TempDir(), "/GeoIP-test.conf")
+				require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
+				testFlags := append([]Option{WithConfigFile(tempName)}, test.Flags...)
+				config, err := NewConfig(testFlags...)
+				if test.Err == "" {
+					assert.NoError(t, err, test.Description)
+				} else {
+					assert.EqualError(t, err, test.Err, test.Description)
+				}
+				assert.Equal(t, test.Output, config, test.Description)
+			})
+		})
+	}
+}
+
+func TestSetConfigFromFile(t *testing.T) {
+	tests := []struct {
+		Description string
+		Input       string
+		Expected    Config
+		Err         string
+	}{
+		{
+			Description: "All config file related variables",
+			Input: `AccountID 1
+			DatabaseDirectory /tmp/db
+			EditionIDs GeoLite2-Country GeoLite2-City
+			Host updates.maxmind.com
+			LicenseKey 000000000001
+			LockFile /tmp/lock
+			Parallelism 2
+			PreserveFileTimes 1
+			Proxy 127.0.0.1:8888
+			ProxyUserPassword username:password
+			RetryFor 1m
+	`,
+			Expected: Config{
+				AccountID:         1,
+				DatabaseDirectory: filepath.Clean("/tmp/db"),
+				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
+				LicenseKey:        "000000000001",
+				LockFile:          filepath.Clean("/tmp/lock"),
+				Parallelism:       2,
+				PreserveFileTimes: true,
+				proxyURL:          "127.0.0.1:8888",
+				proxyUserInfo:     "username:password",
+				RetryFor:          1 * time.Minute,
+				URL:               "https://updates.maxmind.com",
+			},
+		},
+		{
+			Description: "Empty config",
+			Input:       "",
+			Expected:    Config{},
+		},
+		{
+			Description: "Invalid account ID",
+			Input:       "AccountID 1a",
+			Err:         `invalid account ID format`,
+		},
+		{
+			Description: "Invalid PreserveFileTimes",
+			Input:       "PreserveFileTimes 1a",
+			Err:         "`PreserveFileTimes' must be 0 or 1",
+		},
+		{
+			Description: "RetryFor needs a unit",
+			Input:       "RetryFor 5",
+			Err:         "'5' is not a valid duration",
+		},
+		{
+			Description: "RetryFor needs to be non-negative",
+			Input:       "RetryFor -5m",
+			Err:         "'-5m' is not a valid duration",
+		},
+		{
+			Description: "Parallelism should be a number",
+			Input:       "Parallelism a",
+			Err:         "'a' is not a valid parallelism value: strconv.Atoi: parsing \"a\": invalid syntax",
+		},
+		{
+			Description: "Parallelism should be a positive number",
+			Input:       "Parallelism 0",
+			Err:         "parallelism should be greater than 0, got '0'",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Description, func(t *testing.T) {
+			tempName := filepath.Join(t.TempDir(), "/GeoIP-test.conf")
 			require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
-			config, err := NewConfig(tempName, test.Flags...)
+
+			var config Config
+
+			err := setConfigFromFile(&config, tempName)
 			if test.Err == "" {
 				assert.NoError(t, err, test.Description)
 			} else {
 				assert.EqualError(t, err, test.Err, test.Description)
 			}
-			assert.Equal(t, test.Output, config, test.Description)
+			assert.Equal(t, test.Expected, config, test.Description)
+		})
+	}
+}
+
+func TestSetConfigFromEnv(t *testing.T) {
+	tests := []struct {
+		Description            string
+		AccountIDFileContents  string
+		LicenseKeyFileContents string
+		Env                    map[string]string
+		Expected               Config
+		Err                    string
+	}{
+		{
+			Description: "All config related environment variables",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID":          "1",
+				"GEOIPUPDATE_ACCOUNT_ID_FILE":     "",
+				"GEOIPUPDATE_DB_DIR":              "/tmp/db",
+				"GEOIPUPDATE_EDITION_IDS":         "GeoLite2-Country GeoLite2-City",
+				"GEOIPUPDATE_HOST":                "updates.maxmind.com",
+				"GEOIPUPDATE_LICENSE_KEY":         "000000000001",
+				"GEOIPUPDATE_LICENSE_KEY_FILE":    "",
+				"GEOIPUPDATE_LOCK_FILE":           "/tmp/lock",
+				"GEOIPUPDATE_PARALLELISM":         "2",
+				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1",
+				"GEOIPUPDATE_PROXY":               "127.0.0.1:8888",
+				"GEOIPUPDATE_PROXY_USER_PASSWORD": "username:password",
+				"GEOIPUPDATE_RETRY_FOR":           "1m",
+				"GEOIPUPDATE_VERBOSE":             "1",
+			},
+			Expected: Config{
+				AccountID:         1,
+				DatabaseDirectory: "/tmp/db",
+				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
+				LicenseKey:        "000000000001",
+				LockFile:          "/tmp/lock",
+				Parallelism:       2,
+				PreserveFileTimes: true,
+				proxyURL:          "127.0.0.1:8888",
+				proxyUserInfo:     "username:password",
+				RetryFor:          1 * time.Minute,
+				URL:               "https://updates.maxmind.com",
+				Verbose:           true,
+			},
+		},
+		{
+			Description:            "ACCOUNT_ID_FILE and LICENSE_KEY_FILE override",
+			AccountIDFileContents:  "2",
+			LicenseKeyFileContents: "000000000002",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID":          "1",
+				"GEOIPUPDATE_ACCOUNT_ID_FILE":     filepath.Join(t.TempDir(), "accountIDFile"),
+				"GEOIPUPDATE_DB_DIR":              "/tmp/db",
+				"GEOIPUPDATE_EDITION_IDS":         "GeoLite2-Country GeoLite2-City",
+				"GEOIPUPDATE_HOST":                "updates.maxmind.com",
+				"GEOIPUPDATE_LICENSE_KEY":         "000000000001",
+				"GEOIPUPDATE_LICENSE_KEY_FILE":    filepath.Join(t.TempDir(), "licenseKeyFile"),
+				"GEOIPUPDATE_LOCK_FILE":           "/tmp/lock",
+				"GEOIPUPDATE_PARALLELISM":         "2",
+				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1",
+				"GEOIPUPDATE_PROXY":               "127.0.0.1:8888",
+				"GEOIPUPDATE_PROXY_USER_PASSWORD": "username:password",
+				"GEOIPUPDATE_RETRY_FOR":           "1m",
+				"GEOIPUPDATE_VERBOSE":             "1",
+			},
+			Expected: Config{
+				AccountID:         2,
+				DatabaseDirectory: "/tmp/db",
+				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
+				LicenseKey:        "000000000002",
+				LockFile:          "/tmp/lock",
+				Parallelism:       2,
+				PreserveFileTimes: true,
+				proxyURL:          "127.0.0.1:8888",
+				proxyUserInfo:     "username:password",
+				RetryFor:          1 * time.Minute,
+				URL:               "https://updates.maxmind.com",
+				Verbose:           true,
+			},
+		},
+		{
+			Description: "Empty config",
+			Env:         map[string]string{},
+			Expected:    Config{},
+		},
+		{
+			Description: "Invalid account ID",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID": "1a",
+			},
+			Err: `invalid account ID format`,
+		},
+		{
+			Description: "Invalid PreserveFileTimes",
+			Env: map[string]string{
+				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1a",
+			},
+			Err: "`PreserveFileTimes' must be 0 or 1",
+		},
+		{
+			Description: "RetryFor needs a unit",
+			Env: map[string]string{
+				"GEOIPUPDATE_RETRY_FOR": "5",
+			},
+			Err: "'5' is not a valid duration",
+		},
+		{
+			Description: "RetryFor needs to be non-negative",
+			Env: map[string]string{
+				"GEOIPUPDATE_RETRY_FOR": "-5m",
+			},
+			Err: "'-5m' is not a valid duration",
+		},
+		{
+			Description: "Parallelism should be a number",
+			Env: map[string]string{
+				"GEOIPUPDATE_PARALLELISM": "a",
+			},
+			Err: "'a' is not a valid parallelism value: strconv.Atoi: parsing \"a\": invalid syntax",
+		},
+		{
+			Description: "Parallelism should be a positive number",
+			Env: map[string]string{
+				"GEOIPUPDATE_PARALLELISM": "0",
+			},
+			Err: "parallelism should be greater than 0, got '0'",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Description, func(t *testing.T) {
+			accountIDFile := test.Env["GEOIPUPDATE_ACCOUNT_ID_FILE"]
+			licenseKeyFile := test.Env["GEOIPUPDATE_LICENSE_KEY_FILE"]
+
+			if test.AccountIDFileContents != "" {
+				require.NoError(t, os.WriteFile(accountIDFile, []byte(test.AccountIDFileContents), 0o600))
+			}
+
+			if test.LicenseKeyFileContents != "" {
+				require.NoError(t, os.WriteFile(licenseKeyFile, []byte(test.LicenseKeyFileContents), 0o600))
+			}
+
+			withEnvVars(t, test.Env, func() {
+				var config Config
+
+				err := setConfigFromEnv(&config)
+				if test.Err == "" {
+					assert.NoError(t, err, test.Description)
+				} else {
+					assert.EqualError(t, err, test.Err, test.Description)
+				}
+				assert.Equal(t, test.Expected, config, test.Description)
+			})
+		})
+	}
+}
+
+func TestSetConfigFromFlags(t *testing.T) {
+	tests := []struct {
+		Description string
+		Flags       []Option
+		Expected    Config
+		Err         string
+	}{
+		{
+			Description: "All option flag related config set",
+			Flags: []Option{
+				WithDatabaseDirectory("/tmp/db"),
+				WithOutput(true),
+				WithParallelism(2),
+				WithVerbose(true),
+			},
+			Expected: Config{
+				DatabaseDirectory: filepath.Clean("/tmp/db"),
+				Output:            true,
+				Parallelism:       2,
+				Verbose:           true,
+			},
+		},
+		{
+			Description: "Empty config",
+			Flags:       []Option{},
+			Expected:    Config{},
+		},
+		{
+			Description: "Parallelism should be a positive number",
+			Flags:       []Option{WithParallelism(-1)},
+			Err:         "error applying flag to config: parallelism can't be negative, got '-1'",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Description, func(t *testing.T) {
+			var config Config
+
+			err := setConfigFromFlags(&config, test.Flags...)
+			if test.Err == "" {
+				assert.NoError(t, err, test.Description)
+			} else {
+				assert.EqualError(t, err, test.Err, test.Description)
+			}
+			assert.Equal(t, test.Expected, config, test.Description)
+		})
+	}
+}
+
+func TestValidateConfig(t *testing.T) {
+	tests := []struct {
+		Description string
+		Config      Config
+		Err         string
+	}{
+		{
+			Description: "Basic config",
+			Config: Config{
+				AccountID:         42,
+				LicenseKey:        "000000000001",
+				DatabaseDirectory: "/tmp/db",
+				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
+				LockFile:          "/tmp/lock",
+				URL:               "https://updates.maxmind.com",
+				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
+			},
+			Err: "",
+		},
+		{
+			Description: "EditionIDs required",
+			Config:      Config{},
+			Err:         "the `EditionIDs` option is required",
+		},
+		{
+			Description: "AccountID required",
+			Config: Config{
+				EditionIDs: []string{"GeoLite2-Country", "GeoLite2-City"},
+			},
+			Err: "the `AccountID` option is required",
+		},
+		{
+			Description: "LicenseKey required",
+			Config: Config{
+				AccountID:  42,
+				EditionIDs: []string{"GeoLite2-Country", "GeoLite2-City"},
+			},
+			Err: "the `LicenseKey` option is required",
+		},
+		{
+			Description: "Valid AccountID + LicenseKey combination",
+			Config: Config{
+				AccountID:  999999,
+				LicenseKey: "000000000000",
+			},
+			Err: "geoipupdate requires a valid AccountID and LicenseKey combination",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Description, func(t *testing.T) {
+			err := validateConfig(&test.Config)
+			if test.Err == "" {
+				assert.NoError(t, err, test.Description)
+			} else {
+				assert.EqualError(t, err, test.Err, test.Description)
+			}
 		})
 	}
 }
@@ -533,5 +922,27 @@ func TestParseProxy(t *testing.T) {
 				}
 			},
 		)
+	}
+}
+
+func withEnvVars(t *testing.T, newEnvVars map[string]string, f func()) {
+	origEnv := os.Environ()
+
+	for key, val := range newEnvVars {
+		err := os.Setenv(key, val)
+		require.NoError(t, err)
+	}
+
+	// Execute the test
+	f()
+
+	// Clean the environment
+	os.Clearenv()
+
+	// Reset the original environment variables
+	for _, pair := range origEnv {
+		parts := strings.SplitN(pair, "=", 2)
+		err := os.Setenv(parts[0], parts[1])
+		require.NoError(t, err)
 	}
 }

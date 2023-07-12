@@ -21,12 +21,14 @@ open.
 `-d`, `--database-directory`
 
 :   Install databases to a custom directory.  This is optional. If provided, it
-    overrides any `DatabaseDirectory` set in the configuration file.
+    overrides the `DatabaseDirectory` value from the configuration file and the
+    `GEOIPUPDATE_DB_DIR` environment variable.
 
 `-f`, `--config-file`
 
 :   The configuration file to use. See `GeoIP.conf` and its documentation for
-    more information. This is optional. It defaults to CONFFILE.
+    more information. This is optional. It defaults to the environment variable
+    `GEOIPUPDATE_CONF_FILE` if it is set, or CONFFILE otherwise.
 
 `--parallelism`
 
@@ -47,7 +49,8 @@ open.
 
 `-v`, `--verbose`
 
-:   Enable verbose mode. Prints out the steps that `geoipupdate` takes.
+:   Enable verbose mode. Prints out the steps that `geoipupdate` takes. If
+    provided, it overrides any `GEOIPUPDATE_VERBOSE` environment variable.
 
 `-o`, `--output`
 
@@ -72,9 +75,9 @@ runs `geoipupdate` on each Wednesday at noon:
     # end of crontab
 
 
-To use with a proxy server, update your `GeoIP.conf` file as specified
-in the `GeoIP.conf` man page or set the `http_proxy` environment
-variable.
+To use with a proxy server, update your `GeoIP.conf` file as specified in
+the `GeoIP.conf` man page. Alternatively, set the `GEOIPUPDATE_PROXY` or
+`http_proxy` environment variable.
 
 # BUGS
 

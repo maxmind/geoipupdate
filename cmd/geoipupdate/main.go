@@ -3,18 +3,18 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"os"
 
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate"
-	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 )
+
+const unknownVersion = "unknown"
 
 // These values are set by build scripts. Changing the names of
 // the variables should be considered a breaking change.
 var (
-	version                  = "unknown"
+	version                  = unknownVersion
 	defaultConfigFile        string
 	defaultDatabaseDirectory string
 )
@@ -31,24 +31,16 @@ func main() {
 	}
 
 	args := getArgs()
-	fatalLogger := func(message string, err error) {
-		if args.StackTrace {
-			log.Printf("%s: %+v", message, err)
-		} else {
-			log.Printf("%s: %s", message, err)
-		}
-		os.Exit(1)
-	}
 
 	config, err := geoipupdate.NewConfig(
-		args.ConfigFile,
+		geoipupdate.WithConfigFile(args.ConfigFile),
 		geoipupdate.WithDatabaseDirectory(args.DatabaseDirectory),
 		geoipupdate.WithParallelism(args.Parallelism),
 		geoipupdate.WithVerbose(args.Verbose),
 		geoipupdate.WithOutput(args.Output),
 	)
 	if err != nil {
-		fatalLogger(fmt.Sprintf("error loading configuration file %s", args.ConfigFile), err)
+		log.Fatalf("Error loading configuration: %s", err)
 	}
 
 	if config.Verbose {
@@ -59,6 +51,6 @@ func main() {
 
 	client := geoipupdate.NewClient(config)
 	if err = client.Run(context.Background()); err != nil {
-		fatalLogger("error retrieving updates", err)
+		log.Fatalf("Error retrieving updates: %s", err)
 	}
 }
