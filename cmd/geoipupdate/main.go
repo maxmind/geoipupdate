@@ -4,7 +4,6 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 
 	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate"
 	"github.com/maxmind/geoipupdate/v5/pkg/geoipupdate/vars"
@@ -41,8 +40,7 @@ func main() {
 		geoipupdate.WithOutput(args.Output),
 	)
 	if err != nil {
-		log.Printf("Error loading configuration: %s", err)
-		os.Exit(1)
+		log.Fatalf("Error loading configuration: %s", err)
 	}
 
 	if config.Verbose {
@@ -53,7 +51,6 @@ func main() {
 
 	client := geoipupdate.NewClient(config)
 	if err = client.Run(context.Background()); err != nil {
-		log.Printf("Error retrieving updates: %s", err)
-		os.Exit(1)
+		log.Fatalf("Error retrieving updates: %s", err)
 	}
 }
