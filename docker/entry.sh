@@ -15,7 +15,7 @@ trap 'kill ${!}; term_handler' SIGTERM
 
 pid=0
 database_dir=/usr/share/GeoIP
-log_dir="/var/lib/geoipupdate"
+log_dir="/tmp/geoipupdate"
 log_file="$log_dir/.healthcheck"
 flags="--output"
 frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
