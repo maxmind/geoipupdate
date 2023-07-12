@@ -22,7 +22,7 @@ frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
 export GEOIPUPDATE_CONF_FILE=""
 
 if [ -z "$GEOIPUPDATE_DB_DIR" ]; then
-  GEOIPUPDATE_DB_DIR="$database_dir"
+  export GEOIPUPDATE_DB_DIR="$database_dir"
 fi
 
 if [ -z "$GEOIPUPDATE_ACCOUNT_ID" ] && [ -z  "$GEOIPUPDATE_ACCOUNT_ID_FILE" ]; then
