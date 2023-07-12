@@ -17,7 +17,7 @@ pid=0
 database_dir=/usr/share/GeoIP
 log_dir="/tmp/geoipupdate"
 log_file="$log_dir/.healthcheck"
-flags="--output"
+flags="--output -f /dev/null"
 frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
 
 if [ -z "$GEOIPUPDATE_DB_DIR" ]; then
