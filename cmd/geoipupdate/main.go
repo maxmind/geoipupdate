@@ -39,7 +39,7 @@ func main() {
 		geoipupdate.WithOutput(args.Output),
 	)
 	if err != nil {
-		log.Printf("error loading configuration: %s", err)
+		log.Printf("Error loading configuration: %s", err)
 		os.Exit(1)
 	}
 
@@ -51,7 +51,7 @@ func main() {
 
 	client := geoipupdate.NewClient(config)
 	if err = client.Run(context.Background()); err != nil {
-		log.Printf("error retrieving updates: %s", err)
+		log.Printf("Error retrieving updates: %s", err)
 		os.Exit(1)
 	}
 }
