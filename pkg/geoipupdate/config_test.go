@@ -828,7 +828,8 @@ func TestValidateConfig(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
-			err := validateConfig(&test.Config)
+			config := test.Config
+			err := validateConfig(&config)
 			if test.Err == "" {
 				assert.NoError(t, err, test.Description)
 			} else {
