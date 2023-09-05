@@ -77,7 +77,7 @@ tarball with "darwin" in the name.
 
 ### Installing on macOS via Homebrew
 
-If you are on macOS and you have [Homebrew](http://brew.sh/) you can install
+If you are on macOS and you have [Homebrew](https://brew.sh/) you can install
 `geoipupdate` via `brew`
 
 ```
