@@ -1,5 +1,5 @@
-// Package vars hold random vars, consts and defaults.
+// Package vars holds random vars, consts, and defaults.
 package vars
 
-// Version defines current geoipupdate version.
-const Version = "6.0.0"
+// Version defines the current geoipupdate version.
+var Version = "6.0.0"

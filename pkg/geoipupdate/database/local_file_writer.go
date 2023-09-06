@@ -219,7 +219,7 @@ func (w *fileWriter) syncAndRename(name string) error {
 
 // syncDir syncs the content of a directory to storage.
 func syncDir(path string) error {
-	// fsync the directory. http://austingroupbugs.net/view.php?id=672
+	// fsync the directory. https://austingroupbugs.net/view.php?id=672
 	//nolint:gosec // we really need to read this file.
 	d, err := os.Open(path)
 	if err != nil {
