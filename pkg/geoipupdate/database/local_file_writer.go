@@ -55,7 +55,7 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 	}
 
 	defer func() {
-		if err := result.reader.Close(); err != nil {
+		if err := result.Reader.Close(); err != nil {
 			log.Printf("closing reader for %s: %+v", result.EditionID, err)
 		}
 	}()
@@ -73,7 +73,7 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 		}
 	}()
 
-	if err := fw.write(result.reader); err != nil {
+	if err := fw.write(result.Reader); err != nil {
 		return fmt.Errorf("writing to the temp file for %s: %w", result.EditionID, err)
 	}
 

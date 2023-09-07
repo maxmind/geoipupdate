@@ -16,12 +16,12 @@ type Reader interface {
 
 // ReadResult is the struct returned by a Reader's Get method.
 type ReadResult struct {
-	reader     io.ReadCloser
-	EditionID  string    `json:"edition_id"`
-	OldHash    string    `json:"old_hash"`
-	NewHash    string    `json:"new_hash"`
-	ModifiedAt time.Time `json:"modified_at"`
-	CheckedAt  time.Time `json:"checked_at"`
+	Reader     io.ReadCloser `json:"-"`
+	EditionID  string        `json:"edition_id"`
+	OldHash    string        `json:"old_hash"`
+	NewHash    string        `json:"new_hash"`
+	ModifiedAt time.Time     `json:"modified_at"`
+	CheckedAt  time.Time     `json:"checked_at"`
 }
 
 // MarshalJSON is a custom json marshaler that strips out zero time fields.

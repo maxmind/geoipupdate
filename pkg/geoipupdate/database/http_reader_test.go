@@ -38,7 +38,7 @@ func TestHTTPReader(t *testing.T) {
 			responseHash:   "cfa36ddc8279b5483a5aa25e9a6151f4",
 			responseTime:   testTime.Format(time.RFC1123),
 			result: &ReadResult{
-				reader:     getReader(t, "database content"),
+				Reader:     getReader(t, "database content"),
 				EditionID:  "GeoIP2-City",
 				OldHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
 				NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
@@ -54,7 +54,7 @@ func TestHTTPReader(t *testing.T) {
 			responseHash:   "",
 			responseTime:   "",
 			result: &ReadResult{
-				reader:     nil,
+				Reader:     nil,
 				EditionID:  "GeoIP2-City",
 				OldHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
 				NewHash:    "fbe1786bfd80e1db9dc42ddaff868f38",
@@ -133,12 +133,12 @@ func TestHTTPReader(t *testing.T) {
 				require.Equal(t, result.NewHash, test.result.NewHash)
 				require.Equal(t, result.ModifiedAt, test.result.ModifiedAt)
 
-				if test.result.reader != nil && result.reader != nil {
-					defer result.reader.Close()
-					defer test.result.reader.Close()
-					resultDatabase, err := io.ReadAll(test.result.reader)
+				if test.result.Reader != nil && result.Reader != nil {
+					defer result.Reader.Close()
+					defer test.result.Reader.Close()
+					resultDatabase, err := io.ReadAll(test.result.Reader)
 					require.NoError(t, err)
-					expectedDatabase, err := io.ReadAll(result.reader)
+					expectedDatabase, err := io.ReadAll(result.Reader)
 					require.NoError(t, err)
 					require.Equal(t, resultDatabase, expectedDatabase)
 				}

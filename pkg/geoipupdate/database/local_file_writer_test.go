@@ -27,7 +27,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			preserveFileTime: true,
 			checkTime:        require.Equal,
 			result: &ReadResult{
-				reader:     getReader(t, "database content"),
+				Reader:     getReader(t, "database content"),
 				EditionID:  "GeoIP2-City",
 				OldHash:    "",
 				NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
@@ -39,7 +39,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			preserveFileTime: true,
 			checkTime:        require.Equal,
 			result: &ReadResult{
-				reader:     getReader(t, "database content"),
+				Reader:     getReader(t, "database content"),
 				EditionID:  "GeoIP2-City",
 				OldHash:    "",
 				NewHash:    "badhash",
@@ -51,7 +51,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			preserveFileTime: true,
 			checkTime:        require.Equal,
 			result: &ReadResult{
-				reader:     getReader(t, "database content"),
+				Reader:     getReader(t, "database content"),
 				EditionID:  "GeoIP2-City",
 				OldHash:    "",
 				NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
@@ -63,7 +63,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			preserveFileTime: false,
 			checkTime:        require.NotEqual,
 			result: &ReadResult{
-				reader:     getReader(t, "database content"),
+				Reader:     getReader(t, "database content"),
 				EditionID:  "GeoIP2-City",
 				OldHash:    "",
 				NewHash:    "CFA36DDC8279B5483A5AA25E9A6151F4",
@@ -75,7 +75,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			tempDir := t.TempDir()
-			defer test.result.reader.Close()
+			defer test.result.Reader.Close()
 
 			fw, err := NewLocalFileWriter(tempDir, test.preserveFileTime, false)
 			require.NoError(t, err)
@@ -95,7 +95,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 // TestLocalFileWriterGetHash tests functionality of the LocalFileWriter.GetHash method.
 func TestLocalFileWriterGetHash(t *testing.T) {
 	result := &ReadResult{
-		reader:     getReader(t, "database content"),
+		Reader:     getReader(t, "database content"),
 		EditionID:  "GeoIP2-City",
 		OldHash:    "",
 		NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
@@ -104,7 +104,7 @@ func TestLocalFileWriterGetHash(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	defer result.reader.Close()
+	defer result.Reader.Close()
 
 	fw, err := NewLocalFileWriter(tempDir, false, false)
 	require.NoError(t, err)

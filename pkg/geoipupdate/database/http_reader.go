@@ -183,7 +183,7 @@ func (r *HTTPReader) get(
 	}
 
 	return &ReadResult{
-		reader:     gzReader,
+		Reader:     gzReader,
 		EditionID:  editionID,
 		OldHash:    hash,
 		NewHash:    newHash,
