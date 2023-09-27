@@ -48,10 +48,9 @@ func NewHTTPReader(
 	retryFor time.Duration,
 	verbose bool,
 ) Reader {
-	transport := http.DefaultTransport
+	transport := &http.Transport{Proxy: http.ProxyFromEnvironment}
 	if proxy != nil {
-		proxyFunc := http.ProxyURL(proxy)
-		transport.(*http.Transport).Proxy = proxyFunc
+		transport.Proxy = http.ProxyURL(proxy)
 	}
 
 	return &HTTPReader{
