@@ -93,7 +93,7 @@ depending on the version and architecture.
 Copy `geoipupdate.exe` to where you want it to live.
 
 `geoipupdate` looks for the config file
-`\ProgramData\MaxMind/GeoIPUpdate\GeoIP.conf` on your system drive by
+`\ProgramData\MaxMind\GeoIPUpdate\GeoIP.conf` on your system drive by
 default.
 
 ### Installing via Docker
