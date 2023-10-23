@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/md5"
-	"fmt"
+	"encoding/hex"
 	"io"
 	"log"
 	"net/http"
@@ -44,7 +44,7 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 
 					rw.Header().Set(
 						"X-Database-MD5",
-						fmt.Sprintf("%x", md5Writer.Sum(nil)),
+						hex.EncodeToString(md5Writer.Sum(nil)),
 					)
 					rw.Header().Set("Last-Modified", time.Now().Format(time.RFC1123))
 
@@ -77,7 +77,7 @@ func TestMultipleDatabaseDownload(t *testing.T) {
 
 	client := geoipupdate.NewClient(config)
 	err := client.Run(context.Background())
-	assert.NoError(t, err, "run successfully")
+	require.NoError(t, err, "run successfully")
 
 	assert.Equal(t, "", logOutput.String(), "no logged output")
 

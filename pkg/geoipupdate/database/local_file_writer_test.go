@@ -120,5 +120,5 @@ func TestLocalFileWriterGetHash(t *testing.T) {
 	// returns a zero hash for a non existing edition.
 	hash, err = fw.GetHash("NewEdition")
 	require.NoError(t, err)
-	require.Equal(t, hash, ZeroMD5)
+	require.Equal(t, ZeroMD5, hash)
 }

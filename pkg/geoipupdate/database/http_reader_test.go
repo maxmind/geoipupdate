@@ -140,7 +140,7 @@ func TestHTTPReader(t *testing.T) {
 					require.NoError(t, err)
 					expectedDatabase, err := io.ReadAll(result.reader)
 					require.NoError(t, err)
-					require.Equal(t, resultDatabase, expectedDatabase)
+					require.Equal(t, expectedDatabase, resultDatabase)
 				}
 			}
 		})

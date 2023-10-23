@@ -2,6 +2,7 @@ package database
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
@@ -113,7 +114,7 @@ func (w *LocalFileWriter) GetHash(editionID string) (string, error) {
 	//nolint:gosec // we really need to read this file.
 	database, err := os.Open(databaseFilePath)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			if w.verbose {
 				log.Print("Database does not exist, returning zeroed hash")
 			}
@@ -178,7 +179,8 @@ func (w *fileWriter) close() error {
 		}
 	}
 
-	if err := os.Remove(w.file.Name()); err != nil && !os.IsNotExist(err) {
+	err := os.Remove(w.file.Name())
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("removing temporary file: %w", err)
 	}
 
@@ -248,5 +250,5 @@ func setModifiedAtTime(path string, t time.Time) error {
 
 // byteToString returns the base16 representation of a byte array.
 func byteToString(b []byte) string {
-	return fmt.Sprintf("%x", b)
+	return hex.EncodeToString(b)
 }
