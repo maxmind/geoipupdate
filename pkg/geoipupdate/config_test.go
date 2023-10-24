@@ -473,9 +473,9 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				testFlags := append([]Option{WithConfigFile(tempName)}, test.Flags...)
 				config, err := NewConfig(testFlags...)
 				if test.Err == "" {
-					assert.NoError(t, err, test.Description)
+					require.NoError(t, err, test.Description)
 				} else {
-					assert.EqualError(t, err, test.Err, test.Description)
+					require.EqualError(t, err, test.Err, test.Description)
 				}
 				assert.Equal(t, test.Output, config, test.Description)
 			})
@@ -564,9 +564,9 @@ func TestSetConfigFromFile(t *testing.T) {
 
 			err := setConfigFromFile(&config, tempName)
 			if test.Err == "" {
-				assert.NoError(t, err, test.Description)
+				require.NoError(t, err, test.Description)
 			} else {
-				assert.EqualError(t, err, test.Err, test.Description)
+				require.EqualError(t, err, test.Err, test.Description)
 			}
 			assert.Equal(t, test.Expected, config, test.Description)
 		})
@@ -752,9 +752,9 @@ func TestSetConfigFromEnv(t *testing.T) {
 
 				err := setConfigFromEnv(&config)
 				if test.Err == "" {
-					assert.NoError(t, err, test.Description)
+					require.NoError(t, err, test.Description)
 				} else {
-					assert.EqualError(t, err, test.Err, test.Description)
+					require.EqualError(t, err, test.Err, test.Description)
 				}
 				assert.Equal(t, test.Expected, config, test.Description)
 			})
@@ -802,9 +802,9 @@ func TestSetConfigFromFlags(t *testing.T) {
 
 			err := setConfigFromFlags(&config, test.Flags...)
 			if test.Err == "" {
-				assert.NoError(t, err, test.Description)
+				require.NoError(t, err, test.Description)
 			} else {
-				assert.EqualError(t, err, test.Err, test.Description)
+				require.EqualError(t, err, test.Err, test.Description)
 			}
 			assert.Equal(t, test.Expected, config, test.Description)
 		})
@@ -866,9 +866,9 @@ func TestValidateConfig(t *testing.T) {
 			config := test.Config
 			err := validateConfig(&config)
 			if test.Err == "" {
-				assert.NoError(t, err, test.Description)
+				require.NoError(t, err, test.Description)
 			} else {
-				assert.EqualError(t, err, test.Err, test.Description)
+				require.EqualError(t, err, test.Err, test.Description)
 			}
 		})
 	}
@@ -950,10 +950,10 @@ func TestParseProxy(t *testing.T) {
 			func(t *testing.T) {
 				output, err := parseProxy(test.Proxy, test.UserPassword)
 				if test.Err != "" {
-					assert.EqualError(t, err, test.Err)
+					require.EqualError(t, err, test.Err)
 					assert.Nil(t, output)
 				} else {
-					assert.NoError(t, err)
+					require.NoError(t, err)
 					assert.Equal(t, test.Output, output.String())
 				}
 			},
