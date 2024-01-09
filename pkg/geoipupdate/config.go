@@ -298,7 +298,7 @@ func setConfigFromEnv(config *Config) error {
 			return fmt.Errorf("failed to open GEOIPUPDATE_ACCOUNT_ID_FILE: %w", err)
 		}
 
-		config.AccountID, err = strconv.Atoi(string(accountID))
+		config.AccountID, err = strconv.Atoi(strings.TrimSpace(string(accountID)))
 		if err != nil {
 			return fmt.Errorf("invalid account ID format")
 		}
@@ -328,7 +328,7 @@ func setConfigFromEnv(config *Config) error {
 			return fmt.Errorf("failed to open GEOIPUPDATE_LICENSE_KEY_FILE: %w", err)
 		}
 
-		config.LicenseKey = string(licenseKey)
+		config.LicenseKey = strings.TrimSpace(string(licenseKey))
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_LOCK_FILE"); ok {

@@ -77,7 +77,7 @@ tarball with "darwin" in the name.
 
 ### Installing on macOS via Homebrew
 
-If you are on macOS and you have [Homebrew](http://brew.sh/) you can install
+If you are on macOS and you have [Homebrew](https://brew.sh/) you can install
 `geoipupdate` via `brew`
 
 ```
@@ -93,7 +93,7 @@ depending on the version and architecture.
 Copy `geoipupdate.exe` to where you want it to live.
 
 `geoipupdate` looks for the config file
-`\ProgramData\MaxMind/GeoIPUpdate\GeoIP.conf` on your system drive by
+`\ProgramData\MaxMind\GeoIPUpdate\GeoIP.conf` on your system drive by
 default.
 
 ### Installing via Docker
@@ -102,7 +102,7 @@ Please see our [Docker documentation](doc/docker.md).
 
 ### Installation from source or Git
 
-You need the Go compiler (1.19+). You can get it at the [Go
+You need the Go compiler (1.20+). You can get it at the [Go
 website](https://golang.org).
 
 The easiest way is via `go install`:

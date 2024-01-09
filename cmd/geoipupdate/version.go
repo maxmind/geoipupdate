@@ -3,7 +3,11 @@
 
 package main
 
-import "runtime/debug"
+import (
+	"runtime/debug"
+
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
+)
 
 func init() {
 	info, ok := debug.ReadBuildInfo()
@@ -47,4 +51,8 @@ func init() {
 	}
 	bi += os + "-" + arch
 	version += " (" + bi + ")"
+
+	// Ensure the API client version which gets used in the User-Agent matches
+	// our version. In theory these could otherwise be out of sync.
+	vars.Version = version
 }

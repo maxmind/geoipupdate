@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -132,7 +133,7 @@ func (r *HTTPReader) get(
 		return nil, fmt.Errorf("creating request: %w", err)
 	}
 	req.Header.Add("User-Agent", "geoipupdate/"+vars.Version)
-	req.SetBasicAuth(fmt.Sprintf("%d", r.accountID), r.licenseKey)
+	req.SetBasicAuth(strconv.Itoa(r.accountID), r.licenseKey)
 
 	response, err := r.client.Do(req)
 	if err != nil {

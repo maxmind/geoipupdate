@@ -473,9 +473,9 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				testFlags := append([]Option{WithConfigFile(tempName)}, test.Flags...)
 				config, err := NewConfig(testFlags...)
 				if test.Err == "" {
-					assert.NoError(t, err, test.Description)
+					require.NoError(t, err, test.Description)
 				} else {
-					assert.EqualError(t, err, test.Err, test.Description)
+					require.EqualError(t, err, test.Err, test.Description)
 				}
 				assert.Equal(t, test.Output, config, test.Description)
 			})
@@ -564,9 +564,9 @@ func TestSetConfigFromFile(t *testing.T) {
 
 			err := setConfigFromFile(&config, tempName)
 			if test.Err == "" {
-				assert.NoError(t, err, test.Description)
+				require.NoError(t, err, test.Description)
 			} else {
-				assert.EqualError(t, err, test.Err, test.Description)
+				require.EqualError(t, err, test.Err, test.Description)
 			}
 			assert.Equal(t, test.Expected, config, test.Description)
 		})
@@ -651,6 +651,41 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
+			Description:            "Clean up ACCOUNT_ID_FILE and LICENSE_KEY_FILE",
+			AccountIDFileContents:  "\n\n2\t\n",
+			LicenseKeyFileContents: "\n000000000002\t\n\n",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID":          "1",
+				"GEOIPUPDATE_ACCOUNT_ID_FILE":     filepath.Join(t.TempDir(), "accountIDFile"),
+				"GEOIPUPDATE_DB_DIR":              "/tmp/db",
+				"GEOIPUPDATE_EDITION_IDS":         "GeoLite2-Country GeoLite2-City",
+				"GEOIPUPDATE_HOST":                "updates.maxmind.com",
+				"GEOIPUPDATE_LICENSE_KEY":         "000000000001",
+				"GEOIPUPDATE_LICENSE_KEY_FILE":    filepath.Join(t.TempDir(), "licenseKeyFile"),
+				"GEOIPUPDATE_LOCK_FILE":           "/tmp/lock",
+				"GEOIPUPDATE_PARALLELISM":         "2",
+				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1",
+				"GEOIPUPDATE_PROXY":               "127.0.0.1:8888",
+				"GEOIPUPDATE_PROXY_USER_PASSWORD": "username:password",
+				"GEOIPUPDATE_RETRY_FOR":           "1m",
+				"GEOIPUPDATE_VERBOSE":             "1",
+			},
+			Expected: Config{
+				AccountID:         2,
+				DatabaseDirectory: "/tmp/db",
+				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
+				LicenseKey:        "000000000002",
+				LockFile:          "/tmp/lock",
+				Parallelism:       2,
+				PreserveFileTimes: true,
+				proxyURL:          "127.0.0.1:8888",
+				proxyUserInfo:     "username:password",
+				RetryFor:          time.Minute,
+				URL:               "https://updates.maxmind.com",
+				Verbose:           true,
+			},
+		},
+		{
 			Description: "Empty config",
 			Env:         map[string]string{},
 			Expected:    Config{},
@@ -717,9 +752,9 @@ func TestSetConfigFromEnv(t *testing.T) {
 
 				err := setConfigFromEnv(&config)
 				if test.Err == "" {
-					assert.NoError(t, err, test.Description)
+					require.NoError(t, err, test.Description)
 				} else {
-					assert.EqualError(t, err, test.Err, test.Description)
+					require.EqualError(t, err, test.Err, test.Description)
 				}
 				assert.Equal(t, test.Expected, config, test.Description)
 			})
@@ -767,9 +802,9 @@ func TestSetConfigFromFlags(t *testing.T) {
 
 			err := setConfigFromFlags(&config, test.Flags...)
 			if test.Err == "" {
-				assert.NoError(t, err, test.Description)
+				require.NoError(t, err, test.Description)
 			} else {
-				assert.EqualError(t, err, test.Err, test.Description)
+				require.EqualError(t, err, test.Err, test.Description)
 			}
 			assert.Equal(t, test.Expected, config, test.Description)
 		})
@@ -828,11 +863,12 @@ func TestValidateConfig(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
-			err := validateConfig(&test.Config)
+			config := test.Config
+			err := validateConfig(&config)
 			if test.Err == "" {
-				assert.NoError(t, err, test.Description)
+				require.NoError(t, err, test.Description)
 			} else {
-				assert.EqualError(t, err, test.Err, test.Description)
+				require.EqualError(t, err, test.Err, test.Description)
 			}
 		})
 	}
@@ -914,10 +950,10 @@ func TestParseProxy(t *testing.T) {
 			func(t *testing.T) {
 				output, err := parseProxy(test.Proxy, test.UserPassword)
 				if test.Err != "" {
-					assert.EqualError(t, err, test.Err)
+					require.EqualError(t, err, test.Err)
 					assert.Nil(t, output)
 				} else {
-					assert.NoError(t, err)
+					require.NoError(t, err)
 					assert.Equal(t, test.Output, output.String())
 				}
 			},

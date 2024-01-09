@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 6.1.0 (2024-01-09)
+
+* `geoipupdate` now sets the version in the `User-Agent` header to the
+  version in the binary. While there were no issues with the version in the
+  header, this makes sure it will match the binary. The header also now
+  includes build information, such as OS and architecture.
+* White spaces in secret files `GEOIPUPDATE_ACCOUNT_ID_FILE`,
+  `GEOIPUPDATE_LICENSE_KEY_FILE` are ignored, see #262 issue.
+
 ## 6.0.0 (2023-07-12)
 
 * `geoipupdate` now supports configuration via environment variables. Any
