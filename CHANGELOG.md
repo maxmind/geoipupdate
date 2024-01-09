@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 6.1.0
+## 6.1.0 (2024-01-09)
 
 * `geoipupdate` now sets the version in the `User-Agent` header to the
   version in the binary. While there were no issues with the version in the
