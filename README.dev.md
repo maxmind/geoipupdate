@@ -10,6 +10,8 @@
   If not, follow [these instructions](https://docs.docker.com/build/building/multi-platform/).
 * Log in to your Docker Hub account (be sure to be in our organization):
   `docker login`.
+* Follow [these instructions](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry),
+  to log in to `ghcr.io` with `docker login`.
 * Run `GITHUB_TOKEN=<your token> ./dev-bin/release.sh`. For `goreleaser` you
   will need a token with the `repo` scope. You may create a token
   [here](https://github.com/settings/tokens/new).
