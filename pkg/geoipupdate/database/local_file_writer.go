@@ -46,7 +46,7 @@ func NewLocalFileWriter(
 }
 
 // Write writes the result struct returned by a Reader to a database file.
-func (w *LocalFileWriter) Write(result *ReadResult) error {
+func (w *LocalFileWriter) Write(result *ReadResult) (err error) {
 	// exit early if we've got the latest database version.
 	if strings.EqualFold(result.OldHash, result.NewHash) {
 		if w.verbose {
@@ -56,8 +56,11 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 	}
 
 	defer func() {
-		if err := result.reader.Close(); err != nil {
-			log.Printf("closing reader for %s: %+v", result.EditionID, err)
+		if closeErr := result.reader.Close(); closeErr != nil {
+			err = errors.Join(
+				err,
+				fmt.Errorf("closing reader for %s: %w", result.EditionID, closeErr),
+			)
 		}
 	}()
 
@@ -69,34 +72,37 @@ func (w *LocalFileWriter) Write(result *ReadResult) error {
 		return fmt.Errorf("setting up database writer for %s: %w", result.EditionID, err)
 	}
 	defer func() {
-		if err := fw.close(); err != nil {
-			log.Printf("closing file writer: %+v", err)
+		if closeErr := fw.close(); closeErr != nil {
+			err = errors.Join(
+				err,
+				fmt.Errorf("closing file writer: %w", closeErr),
+			)
 		}
 	}()
 
-	if err := fw.write(result.reader); err != nil {
+	if err = fw.write(result.reader); err != nil {
 		return fmt.Errorf("writing to the temp file for %s: %w", result.EditionID, err)
 	}
 
 	// make sure the hash of the temp file matches the expected hash.
-	if err := fw.validateHash(result.NewHash); err != nil {
+	if err = fw.validateHash(result.NewHash); err != nil {
 		return fmt.Errorf("validating hash for %s: %w", result.EditionID, err)
 	}
 
 	// move the temoporary database file into it's final location and
 	// sync the directory.
-	if err := fw.syncAndRename(databaseFilePath); err != nil {
+	if err = fw.syncAndRename(databaseFilePath); err != nil {
 		return fmt.Errorf("renaming temp file: %w", err)
 	}
 
 	// sync database directory.
-	if err := syncDir(filepath.Dir(databaseFilePath)); err != nil {
+	if err = syncDir(filepath.Dir(databaseFilePath)); err != nil {
 		return fmt.Errorf("syncing database directory: %w", err)
 	}
 
 	// check if we need to set the file's modified at time
 	if w.preserveFileTime {
-		if err := setModifiedAtTime(databaseFilePath, result.ModifiedAt); err != nil {
+		if err = setModifiedAtTime(databaseFilePath, result.ModifiedAt); err != nil {
 			return err
 		}
 	}
