@@ -154,7 +154,7 @@ func (c *Client) downloadEdition(
 
 			if err = w.Write(edition); err != nil {
 				streamErr := http2.StreamError{}
-				if errors.As(err, &streamErr) && streamErr.Code.String() == "INTERNAL_ERROR" {
+				if errors.As(err, &streamErr) && streamErr.Code == http2.ErrCodeInternal {
 					return err
 				}
 
