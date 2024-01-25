@@ -5,11 +5,15 @@ package geoipupdate
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/cenkalti/backoff/v4"
+	"golang.org/x/net/http2"
 
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
@@ -85,17 +89,8 @@ func (c *Client) Run(ctx context.Context) error {
 	for _, editionID := range c.config.EditionIDs {
 		editionID := editionID
 		processFunc := func(ctx context.Context) error {
-			editionHash, err := writer.GetHash(editionID)
+			edition, err := c.downloadEdition(ctx, editionID, reader, writer)
 			if err != nil {
-				return err
-			}
-
-			edition, err := reader.Read(ctx, editionID, editionHash)
-			if err != nil {
-				return err
-			}
-
-			if err := writer.Write(edition); err != nil {
 				return err
 			}
 
@@ -125,4 +120,59 @@ func (c *Client) Run(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// downloadEdition downloads the file with retries on HTTP2 INTERNAL_ERRORs.
+func (c *Client) downloadEdition(
+	ctx context.Context,
+	editionID string,
+	r database.Reader,
+	w database.Writer,
+) (*database.ReadResult, error) {
+	editionHash, err := w.GetHash(editionID)
+	if err != nil {
+		return nil, err
+	}
+
+	// RetryFor value of 0 means that no retries should be performed.
+	// Max zero retries has to be set to achieve that
+	// because the backoff never stops if MaxElapsedTime is zero.
+	exp := backoff.NewExponentialBackOff()
+	exp.MaxElapsedTime = c.config.RetryFor
+	b := backoff.BackOff(exp)
+	if exp.MaxElapsedTime == 0 {
+		b = backoff.WithMaxRetries(exp, 0)
+	}
+
+	var edition *database.ReadResult
+	err = backoff.RetryNotify(
+		func() error {
+			edition, err = r.Read(ctx, editionID, editionHash)
+			if err != nil {
+				return backoff.Permanent(err)
+			}
+
+			if err = w.Write(edition); err != nil {
+				streamErr := http2.StreamError{}
+				if errors.As(err, &streamErr) && streamErr.Code.String() == "INTERNAL_ERROR" {
+					return err
+				}
+
+				return backoff.Permanent(err)
+			}
+
+			return nil
+		},
+		b,
+		func(err error, d time.Duration) {
+			if c.config.Verbose {
+				log.Printf("Couldn't download %s, retrying in %v: %v", editionID, d, err)
+			}
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return edition, nil
 }
