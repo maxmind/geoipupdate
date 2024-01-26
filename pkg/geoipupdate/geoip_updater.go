@@ -5,7 +5,6 @@ package geoipupdate
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,7 +12,6 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"golang.org/x/net/http2"
 
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
@@ -147,14 +145,16 @@ func (c *Client) downloadEdition(
 	var edition *database.ReadResult
 	err = backoff.RetryNotify(
 		func() error {
-			edition, err = r.Read(ctx, editionID, editionHash)
-			if err != nil {
+			if edition, err = r.Read(ctx, editionID, editionHash); err != nil {
+				if internal.IsTemporaryError(err) {
+					return err
+				}
+
 				return backoff.Permanent(err)
 			}
 
 			if err = w.Write(edition); err != nil {
-				streamErr := http2.StreamError{}
-				if errors.As(err, &streamErr) && streamErr.Code == http2.ErrCodeInternal {
+				if internal.IsTemporaryError(err) {
 					return err
 				}
 
