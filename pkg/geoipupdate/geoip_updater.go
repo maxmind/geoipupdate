@@ -34,7 +34,8 @@ func NewClient(config *Config) *Client {
 			config.URL,
 			config.AccountID,
 			config.LicenseKey,
-			config.RetryFor,
+			// Disable retries in Reader because Client handles retries itself.
+			0,
 			config.Verbose,
 		), nil
 	}
@@ -120,7 +121,7 @@ func (c *Client) Run(ctx context.Context) error {
 	return nil
 }
 
-// downloadEdition downloads the file with retries on HTTP2 INTERNAL_ERRORs.
+// downloadEdition downloads the file with retries.
 func (c *Client) downloadEdition(
 	ctx context.Context,
 	editionID string,
@@ -146,19 +147,19 @@ func (c *Client) downloadEdition(
 	err = backoff.RetryNotify(
 		func() error {
 			if edition, err = r.Read(ctx, editionID, editionHash); err != nil {
-				if internal.IsTemporaryError(err) {
-					return err
+				if internal.IsPermanentError(err) {
+					return backoff.Permanent(err)
 				}
 
-				return backoff.Permanent(err)
+				return err
 			}
 
 			if err = w.Write(edition); err != nil {
-				if internal.IsTemporaryError(err) {
-					return err
+				if internal.IsPermanentError(err) {
+					return backoff.Permanent(err)
 				}
 
-				return backoff.Permanent(err)
+				return err
 			}
 
 			return nil

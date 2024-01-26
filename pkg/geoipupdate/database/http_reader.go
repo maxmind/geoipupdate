@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
+
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 )
@@ -69,7 +71,41 @@ func NewHTTPReader(
 // It's the responsibility of the Writer to close the io.ReadCloser
 // included in the response after consumption.
 func (r *HTTPReader) Read(ctx context.Context, editionID, hash string) (*ReadResult, error) {
-	result, err := r.get(ctx, editionID, hash)
+	var result *ReadResult
+	var err error
+
+	if r.retryFor == 0 {
+		if result, err = r.get(ctx, editionID, hash); err != nil {
+			return nil, fmt.Errorf("getting update for %s: %w", editionID, err)
+		}
+
+		return result, nil
+	}
+
+	exp := backoff.NewExponentialBackOff()
+	exp.MaxElapsedTime = r.retryFor
+	b := backoff.BackOff(exp)
+
+	err = backoff.RetryNotify(
+		func() error {
+			result, err = r.get(ctx, editionID, hash)
+			if err == nil {
+				return nil
+			}
+
+			if internal.IsPermanentError(err) {
+				return backoff.Permanent(err)
+			}
+
+			return err
+		},
+		b,
+		func(err error, d time.Duration) {
+			if r.verbose {
+				log.Printf("Couldn't download %s, retrying in %v: %v", editionID, d, err)
+			}
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("getting update for %s: %w", editionID, err)
 	}
