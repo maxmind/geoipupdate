@@ -121,7 +121,6 @@ func TestHTTPReader(t *testing.T) {
 				server.URL, // fixed, as the server is mocked above.
 				10,         // fixed, as it's not valuable for the purpose of the test.
 				"license",  // fixed, as it's not valuable for the purpose of the test.
-				0,          // zero means no retries.
 				false,      // verbose
 			)
 

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 7.0.0
+
+* `HTTPReader` no longer retries on HTTP errors and therefore
+  `retryFor` was removed from `NewHTTPReader`.
+
 ## 6.1.0 (2024-01-09)
 
 * `geoipupdate` now sets the version in the `User-Agent` header to the

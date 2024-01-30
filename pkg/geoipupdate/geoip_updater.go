@@ -34,8 +34,6 @@ func NewClient(config *Config) *Client {
 			config.URL,
 			config.AccountID,
 			config.LicenseKey,
-			// Disable retries in Reader because Client handles retries itself.
-			0,
 			config.Verbose,
 		), nil
 	}
