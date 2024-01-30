@@ -10,8 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/http2"
+
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
 )
 
 // TestClientOutput makes sure that the client outputs the result of it's
@@ -77,6 +79,21 @@ func TestClientOutput(t *testing.T) {
 			t.Errorf("database %s was not updated", outputDatabases[i].EditionID)
 		}
 	}
+
+	streamErr := http2.StreamError{
+		Code: http2.ErrCodeInternal,
+	}
+	c.getWriter = func() (database.Writer, error) {
+		w := mockWriter{
+			WriteFunc: func(_ *database.ReadResult) error {
+				return streamErr
+			},
+		}
+
+		return &w, nil
+	}
+	err = c.Run(context.Background())
+	require.ErrorIs(t, err, streamErr)
 }
 
 type mockReader struct {
@@ -93,10 +110,18 @@ func (mr *mockReader) Read(_ context.Context, _, _ string) (*database.ReadResult
 	return &res, nil
 }
 
-type mockWriter struct{}
+type mockWriter struct {
+	WriteFunc func(*database.ReadResult) error
+}
 
-func (w *mockWriter) Write(_ *database.ReadResult) error { return nil }
-func (w mockWriter) GetHash(_ string) (string, error)    { return "", nil }
+func (w *mockWriter) Write(r *database.ReadResult) error {
+	if w.WriteFunc != nil {
+		return w.WriteFunc(r)
+	}
+
+	return nil
+}
+func (w mockWriter) GetHash(_ string) (string, error) { return "", nil }
 
 func afterOrEqual(t1, t2 time.Time) bool {
 	return t1.After(t2) || t1.Equal(t2)

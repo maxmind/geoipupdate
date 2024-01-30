@@ -2,6 +2,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -13,4 +14,14 @@ type HTTPError struct {
 
 func (h HTTPError) Error() string {
 	return fmt.Sprintf("received HTTP status code: %d: %s", h.StatusCode, h.Body)
+}
+
+// IsPermanentError returns true if the error is non-retriable.
+func IsPermanentError(err error) bool {
+	var httpErr HTTPError
+	if errors.As(err, &httpErr) && httpErr.StatusCode >= 400 && httpErr.StatusCode < 500 {
+		return true
+	}
+
+	return false
 }
