@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -61,8 +62,9 @@ func TestJobQueueRun(t *testing.T) {
 			// Execute run in a goroutine so that we can exit early if the test
 			// hangs or takes too long to execute.
 			go func() {
-				err := jobProcessor.Run(ctx)
-				require.NoError(t, err)
+				if err := jobProcessor.Run(ctx); err != nil {
+					t.Error(err)
+				}
 				close(doneCh)
 			}()
 
@@ -106,7 +108,12 @@ func TestJobQueueStop(t *testing.T) {
 	// hangs or takes too long to execute.
 	go func() {
 		err := jobProcessor.Run(ctx)
-		require.ErrorContains(t, err, "processing cancelled")
+		if err == nil {
+			t.Error(`expected "processing cancelled" error`)
+		}
+		if !strings.Contains(err.Error(), "processing cancelled") {
+			t.Errorf(`expected "processing cancelled" error, got %q`, err)
+		}
 		close(doneCh)
 	}()
 

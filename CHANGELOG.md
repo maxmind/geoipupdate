@@ -2,6 +2,8 @@
 
 ## 7.0.0
 
+* `geoipupdate` now supports retrying on more types of errors
+  such as HTTP2 INTERNAL_ERROR.
 * `HTTPReader` no longer retries on HTTP errors and therefore
   `retryFor` was removed from `NewHTTPReader`.
 

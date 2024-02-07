@@ -225,7 +225,7 @@ func setConfigFromFile(config *Config, path string) error {
 		case "AccountID", "UserId":
 			accountID, err := strconv.Atoi(value)
 			if err != nil {
-				return fmt.Errorf("invalid account ID format")
+				return errors.New("invalid account ID format")
 			}
 			config.AccountID = accountID
 			keysSeen["AccountID"] = struct{}{}
@@ -286,7 +286,7 @@ func setConfigFromEnv(config *Config) error {
 		var err error
 		config.AccountID, err = strconv.Atoi(value)
 		if err != nil {
-			return fmt.Errorf("invalid account ID format")
+			return errors.New("invalid account ID format")
 		}
 	}
 
@@ -300,7 +300,7 @@ func setConfigFromEnv(config *Config) error {
 
 		config.AccountID, err = strconv.Atoi(strings.TrimSpace(string(accountID)))
 		if err != nil {
-			return fmt.Errorf("invalid account ID format")
+			return errors.New("invalid account ID format")
 		}
 	}
 
@@ -396,15 +396,15 @@ func validateConfig(config *Config) error {
 	}
 
 	if len(config.EditionIDs) == 0 {
-		return fmt.Errorf("the `EditionIDs` option is required")
+		return errors.New("the `EditionIDs` option is required")
 	}
 
 	if config.AccountID == 0 {
-		return fmt.Errorf("the `AccountID` option is required")
+		return errors.New("the `AccountID` option is required")
 	}
 
 	if config.LicenseKey == "" {
-		return fmt.Errorf("the `LicenseKey` option is required")
+		return errors.New("the `LicenseKey` option is required")
 	}
 
 	return nil
