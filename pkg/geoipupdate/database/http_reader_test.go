@@ -94,7 +94,7 @@ func TestHTTPReader(t *testing.T) {
 		t.Run(test.description, func(t *testing.T) {
 			server := httptest.NewServer(
 				http.HandlerFunc(
-					func(w http.ResponseWriter, r *http.Request) {
+					func(w http.ResponseWriter, _ *http.Request) {
 						if test.responseStatus != http.StatusOK {
 							w.WriteHeader(test.responseStatus)
 							return
