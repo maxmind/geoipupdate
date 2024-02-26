@@ -6,6 +6,9 @@
   such as HTTP2 INTERNAL_ERROR.
 * `HTTPReader` no longer retries on HTTP errors and therefore
   `retryFor` was removed from `NewHTTPReader`.
+* Now `geoipupdate` doesn't requires the user to specify the config file
+  even if all the other arguments are set via the environment variables.
+  Reported by jsf84ksnf. GitHub #284.
 
 ## 6.1.0 (2024-01-09)
 
