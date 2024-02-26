@@ -70,7 +70,7 @@ func (c *Client) Run(ctx context.Context) error {
 		return nil
 	}
 
-	if err := c.retry(ctx, getOutdatedEditions, "Couldn't get download metadata"); err != nil {
+	if err := c.retry(getOutdatedEditions, "Couldn't get download metadata"); err != nil {
 		return fmt.Errorf("getting download metadata: %w", err)
 	}
 
@@ -84,11 +84,10 @@ func (c *Client) Run(ctx context.Context) error {
 	jobProcessor := internal.NewJobProcessor(ctx, c.config.Parallelism)
 	for _, edition := range outdatedEditions {
 		edition := edition
-		processFunc := func(ctx context.Context) error {
+		processFunc := func(_ context.Context) error {
 			err := c.retry(
-				ctx,
 				func() error { return downloadEdition(edition) },
-				fmt.Sprintf("Couldn't download %s", edition.EditionID),
+				"Couldn't download "+edition.EditionID,
 			)
 			if err != nil {
 				return err
@@ -117,7 +116,6 @@ func (c *Client) Run(ctx context.Context) error {
 
 // retry implements a retry functionality for downloads for non permanent errors.
 func (c *Client) retry(
-	ctx context.Context,
 	f func() error,
 	logMsg string,
 ) error {

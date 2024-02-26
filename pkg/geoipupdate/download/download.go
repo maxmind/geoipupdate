@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	// Extension is the typical extension used for database files.
 	Extension = ".mmdb"
 
 	// zeroMD5 is the default value provided as an MD5 hash for a non-existent
@@ -24,6 +25,8 @@ const (
 	zeroMD5 = "00000000000000000000000000000000"
 )
 
+// Downloader represents common methods required to implement the functionality
+// required to download/update mmdb files.
 type Downloader interface {
 	GetOutdatedEditions(ctx context.Context) ([]Metadata, error)
 	DownloadEdition(ctx context.Context, edition Metadata) error
@@ -59,7 +62,7 @@ type Download struct {
 func New(
 	accountID int,
 	licenseKey string,
-	url string,
+	serverURL string,
 	proxy *url.URL,
 	databaseDir string,
 	preserveFileTimes bool,
@@ -80,7 +83,7 @@ func New(
 		licenseKey:        licenseKey,
 		oldEditionsHash:   map[string]string{},
 		preserveFileTimes: preserveFileTimes,
-		url:               url,
+		url:               serverURL,
 		now:               time.Now,
 		verbose:           verbose,
 	}

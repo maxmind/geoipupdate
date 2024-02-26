@@ -14,7 +14,12 @@ type ResponseError struct {
 }
 
 func (e ResponseError) Error() string {
-	return fmt.Sprintf("received: HTTP status code '%d' - Error code '%s' - Message '%s'", e.StatusCode, e.Code, e.Message)
+	return fmt.Sprintf("received: "+
+		"HTTP status code '%d' - "+
+		"Error code '%s' - "+
+		"Message '%s'",
+		e.StatusCode, e.Code, e.Message,
+	)
 }
 
 // IsPermanentError returns true if the error is non-retriable.

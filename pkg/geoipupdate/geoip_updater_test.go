@@ -41,7 +41,7 @@ func TestFullDownload(t *testing.T) {
 	require.NoError(t, err)
 
 	// mock metadata handler.
-	metadataHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	metadataHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		jsonData := `
 {
     "databases": [
@@ -65,20 +65,21 @@ func TestFullDownload(t *testing.T) {
 `
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(jsonData))
+		_, err := w.Write([]byte(jsonData))
+		require.NoError(t, err)
 	})
 
 	// mock download handler.
 	downloadHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		edition := strings.Split(r.URL.Path, "/")[3] // extract the edition-id.
+		name := strings.Split(r.URL.Path, "/")[3] // extract the edition-id.
 
 		var buf bytes.Buffer
 		gw := gzip.NewWriter(&buf)
 		tw := tar.NewWriter(gw)
 
-		content := "new " + edition + " content"
+		content := "new " + name + " content"
 		header := &tar.Header{
-			Name: "edition-1" + download.Extension,
+			Name: name + download.Extension,
 			Size: int64(len(content)),
 		}
 
@@ -139,6 +140,7 @@ func TestFullDownload(t *testing.T) {
 
 	// edition-1 file hasn't been modified.
 	dbFile = filepath.Join(tempDir, "edition-1"+download.Extension)
+	//nolint:gosec // we need to read the content of the file in this test.
 	fileContent, err := os.ReadFile(dbFile)
 	require.NoError(t, err)
 	require.Equal(t, "edition-1 content", string(fileContent))
@@ -148,6 +150,7 @@ func TestFullDownload(t *testing.T) {
 
 	// edition-2 file has been updated.
 	dbFile = filepath.Join(tempDir, "edition-2"+download.Extension)
+	//nolint:gosec // we need to read the content of the file in this test.
 	fileContent, err = os.ReadFile(dbFile)
 	require.NoError(t, err)
 	require.Equal(t, "new edition-2 content", string(fileContent))
@@ -159,6 +162,7 @@ func TestFullDownload(t *testing.T) {
 
 	// edition-3 file has been downloaded.
 	dbFile = filepath.Join(tempDir, "edition-3"+download.Extension)
+	//nolint:gosec // we need to read the content of the file in this test.
 	fileContent, err = os.ReadFile(dbFile)
 	require.NoError(t, err)
 	require.Equal(t, "new edition-3 content", string(fileContent))

@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -48,7 +47,7 @@ func (d *Download) DownloadEdition(ctx context.Context, edition Metadata) error 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		responseBody, err := ioutil.ReadAll(response.Body)
+		responseBody, err := io.ReadAll(response.Body)
 		if err != nil {
 			return fmt.Errorf("reading response body: %w", err)
 		}
@@ -232,7 +231,7 @@ func syncDir(path string) error {
 }
 
 // setModifiedAtTime sets the times for a database file to a certain value.
-func setModifiedAtTime(path string, dateString string) error {
+func setModifiedAtTime(path, dateString string) error {
 	releaseDate, err := ParseTime(dateString)
 	if err != nil {
 		return err

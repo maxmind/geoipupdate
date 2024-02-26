@@ -61,7 +61,7 @@ func TestDownloadEdition(t *testing.T) {
 				require.NoError(t, tw.Close())
 				require.NoError(t, gw.Close())
 
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.Header().Set("Content-Type", "application/gzip")
 					w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
 					_, err := io.Copy(w, &buf)
@@ -75,6 +75,7 @@ func TestDownloadEdition(t *testing.T) {
 
 				dbFile := filepath.Join(tempDir, edition.EditionID+Extension)
 
+				//nolint:gosec // we need to read the content of the file in this test.
 				fileContent, err := os.ReadFile(dbFile)
 				require.NoError(t, err)
 				require.Equal(t, dbContent, string(fileContent))
@@ -105,7 +106,7 @@ func TestDownloadEdition(t *testing.T) {
 				require.NoError(t, tw.Close())
 				require.NoError(t, gw.Close())
 
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.Header().Set("Content-Type", "application/gzip")
 					w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
 					_, err := io.Copy(w, &buf)
@@ -119,6 +120,7 @@ func TestDownloadEdition(t *testing.T) {
 
 				dbFile := filepath.Join(tempDir, edition.EditionID+Extension)
 
+				//nolint:gosec // we need to read the content of the file in this test.
 				fileContent, err := os.ReadFile(dbFile)
 				require.NoError(t, err)
 				require.Equal(t, dbContent, string(fileContent))
@@ -134,8 +136,8 @@ func TestDownloadEdition(t *testing.T) {
 		{
 			description:      "server error",
 			preserveFileTime: false,
-			server: func(t *testing.T) *httptest.Server {
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server: func(_ *testing.T) *httptest.Server {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.WriteHeader(http.StatusInternalServerError)
 				}))
 				return server
@@ -149,11 +151,12 @@ func TestDownloadEdition(t *testing.T) {
 			description:      "wrong file format",
 			preserveFileTime: false,
 			server: func(t *testing.T) *httptest.Server {
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					jsonData := `{"message": "Hello, world!", "status": "ok"}`
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusOK)
-					w.Write([]byte(jsonData))
+					_, err := w.Write([]byte(jsonData))
+					require.NoError(t, err)
 				}))
 				return server
 			},
@@ -172,7 +175,7 @@ func TestDownloadEdition(t *testing.T) {
 				require.NoError(t, tw.Close())
 				require.NoError(t, gw.Close())
 
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.Header().Set("Content-Type", "application/gzip")
 					w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
 					_, err := io.Copy(w, &buf)
@@ -207,7 +210,7 @@ func TestDownloadEdition(t *testing.T) {
 				require.NoError(t, tw.Close())
 				require.NoError(t, gw.Close())
 
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.Header().Set("Content-Type", "application/gzip")
 					w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
 					_, err := io.Copy(w, &buf)
@@ -242,7 +245,7 @@ func TestDownloadEdition(t *testing.T) {
 				require.NoError(t, tw.Close())
 				require.NoError(t, gw.Close())
 
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.Header().Set("Content-Type", "application/gzip")
 					w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
 					_, err := io.Copy(w, &buf)
@@ -253,6 +256,7 @@ func TestDownloadEdition(t *testing.T) {
 			},
 			checkResult: func(t *testing.T, err error) {
 				require.Error(t, err)
+				//nolint:lll
 				require.Regexp(t, "^validating hash for edition-1: md5 of new database .* does not match expected md5", err.Error())
 			},
 		},

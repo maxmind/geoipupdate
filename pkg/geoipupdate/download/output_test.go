@@ -31,6 +31,7 @@ func TestOutputFormat(t *testing.T) {
 		now: func() time.Time { return now },
 	}
 
+	//nolint:lll
 	expectedOutput := `[{"edition_id":"edition-1","old_hash":"1","new_hash":"1","modified_at":1704067200,"checked_at":1708646400},{"edition_id":"edition-2","old_hash":"10","new_hash":"11","modified_at":1706745600,"checked_at":1708646400}]`
 
 	output, err := d.MakeOutput()

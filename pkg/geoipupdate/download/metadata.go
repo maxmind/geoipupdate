@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -24,7 +24,7 @@ type metadataResponse struct {
 	Databases []Metadata `json:"databases"`
 }
 
-// databaseResponse represents the metadata content for a certain database returned by the
+// Metadata represents the metadata content for a certain database returned by the
 // metadata endpoint.
 type Metadata struct {
 	Date      string `json:"date"`
@@ -57,7 +57,7 @@ func (d *Download) GetOutdatedEditions(ctx context.Context) ([]Metadata, error) 
 	}
 	defer response.Body.Close()
 
-	responseBody, err := ioutil.ReadAll(response.Body)
+	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("reading response body: %w", err)
 	}

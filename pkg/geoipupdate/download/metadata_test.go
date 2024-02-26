@@ -28,7 +28,7 @@ func TestGetOutdatedEditions(t *testing.T) {
 	err = os.WriteFile(dbFile, []byte("edition-2 content"), os.ModePerm)
 	require.NoError(t, err)
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		jsonData := `
 {
     "databases": [
@@ -52,7 +52,8 @@ func TestGetOutdatedEditions(t *testing.T) {
 `
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(jsonData))
+		_, err := w.Write([]byte(jsonData))
+		require.NoError(t, err)
 	}))
 	defer server.Close()
 
@@ -87,8 +88,9 @@ func TestGetOutdatedEditions(t *testing.T) {
 	require.NoError(t, err)
 	require.ElementsMatch(t, expectedOutdatedEditions, outdatedEditions)
 
-	expectedDatabases := append(
-		expectedOutdatedEditions,
+	expectedDatabases := expectedOutdatedEditions
+	expectedDatabases = append(
+		expectedDatabases,
 		Metadata{
 			EditionID: "edition-1",
 			MD5:       "618dd27a10de24809ec160d6807f363f",
