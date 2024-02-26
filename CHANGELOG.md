@@ -4,11 +4,14 @@
 
 * `geoipupdate` now supports retrying on more types of errors
   such as HTTP2 INTERNAL_ERROR.
-* `HTTPReader` no longer retries on HTTP errors and therefore
-  `retryFor` was removed from `NewHTTPReader`.
 * Now `geoipupdate` doesn't requires the user to specify the config file
   even if all the other arguments are set via the environment variables.
   Reported by jsf84ksnf. GitHub #284.
+* `pkg/goipupdate/database` has been rewritten into `pkg/geoipupdate/download`.
+  This new package changes the update behaviour of the tool:
+    1. It will first request edition information from a newly introduced metadata endpoint.
+    2. Compare the result with existing editions and decide which edition needs to be updated.
+    3. Then download individual editions from a newly introduced download endpoint.
 
 ## 6.1.0 (2024-01-09)
 
