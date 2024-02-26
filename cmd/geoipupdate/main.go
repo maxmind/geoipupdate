@@ -49,7 +49,11 @@ func main() {
 		log.Printf("Using database directory %s", config.DatabaseDirectory)
 	}
 
-	client := geoipupdate.NewClient(config)
+	client, err := geoipupdate.NewClient(config)
+	if err != nil {
+		log.Fatalf("Error initializing download client: %s", err)
+	}
+
 	if err = client.Run(context.Background()); err != nil {
 		log.Fatalf("Error retrieving updates: %s", err)
 	}

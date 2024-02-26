@@ -4,54 +4,46 @@ package geoipupdate
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/download"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
 )
 
 // Client uses config data to initiate a download or update
 // process for GeoIP databases.
 type Client struct {
-	config    *Config
-	getReader func() (database.Reader, error)
-	getWriter func() (database.Writer, error)
-	output    *log.Logger
+	config     *Config
+	downloader download.Downloader
+	output     *log.Logger
 }
 
 // NewClient initialized a new Client struct.
-func NewClient(config *Config) *Client {
-	getReader := func() (database.Reader, error) {
-		return database.NewHTTPReader(
-			config.Proxy,
-			config.URL,
-			config.AccountID,
-			config.LicenseKey,
-			config.Verbose,
-		), nil
-	}
-
-	getWriter := func() (database.Writer, error) {
-		return database.NewLocalFileWriter(
-			config.DatabaseDirectory,
-			config.PreserveFileTimes,
-			config.Verbose,
-		)
+func NewClient(config *Config) (*Client, error) {
+	d, err := download.New(
+		config.AccountID,
+		config.LicenseKey,
+		config.URL,
+		config.Proxy,
+		config.DatabaseDirectory,
+		config.PreserveFileTimes,
+		config.EditionIDs,
+		config.Verbose,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("initializing database downloader: %w", err)
 	}
 
 	return &Client{
-		config:    config,
-		getReader: getReader,
-		getWriter: getWriter,
-		output:    log.New(os.Stdout, "", 0),
-	}
+		config:     config,
+		downloader: d,
+		output:     log.New(os.Stdout, "", 0),
+	}, nil
 }
 
 // Run starts the download or update process.
@@ -69,36 +61,40 @@ func (c *Client) Run(ctx context.Context) error {
 		}
 	}()
 
+	var outdatedEditions []download.Metadata
+	getOutdatedEditions := func() (err error) {
+		outdatedEditions, err = c.downloader.GetOutdatedEditions(ctx)
+		if err != nil {
+			return fmt.Errorf("getting outdated database editions: %w", err)
+		}
+		return nil
+	}
+
+	if err := c.retry(ctx, getOutdatedEditions, "Couldn't get download metadata"); err != nil {
+		return fmt.Errorf("getting download metadata: %w", err)
+	}
+
+	downloadEdition := func(edition download.Metadata) error {
+		if err := c.downloader.DownloadEdition(ctx, edition); err != nil {
+			return fmt.Errorf("downloading edition '%s': %w", edition.EditionID, err)
+		}
+		return nil
+	}
+
 	jobProcessor := internal.NewJobProcessor(ctx, c.config.Parallelism)
-
-	reader, err := c.getReader()
-	if err != nil {
-		return fmt.Errorf("initializing database reader: %w", err)
-	}
-
-	writer, err := c.getWriter()
-	if err != nil {
-		return fmt.Errorf("initializing database writer: %w", err)
-	}
-
-	var editions []database.ReadResult
-	var mu sync.Mutex
-	for _, editionID := range c.config.EditionIDs {
-		editionID := editionID
+	for _, edition := range outdatedEditions {
+		edition := edition
 		processFunc := func(ctx context.Context) error {
-			edition, err := c.downloadEdition(ctx, editionID, reader, writer)
+			err := c.retry(
+				ctx,
+				func() error { return downloadEdition(edition) },
+				fmt.Sprintf("Couldn't download %s", edition.EditionID),
+			)
 			if err != nil {
 				return err
 			}
-
-			edition.CheckedAt = time.Now().In(time.UTC)
-
-			mu.Lock()
-			editions = append(editions, *edition)
-			mu.Unlock()
 			return nil
 		}
-
 		jobProcessor.Add(processFunc)
 	}
 
@@ -109,7 +105,7 @@ func (c *Client) Run(ctx context.Context) error {
 	}
 
 	if c.config.Output {
-		result, err := json.Marshal(editions)
+		result, err := c.downloader.MakeOutput()
 		if err != nil {
 			return fmt.Errorf("marshaling result log: %w", err)
 		}
@@ -119,18 +115,12 @@ func (c *Client) Run(ctx context.Context) error {
 	return nil
 }
 
-// downloadEdition downloads the file with retries.
-func (c *Client) downloadEdition(
+// retry implements a retry functionality for downloads for non permanent errors.
+func (c *Client) retry(
 	ctx context.Context,
-	editionID string,
-	r database.Reader,
-	w database.Writer,
-) (*database.ReadResult, error) {
-	editionHash, err := w.GetHash(editionID)
-	if err != nil {
-		return nil, err
-	}
-
+	f func() error,
+	logMsg string,
+) error {
 	// RetryFor value of 0 means that no retries should be performed.
 	// Max zero retries has to be set to achieve that
 	// because the backoff never stops if MaxElapsedTime is zero.
@@ -141,37 +131,21 @@ func (c *Client) downloadEdition(
 		b = backoff.WithMaxRetries(exp, 0)
 	}
 
-	var edition *database.ReadResult
-	err = backoff.RetryNotify(
+	return backoff.RetryNotify(
 		func() error {
-			if edition, err = r.Read(ctx, editionID, editionHash); err != nil {
+			if err := f(); err != nil {
 				if internal.IsPermanentError(err) {
 					return backoff.Permanent(err)
 				}
-
 				return err
 			}
-
-			if err = w.Write(edition); err != nil {
-				if internal.IsPermanentError(err) {
-					return backoff.Permanent(err)
-				}
-
-				return err
-			}
-
 			return nil
 		},
 		b,
 		func(err error, d time.Duration) {
 			if c.config.Verbose {
-				log.Printf("Couldn't download %s, retrying in %v: %v", editionID, d, err)
+				log.Printf("%s, retrying in %v: %v", logMsg, d, err)
 			}
 		},
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	return edition, nil
 }

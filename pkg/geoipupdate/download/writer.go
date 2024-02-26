@@ -1,75 +1,75 @@
-package database
+package download
 
 import (
+	"archive/tar"
+	"compress/gzip"
+	"context"
 	"crypto/md5"
-	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"hash"
 	"io"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
-	"time"
+
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 )
 
 const (
-	extension     = ".mmdb"
-	tempExtension = ".temporary"
+	downloadEndpoint = "%s/geoip/databases/%s/download?date=%s&suffix=tar.gz"
 )
 
-// LocalFileWriter is a database.Writer that stores the database to the
-// local file system.
-type LocalFileWriter struct {
-	dir              string
-	preserveFileTime bool
-	verbose          bool
-}
-
-// NewLocalFileWriter create a LocalFileWriter.
-func NewLocalFileWriter(
-	databaseDir string,
-	preserveFileTime bool,
-	verbose bool,
-) (*LocalFileWriter, error) {
-	err := os.MkdirAll(filepath.Dir(databaseDir), 0o750)
-	if err != nil {
-		return nil, fmt.Errorf("creating database directory: %w", err)
+// DownloadEdition downloads and writes an edition to a database file.
+func (d *Download) DownloadEdition(ctx context.Context, edition Metadata) error {
+	date := strings.ReplaceAll(edition.Date, "-", "")
+	requestURL := fmt.Sprintf(downloadEndpoint, d.url, edition.EditionID, date)
+	if d.verbose {
+		log.Printf("Downloading: %s", requestURL)
 	}
 
-	return &LocalFileWriter{
-		dir:              databaseDir,
-		preserveFileTime: preserveFileTime,
-		verbose:          verbose,
-	}, nil
-}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+	if err != nil {
+		return fmt.Errorf("creating request: %w", err)
+	}
+	req.Header.Add("User-Agent", "geoipupdate/"+vars.Version)
+	req.SetBasicAuth(strconv.Itoa(d.accountID), d.licenseKey)
 
-// Write writes the result struct returned by a Reader to a database file.
-func (w *LocalFileWriter) Write(result *ReadResult) (err error) {
-	// exit early if we've got the latest database version.
-	if strings.EqualFold(result.OldHash, result.NewHash) {
-		if w.verbose {
-			log.Printf("Database %s up to date", result.EditionID)
+	response, err := d.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("performing HTTP request: %w", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		responseBody, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return fmt.Errorf("reading response body: %w", err)
 		}
-		return nil
+
+		errResponse := internal.ResponseError{
+			StatusCode: response.StatusCode,
+		}
+
+		if err := json.Unmarshal(responseBody, &errResponse); err != nil {
+			errResponse.Message = err.Error()
+		}
+
+		return fmt.Errorf("requesting edition: %w", errResponse)
 	}
 
-	defer func() {
-		if closeErr := result.reader.Close(); closeErr != nil {
-			err = errors.Join(
-				err,
-				fmt.Errorf("closing reader for %s: %w", result.EditionID, closeErr),
-			)
-		}
-	}()
+	databaseFilePath := d.getFilePath(edition.EditionID)
 
-	databaseFilePath := w.getFilePath(result.EditionID)
-
-	// write the Reader's result into a temporary file.
-	fw, err := newFileWriter(databaseFilePath + tempExtension)
+	// write the result into a temporary file.
+	fw, err := newFileWriter(databaseFilePath + ".temporary")
 	if err != nil {
-		return fmt.Errorf("setting up database writer for %s: %w", result.EditionID, err)
+		return fmt.Errorf("setting up database writer for %s: %w", edition.EditionID, err)
 	}
 	defer func() {
 		if closeErr := fw.close(); closeErr != nil {
@@ -80,13 +80,36 @@ func (w *LocalFileWriter) Write(result *ReadResult) (err error) {
 		}
 	}()
 
-	if err = fw.write(result.reader); err != nil {
-		return fmt.Errorf("writing to the temp file for %s: %w", result.EditionID, err)
+	gzReader, err := gzip.NewReader(response.Body)
+	if err != nil {
+		return fmt.Errorf("encountered an error creating GZIP reader: %w", err)
+	}
+	defer gzReader.Close()
+
+	tarReader := tar.NewReader(gzReader)
+
+	// iterate through the tar archive to extract the mmdb file
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			return errors.New("tar archive does not contain an mmdb file")
+		}
+		if err != nil {
+			return fmt.Errorf("reading tar archive: %w", err)
+		}
+
+		if strings.HasSuffix(header.Name, Extension) {
+			break
+		}
+	}
+
+	if err = fw.write(tarReader); err != nil {
+		return fmt.Errorf("writing to the temp file for %s: %w", edition.EditionID, err)
 	}
 
 	// make sure the hash of the temp file matches the expected hash.
-	if err = fw.validateHash(result.NewHash); err != nil {
-		return fmt.Errorf("validating hash for %s: %w", result.EditionID, err)
+	if err = fw.validateHash(edition.MD5); err != nil {
+		return fmt.Errorf("validating hash for %s: %w", edition.EditionID, err)
 	}
 
 	// move the temoporary database file into it's final location and
@@ -101,55 +124,17 @@ func (w *LocalFileWriter) Write(result *ReadResult) (err error) {
 	}
 
 	// check if we need to set the file's modified at time
-	if w.preserveFileTime {
-		if err = setModifiedAtTime(databaseFilePath, result.ModifiedAt); err != nil {
+	if d.preserveFileTimes {
+		if err = setModifiedAtTime(databaseFilePath, edition.Date); err != nil {
 			return err
 		}
 	}
 
-	if w.verbose {
-		log.Printf("Database %s successfully updated: %+v", result.EditionID, result.NewHash)
+	if d.verbose {
+		log.Printf("Database %s successfully updated: %+v", edition.EditionID, edition.MD5)
 	}
 
 	return nil
-}
-
-// GetHash returns the hash of the current database file.
-func (w *LocalFileWriter) GetHash(editionID string) (string, error) {
-	databaseFilePath := w.getFilePath(editionID)
-	//nolint:gosec // we really need to read this file.
-	database, err := os.Open(databaseFilePath)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			if w.verbose {
-				log.Print("Database does not exist, returning zeroed hash")
-			}
-			return ZeroMD5, nil
-		}
-		return "", fmt.Errorf("opening database: %w", err)
-	}
-
-	defer func() {
-		if err := database.Close(); err != nil {
-			log.Println(fmt.Errorf("closing database: %w", err))
-		}
-	}()
-
-	md5Hash := md5.New()
-	if _, err := io.Copy(md5Hash, database); err != nil {
-		return "", fmt.Errorf("calculating database hash: %w", err)
-	}
-
-	result := byteToString(md5Hash.Sum(nil))
-	if w.verbose {
-		log.Printf("Calculated MD5 sum for %s: %s", databaseFilePath, result)
-	}
-	return result, nil
-}
-
-// getFilePath construct the file path for a database edition.
-func (w *LocalFileWriter) getFilePath(editionID string) string {
-	return filepath.Join(w.dir, editionID) + extension
 }
 
 // fileWriter is used to write the content of a Reader's response
@@ -247,14 +232,14 @@ func syncDir(path string) error {
 }
 
 // setModifiedAtTime sets the times for a database file to a certain value.
-func setModifiedAtTime(path string, t time.Time) error {
-	if err := os.Chtimes(path, t, t); err != nil {
+func setModifiedAtTime(path string, dateString string) error {
+	releaseDate, err := ParseTime(dateString)
+	if err != nil {
+		return err
+	}
+
+	if err := os.Chtimes(path, releaseDate, releaseDate); err != nil {
 		return fmt.Errorf("setting times on file %s: %w", path, err)
 	}
 	return nil
-}
-
-// byteToString returns the base16 representation of a byte array.
-func byteToString(b []byte) string {
-	return hex.EncodeToString(b)
 }

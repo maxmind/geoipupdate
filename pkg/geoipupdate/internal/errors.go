@@ -6,20 +6,21 @@ import (
 	"fmt"
 )
 
-// HTTPError is an error from performing an HTTP request.
-type HTTPError struct {
-	Body       string
+// ResponseError represents an error response returned by the geoip servers.
+type ResponseError struct {
 	StatusCode int
+	Code       string `json:"code"`
+	Message    string `json:"error"`
 }
 
-func (h HTTPError) Error() string {
-	return fmt.Sprintf("received HTTP status code: %d: %s", h.StatusCode, h.Body)
+func (e ResponseError) Error() string {
+	return fmt.Sprintf("received: HTTP status code '%d' - Error code '%s' - Message '%s'", e.StatusCode, e.Code, e.Message)
 }
 
 // IsPermanentError returns true if the error is non-retriable.
 func IsPermanentError(err error) bool {
-	var httpErr HTTPError
-	if errors.As(err, &httpErr) && httpErr.StatusCode >= 400 && httpErr.StatusCode < 500 {
+	var r ResponseError
+	if errors.As(err, &r) && r.StatusCode >= 400 && r.StatusCode < 500 {
 		return true
 	}
 

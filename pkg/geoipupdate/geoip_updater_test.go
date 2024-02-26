@@ -1,128 +1,162 @@
 package geoipupdate
 
 import (
+	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"context"
-	"encoding/json"
-	"errors"
-	"log"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/download"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/http2"
-
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
 )
 
-// TestClientOutput makes sure that the client outputs the result of it's
-// operation to stdout in json format.
-func TestClientOutput(t *testing.T) {
-	now := time.Now().Truncate(time.Second).In(time.UTC)
-	testTime := time.Date(2023, 4, 27, 12, 4, 48, 0, time.UTC)
-	databases := []database.ReadResult{
-		{
-			EditionID:  "GeoLite2-City",
-			OldHash:    "A",
-			NewHash:    "B",
-			ModifiedAt: testTime,
-		}, {
-			EditionID:  "GeoIP2-Country",
-			OldHash:    "C",
-			NewHash:    "D",
-			ModifiedAt: testTime,
-		},
-	}
+func TestFullDownload(t *testing.T) {
+	testDate := time.Now().Truncate(24 * time.Hour)
 
-	tempDir := t.TempDir()
+	// mock existing databases.
+	tempDir, err := os.MkdirTemp("", "db")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
 
-	config := &Config{
-		EditionIDs:  []string{"GeoLite2-City", "GeoLite2-Country"},
-		LockFile:    filepath.Join(tempDir, ".geoipupdate.lock"),
-		Output:      true,
-		Parallelism: 1,
-	}
-
-	// capture the output of the `output` logger.
-	logOutput := &bytes.Buffer{}
-
-	// create a fake client with a mocked database reader and writer.
-	c := &Client{
-		config: config,
-		getReader: func() (database.Reader, error) {
-			return &mockReader{i: 0, result: databases}, nil
-		},
-		getWriter: func() (database.Writer, error) {
-			return &mockWriter{}, nil
-		},
-		output: log.New(logOutput, "", 0),
-	}
-
-	// run the client
-	err := c.Run(context.Background())
+	edition := "edition-1"
+	dbFile := filepath.Join(tempDir, edition+download.Extension)
+	// equivalent MD5: 618dd27a10de24809ec160d6807f363f
+	err = os.WriteFile(dbFile, []byte("edition-1 content"), os.ModePerm)
 	require.NoError(t, err)
 
-	// make sure the expected output matches the input.
-	var outputDatabases []database.ReadResult
-	err = json.Unmarshal(logOutput.Bytes(), &outputDatabases)
+	edition = "edition-2"
+	dbFile = filepath.Join(tempDir, edition+download.Extension)
+	err = os.WriteFile(dbFile, []byte("edition-2 content"), os.ModePerm)
 	require.NoError(t, err)
-	require.Equal(t, len(outputDatabases), len(databases))
 
-	for i := 0; i < len(databases); i++ {
-		require.Equal(t, databases[i].EditionID, outputDatabases[i].EditionID)
-		require.Equal(t, databases[i].OldHash, outputDatabases[i].OldHash)
-		require.Equal(t, databases[i].NewHash, outputDatabases[i].NewHash)
-		require.Equal(t, databases[i].ModifiedAt, outputDatabases[i].ModifiedAt)
-		// comparing time wasn't supported with require in older go versions.
-		if !afterOrEqual(outputDatabases[i].CheckedAt, now) {
-			t.Errorf("database %s was not updated", outputDatabases[i].EditionID)
+	// mock metadata handler.
+	metadataHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		jsonData := `
+{
+    "databases": [
+        {
+            "edition_id": "edition-1",
+            "md5": "618dd27a10de24809ec160d6807f363f",
+            "date": "2024-02-23"
+        },
+        {
+            "edition_id": "edition-2",
+            "md5": "9960e83daa34d69e9b58b375616e145b",
+            "date": "2024-02-23"
+        },
+        {
+            "edition_id": "edition-3",
+            "md5": "08628247c1e8c1aa6d05ffc578fa09a8",
+            "date": "2024-02-02"
+        }
+    ]
+}
+`
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(jsonData))
+	})
+
+	// mock download handler.
+	downloadHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		edition := strings.Split(r.URL.Path, "/")[3] // extract the edition-id.
+
+		var buf bytes.Buffer
+		gw := gzip.NewWriter(&buf)
+		tw := tar.NewWriter(gw)
+
+		content := "new " + edition + " content"
+		header := &tar.Header{
+			Name: "edition-1" + download.Extension,
+			Size: int64(len(content)),
 		}
-	}
 
-	streamErr := http2.StreamError{
-		Code: http2.ErrCodeInternal,
-	}
-	c.getWriter = func() (database.Writer, error) {
-		w := mockWriter{
-			WriteFunc: func(_ *database.ReadResult) error {
-				return streamErr
-			},
+		err = tw.WriteHeader(header)
+		require.NoError(t, err)
+		_, err = tw.Write([]byte(content))
+		require.NoError(t, err)
+
+		require.NoError(t, tw.Close())
+		require.NoError(t, gw.Close())
+
+		w.Header().Set("Content-Type", "application/gzip")
+		w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
+		_, err := io.Copy(w, &buf)
+		require.NoError(t, err)
+	})
+
+	// create test server.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
+			metadataHandler.ServeHTTP(w, r)
+			return
 		}
 
-		return &w, nil
-	}
-	err = c.Run(context.Background())
-	require.ErrorIs(t, err, streamErr)
-}
+		if strings.HasPrefix(r.URL.Path, "/geoip/databases") {
+			downloadHandler.ServeHTTP(w, r)
+			return
+		}
 
-type mockReader struct {
-	i      int
-	result []database.ReadResult
-}
+		http.NotFound(w, r)
+	}))
+	defer server.Close()
 
-func (mr *mockReader) Read(_ context.Context, _, _ string) (*database.ReadResult, error) {
-	if mr.i >= len(mr.result) {
-		return nil, errors.New("out of bounds")
-	}
-	res := mr.result[mr.i]
-	mr.i++
-	return &res, nil
-}
-
-type mockWriter struct {
-	WriteFunc func(*database.ReadResult) error
-}
-
-func (w *mockWriter) Write(r *database.ReadResult) error {
-	if w.WriteFunc != nil {
-		return w.WriteFunc(r)
+	ctx := context.Background()
+	conf := &Config{
+		AccountID:         0,              // AccountID is not relevant for this test.
+		LicenseKey:        "000000000001", // LicenseKey is not relevant for this test.
+		DatabaseDirectory: tempDir,
+		EditionIDs:        []string{"edition-1", "edition-2", "edition-3"},
+		LockFile:          filepath.Clean(filepath.Join(tempDir, ".geoipupdate.lock")),
+		URL:               server.URL,
+		RetryFor:          0,
+		Parallelism:       1,
+		PreserveFileTimes: true,
 	}
 
-	return nil
-}
-func (w mockWriter) GetHash(_ string) (string, error) { return "", nil }
+	client, err := NewClient(conf)
+	require.NoError(t, err)
 
-func afterOrEqual(t1, t2 time.Time) bool {
-	return t1.After(t2) || t1.Equal(t2)
+	// download updates.
+	err = client.Run(ctx)
+	require.NoError(t, err)
+
+	// edition-1 file hasn't been modified.
+	dbFile = filepath.Join(tempDir, "edition-1"+download.Extension)
+	fileContent, err := os.ReadFile(dbFile)
+	require.NoError(t, err)
+	require.Equal(t, "edition-1 content", string(fileContent))
+	database, err := os.Stat(dbFile)
+	require.NoError(t, err)
+	require.LessOrEqual(t, testDate, database.ModTime())
+
+	// edition-2 file has been updated.
+	dbFile = filepath.Join(tempDir, "edition-2"+download.Extension)
+	fileContent, err = os.ReadFile(dbFile)
+	require.NoError(t, err)
+	require.Equal(t, "new edition-2 content", string(fileContent))
+	modTime, err := download.ParseTime("2024-02-23")
+	require.NoError(t, err)
+	database, err = os.Stat(dbFile)
+	require.NoError(t, err)
+	require.Equal(t, modTime, database.ModTime())
+
+	// edition-3 file has been downloaded.
+	dbFile = filepath.Join(tempDir, "edition-3"+download.Extension)
+	fileContent, err = os.ReadFile(dbFile)
+	require.NoError(t, err)
+	require.Equal(t, "new edition-3 content", string(fileContent))
+	modTime, err = download.ParseTime("2024-02-02")
+	require.NoError(t, err)
+	database, err = os.Stat(dbFile)
+	require.NoError(t, err)
+	require.Equal(t, modTime, database.ModTime())
 }

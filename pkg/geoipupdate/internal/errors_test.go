@@ -19,13 +19,13 @@ func TestIsPermanentError(t *testing.T) {
 			want: false,
 		},
 		"bad gateway": {
-			err: HTTPError{
+			err: ResponseError{
 				StatusCode: http.StatusBadGateway,
 			},
 			want: false,
 		},
 		"bad request": {
-			err: HTTPError{
+			err: ResponseError{
 				StatusCode: http.StatusBadRequest,
 			},
 			want: true,
