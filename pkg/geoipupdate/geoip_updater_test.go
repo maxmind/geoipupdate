@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/download"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -120,23 +119,26 @@ func TestFullDownload(t *testing.T) {
 		DatabaseDirectory: tempDir,
 		EditionIDs:        []string{"edition-1", "edition-2", "edition-3"},
 		LockFile:          filepath.Clean(filepath.Join(tempDir, ".geoipupdate.lock")),
-		URL:               server.URL,
-		RetryFor:          0,
+		Output:            true,
 		Parallelism:       1,
 		PreserveFileTimes: true,
+		RetryFor:          0,
+		URL:               server.URL,
 	}
 
 	logOutput := &bytes.Buffer{}
-	log.SetOutput(logOutput)
 
 	client, err := NewClient(conf)
 	require.NoError(t, err)
+	client.output = log.New(logOutput, "", 0)
 
 	// download updates.
 	err = client.Run(ctx)
 	require.NoError(t, err)
 
-	assert.Equal(t, "", logOutput.String(), "no logged output")
+	//nolint:lll
+	expectedOutput := `[{"edition_id":"edition\-1","old_hash":"618dd27a10de24809ec160d6807f363f","new_hash":"618dd27a10de24809ec160d6807f363f","modified_at":1708646400,"checked_at":\d+},{"edition_id":"edition\-2","old_hash":"c9bbf7cb507370339633b44001bae038","new_hash":"9960e83daa34d69e9b58b375616e145b","modified_at":1708646400,"checked_at":\d+},{"edition_id":"edition\-3","old_hash":"00000000000000000000000000000000","new_hash":"08628247c1e8c1aa6d05ffc578fa09a8","modified_at":1706832000,"checked_at":\d+}]`
+	require.Regexp(t, expectedOutput, logOutput.String())
 
 	// edition-1 file hasn't been modified.
 	dbFile = filepath.Join(tempDir, "edition-1"+download.Extension)
