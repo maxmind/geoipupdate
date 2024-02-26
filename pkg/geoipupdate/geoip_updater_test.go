@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"context"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -15,9 +16,11 @@ import (
 	"time"
 
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/download"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+// TestFullDownload runs an end to end test simulation.
 func TestFullDownload(t *testing.T) {
 	testDate := time.Now().Truncate(24 * time.Hour)
 
@@ -122,12 +125,17 @@ func TestFullDownload(t *testing.T) {
 		PreserveFileTimes: true,
 	}
 
+	logOutput := &bytes.Buffer{}
+	log.SetOutput(logOutput)
+
 	client, err := NewClient(conf)
 	require.NoError(t, err)
 
 	// download updates.
 	err = client.Run(ctx)
 	require.NoError(t, err)
+
+	assert.Equal(t, "", logOutput.String(), "no logged output")
 
 	// edition-1 file hasn't been modified.
 	dbFile = filepath.Join(tempDir, "edition-1"+download.Extension)
