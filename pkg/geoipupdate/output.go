@@ -1,11 +1,15 @@
-package download
+package geoipupdate
 
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/api"
 )
 
-// ReadResult is the struct returned by a Reader's Get method.
+// output contains information collected about a certain database edition
+// collected during a download attempt.
 type output struct {
 	EditionID  string `json:"edition_id"`
 	OldHash    string `json:"old_hash"`
@@ -14,18 +18,18 @@ type output struct {
 	CheckedAt  int64  `json:"checked_at"`
 }
 
-// MakeOutput returns a json formatted summary about the current download attempt.
-func (d *Download) MakeOutput() ([]byte, error) {
+// makeOutput returns a json formatted summary about the current download attempt.
+func makeOutput(allEditions []api.Metadata, oldHashes map[string]string) ([]byte, error) {
 	var out []output
-	now := d.now()
-	for _, m := range d.metadata {
-		modifiedAt, err := ParseTime(m.Date)
+	now := time.Now()
+	for _, m := range allEditions {
+		modifiedAt, err := api.ParseTime(m.Date)
 		if err != nil {
 			return nil, err
 		}
 		o := output{
 			EditionID:  m.EditionID,
-			OldHash:    d.oldEditionsHash[m.EditionID],
+			OldHash:    oldHashes[m.EditionID],
 			NewHash:    m.MD5,
 			ModifiedAt: modifiedAt.Unix(),
 			CheckedAt:  now.Unix(),

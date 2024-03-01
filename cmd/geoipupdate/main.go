@@ -4,9 +4,16 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
+	"net/http"
+	"os"
 
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/api"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/config"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/lock"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
+	geoipupdatewriter "github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/writer"
 )
 
 const unknownVersion = "unknown"
@@ -32,29 +39,61 @@ func main() {
 
 	args := getArgs()
 
-	config, err := geoipupdate.NewConfig(
-		geoipupdate.WithConfigFile(args.ConfigFile),
-		geoipupdate.WithDatabaseDirectory(args.DatabaseDirectory),
-		geoipupdate.WithParallelism(args.Parallelism),
-		geoipupdate.WithVerbose(args.Verbose),
-		geoipupdate.WithOutput(args.Output),
+	conf, err := config.NewConfig(
+		config.WithConfigFile(args.ConfigFile),
+		config.WithDatabaseDirectory(args.DatabaseDirectory),
+		config.WithParallelism(args.Parallelism),
+		config.WithVerbose(args.Verbose),
+		config.WithOutput(args.Output),
 	)
 	if err != nil {
 		log.Fatalf("Error loading configuration: %s", err)
 	}
 
-	if config.Verbose {
-		log.Printf("geoipupdate version %s", version)
-		log.Printf("Using config file %s", args.ConfigFile)
-		log.Printf("Using database directory %s", config.DatabaseDirectory)
+	options := &slog.HandlerOptions{Level: slog.LevelInfo}
+	if conf.Verbose {
+		options = &slog.HandlerOptions{Level: slog.LevelDebug}
+	}
+	handler := slog.NewTextHandler(os.Stderr, options)
+	slog.SetDefault(slog.New(handler))
+
+	slog.Debug("geoipupdate", "version", version)
+	slog.Debug("config file", "path", args.ConfigFile)
+	slog.Debug("database directory", "path", conf.DatabaseDirectory)
+
+	transport := http.DefaultTransport
+	if conf.Proxy != nil {
+		proxyFunc := http.ProxyURL(conf.Proxy)
+		transport.(*http.Transport).Proxy = proxyFunc
 	}
 
-	client, err := geoipupdate.NewClient(config)
+	downloader := api.NewHTTPDownloader(
+		conf.AccountID,
+		conf.LicenseKey,
+		&http.Client{Transport: transport},
+		conf.URL,
+	)
+
+	writer := geoipupdatewriter.NewDiskWriter(
+		conf.DatabaseDirectory,
+		conf.PreserveFileTimes,
+	)
+
+	slog.Debug("initializing file lock", "path", conf.LockFile)
+	locker, err := lock.NewFileLock(conf.LockFile)
 	if err != nil {
-		log.Fatalf("Error initializing download client: %s", err)
+		slog.Error("setting up file lock", "error", err)
+		os.Exit(1)
 	}
 
+	client := geoipupdate.NewClient(
+		conf,
+		downloader,
+		locker,
+		writer,
+	)
 	if err = client.Run(context.Background()); err != nil {
-		log.Fatalf("Error retrieving updates: %s", err)
+		slog.Error("retrieving updates", "error", err)
+		os.Exit(1)
 	}
 }

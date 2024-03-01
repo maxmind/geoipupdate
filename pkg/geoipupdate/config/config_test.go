@@ -1,4 +1,4 @@
-package geoipupdate
+package config
 
 import (
 	"fmt"

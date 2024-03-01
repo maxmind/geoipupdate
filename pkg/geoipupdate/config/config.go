@@ -1,4 +1,6 @@
-package geoipupdate
+// Package config deals reading and setting the client configuration from multiple
+// source: config file, environment variables and cli flags.
+package config
 
 import (
 	"bufio"

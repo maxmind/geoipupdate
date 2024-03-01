@@ -6,82 +6,115 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/download"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/api"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/config"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/lock"
+	geoipupdatewriter "github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/writer"
 )
 
 // Client uses config data to initiate a download or update
 // process for GeoIP databases.
 type Client struct {
-	config     *Config
-	downloader download.Downloader
+	editionIDs  []string
+	parallelism int
+	retryFor    time.Duration
+	printOutput bool
+
+	downloader api.DownloadAPI
+	locker     lock.Lock
 	output     *log.Logger
+	writer     geoipupdatewriter.Writer
 }
 
 // NewClient initialized a new Client struct.
-func NewClient(config *Config) (*Client, error) {
-	d, err := download.New(
-		config.AccountID,
-		config.LicenseKey,
-		config.URL,
-		config.Proxy,
-		config.DatabaseDirectory,
-		config.PreserveFileTimes,
-		config.EditionIDs,
-		config.Verbose,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("initializing database downloader: %w", err)
-	}
-
+func NewClient(
+	conf *config.Config,
+	downloader api.DownloadAPI,
+	locker lock.Lock,
+	writer geoipupdatewriter.Writer,
+) *Client {
 	return &Client{
-		config:     config,
-		downloader: d,
+		editionIDs:  conf.EditionIDs,
+		parallelism: conf.Parallelism,
+		printOutput: conf.Output,
+		retryFor:    conf.RetryFor,
+
+		downloader: downloader,
+		locker:     locker,
 		output:     log.New(os.Stdout, "", 0),
-	}, nil
+		writer:     writer,
+	}
 }
 
 // Run starts the download or update process.
 func (c *Client) Run(ctx context.Context) error {
-	fileLock, err := internal.NewFileLock(c.config.LockFile, c.config.Verbose)
-	if err != nil {
-		return fmt.Errorf("initializing file lock: %w", err)
-	}
-	if err := fileLock.Acquire(); err != nil {
+	if err := c.locker.Acquire(); err != nil {
 		return fmt.Errorf("acquiring file lock: %w", err)
 	}
+	slog.Debug("file lock acquired")
 	defer func() {
-		if err := fileLock.Release(); err != nil {
+		if err := c.locker.Release(); err != nil {
 			log.Printf("releasing file lock: %s", err)
 		}
+		slog.Debug("file lock successfully released")
 	}()
 
-	var outdatedEditions []download.Metadata
-	getOutdatedEditions := func() (err error) {
-		outdatedEditions, err = c.downloader.GetOutdatedEditions(ctx)
+	oldEditionsHash := map[string]string{}
+	for _, e := range c.editionIDs {
+		hash, err := c.writer.GetHash(e)
+		if err != nil {
+			return fmt.Errorf("getting existing %q database hash: %w", e, err)
+		}
+		oldEditionsHash[e] = hash
+		slog.Debug("existing database md5", "edition", e, "md5", hash)
+	}
+
+	var allEditions []api.Metadata
+	getMetadata := func() (err error) {
+		slog.Debug("requesting metadata")
+		allEditions, err = c.downloader.GetMetadata(ctx, c.editionIDs)
 		if err != nil {
 			return fmt.Errorf("getting outdated database editions: %w", err)
 		}
 		return nil
 	}
 
-	if err := c.retry(getOutdatedEditions, "Couldn't get download metadata"); err != nil {
+	if err := c.retry(getMetadata, "Couldn't get download metadata"); err != nil {
 		return fmt.Errorf("getting download metadata: %w", err)
 	}
 
-	downloadEdition := func(edition download.Metadata) error {
-		if err := c.downloader.DownloadEdition(ctx, edition); err != nil {
+	var outdatedEditions []api.Metadata
+	for _, m := range allEditions {
+		if m.MD5 != oldEditionsHash[m.EditionID] {
+			outdatedEditions = append(outdatedEditions, m)
+			continue
+		}
+		slog.Debug("database up to date", "edition", m.EditionID)
+	}
+
+	downloadEdition := func(edition api.Metadata) error {
+		slog.Debug("downloading", "edition", edition.EditionID)
+		reader, cleanupCallback, err := c.downloader.GetEdition(ctx, edition)
+		if err != nil {
 			return fmt.Errorf("downloading edition '%s': %w", edition.EditionID, err)
 		}
+		slog.Debug("writing", "edition", edition.EditionID)
+		if err := c.writer.Write(edition, reader); err != nil {
+			return fmt.Errorf("writing edition '%s': %w", edition.EditionID, err)
+		}
+		cleanupCallback()
+		slog.Debug("database successfully downloaded", "edition", edition.EditionID, "md5", edition.MD5)
 		return nil
 	}
 
-	jobProcessor := internal.NewJobProcessor(ctx, c.config.Parallelism)
+	jobProcessor := internal.NewJobProcessor(ctx, c.parallelism)
 	for _, edition := range outdatedEditions {
 		edition := edition
 		processFunc := func(_ context.Context) error {
@@ -103,8 +136,8 @@ func (c *Client) Run(ctx context.Context) error {
 		return fmt.Errorf("running the job processor: %w", err)
 	}
 
-	if c.config.Output {
-		result, err := c.downloader.MakeOutput()
+	if c.printOutput {
+		result, err := makeOutput(allEditions, oldEditionsHash)
 		if err != nil {
 			return fmt.Errorf("marshaling result log: %w", err)
 		}
@@ -123,7 +156,7 @@ func (c *Client) retry(
 	// Max zero retries has to be set to achieve that
 	// because the backoff never stops if MaxElapsedTime is zero.
 	exp := backoff.NewExponentialBackOff()
-	exp.MaxElapsedTime = c.config.RetryFor
+	exp.MaxElapsedTime = c.retryFor
 	b := backoff.BackOff(exp)
 	if exp.MaxElapsedTime == 0 {
 		b = backoff.WithMaxRetries(exp, 0)
@@ -141,9 +174,7 @@ func (c *Client) retry(
 		},
 		b,
 		func(err error, d time.Duration) {
-			if c.config.Verbose {
-				log.Printf("%s, retrying in %v: %v", logMsg, d, err)
-			}
+			slog.Debug(logMsg, "retrying-in", d, "error", err)
 		},
 	)
 }

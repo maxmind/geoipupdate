@@ -1,4 +1,4 @@
-package internal
+package lock
 
 import (
 	"path/filepath"
@@ -12,7 +12,7 @@ import (
 func TestAcquireFileLock(t *testing.T) {
 	tempDir := t.TempDir()
 
-	fl, err := NewFileLock(filepath.Join(tempDir, ".geoipupdate.lock"), false)
+	fl, err := NewFileLock(filepath.Join(tempDir, ".geoipupdate.lock"))
 	require.NoError(t, err)
 	defer func() {
 		err := fl.Release()

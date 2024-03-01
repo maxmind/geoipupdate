@@ -15,7 +15,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/download"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/api"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/config"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/lock"
+	geoipupdatewriter "github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/writer"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,13 +32,13 @@ func TestFullDownload(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	edition := "edition-1"
-	dbFile := filepath.Join(tempDir, edition+download.Extension)
+	dbFile := filepath.Join(tempDir, edition+".mmdb")
 	// equivalent MD5: 618dd27a10de24809ec160d6807f363f
 	err = os.WriteFile(dbFile, []byte("edition-1 content"), os.ModePerm)
 	require.NoError(t, err)
 
 	edition = "edition-2"
-	dbFile = filepath.Join(tempDir, edition+download.Extension)
+	dbFile = filepath.Join(tempDir, edition+".mmdb")
 	err = os.WriteFile(dbFile, []byte("edition-2 content"), os.ModePerm)
 	require.NoError(t, err)
 
@@ -78,7 +81,7 @@ func TestFullDownload(t *testing.T) {
 
 		content := "new " + name + " content"
 		header := &tar.Header{
-			Name: name + download.Extension,
+			Name: name + ".mmdb",
 			Size: int64(len(content)),
 		}
 
@@ -113,7 +116,7 @@ func TestFullDownload(t *testing.T) {
 	defer server.Close()
 
 	ctx := context.Background()
-	conf := &Config{
+	conf := &config.Config{
 		AccountID:         0,              // AccountID is not relevant for this test.
 		LicenseKey:        "000000000001", // LicenseKey is not relevant for this test.
 		DatabaseDirectory: tempDir,
@@ -128,8 +131,19 @@ func TestFullDownload(t *testing.T) {
 
 	logOutput := &bytes.Buffer{}
 
-	client, err := NewClient(conf)
+	downloader := api.NewHTTPDownloader(
+		conf.AccountID,
+		conf.LicenseKey,
+		http.DefaultClient,
+		conf.URL,
+	)
+
+	writer := geoipupdatewriter.NewDiskWriter(conf.DatabaseDirectory, conf.PreserveFileTimes)
+
+	locker, err := lock.NewFileLock(conf.LockFile)
 	require.NoError(t, err)
+
+	client := NewClient(conf, downloader, locker, writer)
 	client.output = log.New(logOutput, "", 0)
 
 	// download updates.
@@ -141,7 +155,7 @@ func TestFullDownload(t *testing.T) {
 	require.Regexp(t, expectedOutput, logOutput.String())
 
 	// edition-1 file hasn't been modified.
-	dbFile = filepath.Join(tempDir, "edition-1"+download.Extension)
+	dbFile = filepath.Join(tempDir, "edition-1.mmdb")
 	//nolint:gosec // we need to read the content of the file in this test.
 	fileContent, err := os.ReadFile(dbFile)
 	require.NoError(t, err)
@@ -151,24 +165,24 @@ func TestFullDownload(t *testing.T) {
 	require.LessOrEqual(t, testDate, database.ModTime())
 
 	// edition-2 file has been updated.
-	dbFile = filepath.Join(tempDir, "edition-2"+download.Extension)
+	dbFile = filepath.Join(tempDir, "edition-2.mmdb")
 	//nolint:gosec // we need to read the content of the file in this test.
 	fileContent, err = os.ReadFile(dbFile)
 	require.NoError(t, err)
 	require.Equal(t, "new edition-2 content", string(fileContent))
-	modTime, err := download.ParseTime("2024-02-23")
+	modTime, err := api.ParseTime("2024-02-23")
 	require.NoError(t, err)
 	database, err = os.Stat(dbFile)
 	require.NoError(t, err)
 	require.Equal(t, modTime, database.ModTime())
 
 	// edition-3 file has been downloaded.
-	dbFile = filepath.Join(tempDir, "edition-3"+download.Extension)
+	dbFile = filepath.Join(tempDir, "edition-3.mmdb")
 	//nolint:gosec // we need to read the content of the file in this test.
 	fileContent, err = os.ReadFile(dbFile)
 	require.NoError(t, err)
 	require.Equal(t, "new edition-3 content", string(fileContent))
-	modTime, err = download.ParseTime("2024-02-02")
+	modTime, err = api.ParseTime("2024-02-02")
 	require.NoError(t, err)
 	database, err = os.Stat(dbFile)
 	require.NoError(t, err)

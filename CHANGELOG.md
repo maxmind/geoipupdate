@@ -7,11 +7,15 @@
 * Now `geoipupdate` doesn't requires the user to specify the config file
   even if all the other arguments are set via the environment variables.
   Reported by jsf84ksnf. GitHub #284.
-* `pkg/goipupdate/database` has been rewritten into `pkg/geoipupdate/download`.
-  This new package changes the update behaviour of the tool:
-    1. It will first request edition information from a newly introduced metadata endpoint.
-    2. Compare the result with existing editions and decide which edition needs to be updated.
-    3. Then download individual editions from a newly introduced download endpoint.
+* `pkg/goipupdate/database` has been divided and rewritten into multiple packages,
+  which change the behaviour of the tool:
+
+  * `pkg/goipupdate/database` which is responsible for handling api calls to maxmind
+    servers and includes two new api calls to the `metadata` and `download` endpoints.
+  * `pkg/goipupdate/writer` which is responsible for writing databases to various targets.
+    It only supports writing to disk out of the box.
+  * `pkg/goipupdate/lock` which is responsible for synchronizing concurrent access to the tool.
+    It only supports file locks out of the box.
 
 ## 6.1.0 (2024-01-09)
 

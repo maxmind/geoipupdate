@@ -1,75 +1,82 @@
-package download
+package writer
 
 import (
-	"archive/tar"
-	"compress/gzip"
-	"context"
 	"crypto/md5"
-	"encoding/json"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
 	"io"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/api"
 )
 
 const (
-	downloadEndpoint = "%s/geoip/databases/%s/download?date=%s&suffix=tar.gz"
+	extension = ".mmdb"
 )
 
-// DownloadEdition downloads and writes an edition to a database file.
-func (d *Download) DownloadEdition(ctx context.Context, edition Metadata) error {
-	date := strings.ReplaceAll(edition.Date, "-", "")
-	requestURL := fmt.Sprintf(downloadEndpoint, d.url, edition.EditionID, date)
-	if d.verbose {
-		log.Printf("Downloading: %s", requestURL)
-	}
+// diskWriter is used to write mmdb databases into files.
+type diskWriter struct {
+	// databaseDir is the database download path.
+	databaseDir string
+	// preserveFileTimes sets whether database modification times are preserved across downloads.
+	preserveFileTimes bool
+}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+// NewDiskWriter initializes a new fileWriter struct.
+//
+//nolint:revive // unexported type fileLock is not meant to be used as a standalone type.
+func NewDiskWriter(
+	databaseDir string,
+	preserveFileTimes bool,
+) *diskWriter {
+	return &diskWriter{
+		databaseDir:       databaseDir,
+		preserveFileTimes: preserveFileTimes,
+	}
+}
+
+// GetHash returns the hash of a certain database file.
+func (w *diskWriter) GetHash(editionID string) (string, error) {
+	databaseFilePath := w.getFilePath(editionID)
+	//nolint:gosec // we really need to read this file.
+	database, err := os.Open(databaseFilePath)
 	if err != nil {
-		return fmt.Errorf("creating request: %w", err)
-	}
-	req.Header.Add("User-Agent", "geoipupdate/"+vars.Version)
-	req.SetBasicAuth(strconv.Itoa(d.accountID), d.licenseKey)
-
-	response, err := d.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("performing HTTP request: %w", err)
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		responseBody, err := io.ReadAll(response.Body)
-		if err != nil {
-			return fmt.Errorf("reading response body: %w", err)
+		if errors.Is(err, os.ErrNotExist) {
+			return zeroMD5, nil
 		}
-
-		errResponse := internal.ResponseError{
-			StatusCode: response.StatusCode,
-		}
-
-		if err := json.Unmarshal(responseBody, &errResponse); err != nil {
-			errResponse.Message = err.Error()
-		}
-
-		return fmt.Errorf("requesting edition: %w", errResponse)
+		return "", fmt.Errorf("opening database: %w", err)
 	}
 
-	databaseFilePath := d.getFilePath(edition.EditionID)
+	defer func() {
+		if err := database.Close(); err != nil {
+			log.Println(fmt.Errorf("closing database: %w", err))
+		}
+	}()
+
+	md5Hash := md5.New()
+	if _, err := io.Copy(md5Hash, database); err != nil {
+		return "", fmt.Errorf("calculating database hash: %w", err)
+	}
+
+	result := byteToString(md5Hash.Sum(nil))
+	return result, nil
+}
+
+// Write writes the content of a mmdb database to a file.
+func (w *diskWriter) Write(metadata api.Metadata, reader io.Reader) error {
+	databaseFilePath := w.getFilePath(metadata.EditionID)
 
 	// write the result into a temporary file.
 	fw, err := newFileWriter(databaseFilePath + ".temporary")
 	if err != nil {
-		return fmt.Errorf("setting up database writer for %s: %w", edition.EditionID, err)
+		return fmt.Errorf("setting up database writer for %s: %w", metadata.EditionID, err)
 	}
+
 	defer func() {
 		if closeErr := fw.close(); closeErr != nil {
 			err = errors.Join(
@@ -79,36 +86,13 @@ func (d *Download) DownloadEdition(ctx context.Context, edition Metadata) error 
 		}
 	}()
 
-	gzReader, err := gzip.NewReader(response.Body)
-	if err != nil {
-		return fmt.Errorf("encountered an error creating GZIP reader: %w", err)
-	}
-	defer gzReader.Close()
-
-	tarReader := tar.NewReader(gzReader)
-
-	// iterate through the tar archive to extract the mmdb file
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			return errors.New("tar archive does not contain an mmdb file")
-		}
-		if err != nil {
-			return fmt.Errorf("reading tar archive: %w", err)
-		}
-
-		if strings.HasSuffix(header.Name, Extension) {
-			break
-		}
-	}
-
-	if err = fw.write(tarReader); err != nil {
-		return fmt.Errorf("writing to the temp file for %s: %w", edition.EditionID, err)
+	if err = fw.write(reader); err != nil {
+		return fmt.Errorf("writing to the temp file for %s: %w", metadata.EditionID, err)
 	}
 
 	// make sure the hash of the temp file matches the expected hash.
-	if err = fw.validateHash(edition.MD5); err != nil {
-		return fmt.Errorf("validating hash for %s: %w", edition.EditionID, err)
+	if err = fw.validateHash(metadata.MD5); err != nil {
+		return fmt.Errorf("validating hash for %s: %w", metadata.EditionID, err)
 	}
 
 	// move the temoporary database file into it's final location and
@@ -123,21 +107,22 @@ func (d *Download) DownloadEdition(ctx context.Context, edition Metadata) error 
 	}
 
 	// check if we need to set the file's modified at time
-	if d.preserveFileTimes {
-		if err = setModifiedAtTime(databaseFilePath, edition.Date); err != nil {
+	if w.preserveFileTimes {
+		if err = setModifiedAtTime(databaseFilePath, metadata.Date); err != nil {
 			return err
 		}
-	}
-
-	if d.verbose {
-		log.Printf("Database %s successfully updated: %+v", edition.EditionID, edition.MD5)
 	}
 
 	return nil
 }
 
-// fileWriter is used to write the content of a Reader's response
-// into a file.
+// getFilePath construct the file path for a database edition.
+func (w *diskWriter) getFilePath(editionID string) string {
+	return filepath.Join(w.databaseDir, editionID) + extension
+}
+
+// fileWriter writes a mmdb file into a file and verify it's integrity
+// by comparing hashes.
 type fileWriter struct {
 	// file is used for writing the Reader's response.
 	file *os.File
@@ -232,7 +217,7 @@ func syncDir(path string) error {
 
 // setModifiedAtTime sets the times for a database file to a certain value.
 func setModifiedAtTime(path, dateString string) error {
-	releaseDate, err := ParseTime(dateString)
+	releaseDate, err := api.ParseTime(dateString)
 	if err != nil {
 		return err
 	}
@@ -241,4 +226,9 @@ func setModifiedAtTime(path, dateString string) error {
 		return fmt.Errorf("setting times on file %s: %w", path, err)
 	}
 	return nil
+}
+
+// byteToString returns the base16 representation of a byte array.
+func byteToString(b []byte) string {
+	return hex.EncodeToString(b)
 }
