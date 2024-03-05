@@ -1,7 +1,9 @@
 package database
 
 import (
+	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -27,7 +29,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			preserveFileTime: true,
 			checkTime:        require.Equal,
 			result: &ReadResult{
-				reader:     getReader(t, "database content"),
+				reader:     io.NopCloser(strings.NewReader("database content")),
 				EditionID:  "GeoIP2-City",
 				OldHash:    "",
 				NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
@@ -39,7 +41,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			preserveFileTime: true,
 			checkTime:        require.Equal,
 			result: &ReadResult{
-				reader:     getReader(t, "database content"),
+				reader:     io.NopCloser(strings.NewReader("database content")),
 				EditionID:  "GeoIP2-City",
 				OldHash:    "",
 				NewHash:    "badhash",
@@ -51,7 +53,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			preserveFileTime: true,
 			checkTime:        require.Equal,
 			result: &ReadResult{
-				reader:     getReader(t, "database content"),
+				reader:     io.NopCloser(strings.NewReader("database content")),
 				EditionID:  "GeoIP2-City",
 				OldHash:    "",
 				NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",
@@ -63,7 +65,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 			preserveFileTime: false,
 			checkTime:        require.NotEqual,
 			result: &ReadResult{
-				reader:     getReader(t, "database content"),
+				reader:     io.NopCloser(strings.NewReader("database content")),
 				EditionID:  "GeoIP2-City",
 				OldHash:    "",
 				NewHash:    "CFA36DDC8279B5483A5AA25E9A6151F4",
@@ -95,7 +97,7 @@ func TestLocalFileWriterWrite(t *testing.T) {
 // TestLocalFileWriterGetHash tests functionality of the LocalFileWriter.GetHash method.
 func TestLocalFileWriterGetHash(t *testing.T) {
 	result := &ReadResult{
-		reader:     getReader(t, "database content"),
+		reader:     io.NopCloser(strings.NewReader("database content")),
 		EditionID:  "GeoIP2-City",
 		OldHash:    "",
 		NewHash:    "cfa36ddc8279b5483a5aa25e9a6151f4",

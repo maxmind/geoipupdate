@@ -9,6 +9,15 @@
 * Now `geoipupdate` doesn't requires the user to specify the config file
   even if all the other arguments are set via the environment variables.
   Reported by jsf84ksnf. GitHub #284.
+* Improvements to the HTTP download API. The client now calls two new endpoints:
+  * `geoip/updates/metadata` which is repsonsible for getting information about
+    a database edition.
+  * `/geoip/databases/{edition-id}/download` which is responsible for downloading
+    the content of a database edition.
+
+  change to the HTTP apiNow `geoipupdate` doesn't requires the user to specify the config file
+  even if all the other arguments are set via the environment variables.
+  Reported by jsf84ksnf. GitHub #284.
 
 ## 6.1.0 (2024-01-09)
 
