@@ -138,6 +138,7 @@ func TestClient(t *testing.T) {
 	w.Close()
 	out, err := io.ReadAll(r)
 	require.NoError(t, err)
+	//nolint:lll
 	expectedOutput := `\[{"edition_id":"edition\-1","old_hash":"618dd27a10de24809ec160d6807f363f","new_hash":"618dd27a10de24809ec160d6807f363f","checked_at":\d+},{"edition_id":"edition\-2","old_hash":"2242f06b3b2d147987b67017cb7a5ab8","new_hash":"c9bbf7cb507370339633b44001bae038","modified_at":1708646400,"checked_at":\d+}]`
 	require.Regexp(t, expectedOutput, string(out))
 
