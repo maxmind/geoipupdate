@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	metadataEndpoint = "%s/geoip/updates/metadata?edition_id=%s"
-	downloadEndpoint = "%s/geoip/databases/%s/download?date=%s&suffix=tar.gz"
+	metadataEndpoint = "%s/geoip/updates/metadata?"
+	downloadEndpoint = "%s/geoip/databases/%s/download?"
 )
 
 // HTTPReader is a Reader that uses an HTTP client to retrieve
@@ -98,7 +98,13 @@ func (r *HTTPReader) get(
 	}
 
 	date := strings.ReplaceAll(edition.Date, "-", "")
-	requestURL := fmt.Sprintf(downloadEndpoint, r.path, edition.EditionID, date)
+
+	params := url.Values{}
+	params.Add("date", date)
+	params.Add("suffix", "tar.gz")
+
+	escapedEdition := url.PathEscape(edition.EditionID)
+	requestURL := fmt.Sprintf(downloadEndpoint, r.path, escapedEdition) + params.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
@@ -187,7 +193,10 @@ type metadata struct {
 }
 
 func (r *HTTPReader) getMetadata(ctx context.Context, editionID string) (*metadata, error) {
-	metadataRequestURL := fmt.Sprintf(metadataEndpoint, r.path, editionID)
+	params := url.Values{}
+	params.Add("edition_id", editionID)
+
+	metadataRequestURL := fmt.Sprintf(metadataEndpoint, r.path) + params.Encode()
 
 	if r.verbose {
 		log.Printf("Requesting metadata for %s: %s", editionID, metadataRequestURL)
