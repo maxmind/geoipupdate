@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -22,6 +23,9 @@ func TestRead(t *testing.T) {
 		MD5:       "123456",
 	}
 	dbContent := "edition-1 content"
+
+	lastModified, err := time.ParseInLocation("2006-01-02", "2024-02-23", time.UTC)
+	require.NoError(t, err)
 
 	metadataHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		jsonData := `
@@ -67,6 +71,7 @@ func TestRead(t *testing.T) {
 
 					w.Header().Set("Content-Type", "application/gzip")
 					w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
+					w.Header().Set("Last-Modified", lastModified.Format(time.RFC1123))
 					_, err = io.Copy(w, &buf)
 					require.NoError(t, err)
 				})
@@ -91,9 +96,7 @@ func TestRead(t *testing.T) {
 				require.Equal(t, edition.MD5, resp.OldHash)
 				require.Equal(t, "618dd27a10de24809ec160d6807f363f", resp.NewHash)
 
-				modifiedAt, err := parseTime("2024-02-23")
-				require.NoError(t, err)
-				require.Equal(t, modifiedAt, resp.ModifiedAt)
+				require.Equal(t, lastModified, resp.ModifiedAt)
 			},
 		},
 		{

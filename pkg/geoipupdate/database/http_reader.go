@@ -162,7 +162,7 @@ func (r *HTTPReader) get(
 		}
 	}
 
-	modifiedAt, err := parseTime(edition.Date)
+	modifiedAt, err := parseTime(response.Header.Get("Last-Modified"))
 	if err != nil {
 		return nil, fmt.Errorf("reading Last-Modified header: %w", err)
 	}
@@ -245,12 +245,14 @@ func (r *HTTPReader) getMetadata(ctx context.Context, editionID string) (*metada
 	return &edition, nil
 }
 
-// parseTime parses a string representation of an edition creation time.
+// parseTime parses a string representation of a time into time.Time according to the
+// RFC1123 format.
 func parseTime(s string) (time.Time, error) {
-	t, err := time.ParseInLocation("2006-01-02", s, time.UTC)
+	t, err := time.ParseInLocation(time.RFC1123, s, time.UTC)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("parsing time: %w", err)
 	}
+
 	return t, nil
 }
 

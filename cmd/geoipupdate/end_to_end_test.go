@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate"
 	"github.com/stretchr/testify/require"
@@ -33,6 +34,9 @@ func TestClient(t *testing.T) {
 	edition = "edition-2"
 	dbFile = filepath.Join(tempDir, edition+".mmdb")
 	err = os.WriteFile(dbFile, []byte("old edition-2 content"), os.ModePerm)
+	require.NoError(t, err)
+
+	lastModified, err := time.ParseInLocation("2006-01-02", "2024-02-23", time.UTC)
 	require.NoError(t, err)
 
 	// mock metadata handler.
@@ -96,6 +100,7 @@ func TestClient(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/gzip")
 		w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
+		w.Header().Set("Last-Modified", lastModified.Format(time.RFC1123))
 		_, err = io.Copy(w, &buf)
 		require.NoError(t, err)
 	})
