@@ -9,6 +9,15 @@
 * Now `geoipupdate` doesn't requires the user to specify the config file
   even if all the other arguments are set via the environment variables.
   Reported by jsf84ksnf. GitHub #284.
+* BREAKING CHANGE: Improvements to the HTTP download API.
+  The client now calls two new endpoints:
+  * `/geoip/updates/metadata` which is responsible for getting information about
+    a database edition.
+  * `/geoip/databases/{edition-id}/download` which is responsible for downloading
+    the content of a database edition. This new endpoint redirects downloads to R2
+    presigned URLs, so systems running geoipupdate need to be able to reach
+    `mm-prod-geoip-databases.a2649acb697e2c09b632799562c076f2.r2.cloudflarestorage.com`
+    in addition to `updates.maxmind.com`.
 
 ## 6.1.0 (2024-01-09)
 
