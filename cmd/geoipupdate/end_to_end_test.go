@@ -15,8 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate"
 	"github.com/stretchr/testify/require"
+
+	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate"
 )
 
 func TestClient(t *testing.T) {
