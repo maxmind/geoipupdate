@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/maxmind/geoipupdate/v6/internal/vars"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 )
 
 const (

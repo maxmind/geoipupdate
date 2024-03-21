@@ -6,7 +6,7 @@ package main
 import (
 	"runtime/debug"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/internal/vars"
 )
 
 func init() {

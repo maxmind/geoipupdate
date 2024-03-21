@@ -5,8 +5,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/maxmind/geoipupdate/v6/internal/vars"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate"
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 )
 
 const unknownVersion = "unknown"
