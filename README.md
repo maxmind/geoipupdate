@@ -102,7 +102,7 @@ Please see our [Docker documentation](doc/docker.md).
 
 ### Installation from source or Git
 
-You need the Go compiler (1.20+). You can get it at the [Go
+You need the Go compiler (1.21+). You can get it at the [Go
 website](https://golang.org).
 
 The easiest way is via `go install`:
