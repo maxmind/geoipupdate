@@ -19,8 +19,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/http2"
 
+	"github.com/maxmind/geoipupdate/v6/internal"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
 )
 
 // TestClientOutput makes sure that the client outputs the result of it's

@@ -13,8 +13,8 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 
+	"github.com/maxmind/geoipupdate/v6/internal"
 	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/database"
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/internal"
 )
 
 // Client uses config data to initiate a download or update
