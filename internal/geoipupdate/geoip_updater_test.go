@@ -23,9 +23,9 @@ import (
 	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate/database"
 )
 
-// TestClientOutput makes sure that the client outputs the result of it's
+// TestUpdaterOutput makes sure that the Updater outputs the result of its
 // operation to stdout in json format.
-func TestClientOutput(t *testing.T) {
+func TestUpdaterOutput(t *testing.T) {
 	now := time.Now().Truncate(time.Second).In(time.UTC)
 	testTime := time.Date(2023, 4, 27, 12, 4, 48, 0, time.UTC)
 	databases := []database.ReadResult{
@@ -54,8 +54,8 @@ func TestClientOutput(t *testing.T) {
 	// capture the output of the `output` logger.
 	logOutput := &bytes.Buffer{}
 
-	// create a fake client with a mocked database reader and writer.
-	c := &Client{
+	// create a fake Updater with a mocked database reader and writer.
+	u := &Updater{
 		config: config,
 		getReader: func() (database.Reader, error) {
 			return &mockReader{i: 0, result: databases}, nil
@@ -66,8 +66,7 @@ func TestClientOutput(t *testing.T) {
 		output: log.New(logOutput, "", 0),
 	}
 
-	// run the client
-	err := c.Run(context.Background())
+	err := u.Run(context.Background())
 	require.NoError(t, err)
 
 	// make sure the expected output matches the input.
@@ -90,7 +89,7 @@ func TestClientOutput(t *testing.T) {
 	streamErr := http2.StreamError{
 		Code: http2.ErrCodeInternal,
 	}
-	c.getWriter = func() (database.Writer, error) {
+	u.getWriter = func() (database.Writer, error) {
 		w := mockWriter{
 			WriteFunc: func(_ *database.ReadResult) error {
 				return streamErr
@@ -99,7 +98,7 @@ func TestClientOutput(t *testing.T) {
 
 		return &w, nil
 	}
-	err = c.Run(context.Background())
+	err = u.Run(context.Background())
 	require.ErrorIs(t, err, streamErr)
 }
 
@@ -174,7 +173,7 @@ func TestRetryWhenWriting(t *testing.T) {
 
 	logOutput := &bytes.Buffer{}
 
-	c := &Client{
+	u := &Updater{
 		config: config,
 		getReader: func() (database.Reader, error) {
 			return database.NewHTTPReader(
@@ -197,15 +196,15 @@ func TestRetryWhenWriting(t *testing.T) {
 
 	ctx := context.Background()
 
-	reader, err := c.getReader()
+	reader, err := u.getReader()
 	require.NoError(t, err)
 
-	writer, err := c.getWriter()
+	writer, err := u.getWriter()
 	require.NoError(t, err)
 
 	jobProcessor := internal.NewJobProcessor(ctx, 1)
 	processFunc := func(ctx context.Context) error {
-		_, err = c.downloadEdition(
+		_, err = u.downloadEdition(
 			ctx,
 			"foo-db-name",
 			reader,

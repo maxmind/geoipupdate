@@ -17,17 +17,17 @@ import (
 	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate/database"
 )
 
-// Client uses config data to initiate a download or update
+// Updater uses config data to initiate a download or update
 // process for GeoIP databases.
-type Client struct {
+type Updater struct {
 	config    *Config
 	getReader func() (database.Reader, error)
 	getWriter func() (database.Writer, error)
 	output    *log.Logger
 }
 
-// NewClient initialized a new Client struct.
-func NewClient(config *Config) *Client {
+// NewUpdater initialized a new Updater struct.
+func NewUpdater(config *Config) *Updater {
 	getReader := func() (database.Reader, error) {
 		return database.NewHTTPReader(
 			config.Proxy,
@@ -46,7 +46,7 @@ func NewClient(config *Config) *Client {
 		)
 	}
 
-	return &Client{
+	return &Updater{
 		config:    config,
 		getReader: getReader,
 		getWriter: getWriter,
@@ -55,8 +55,8 @@ func NewClient(config *Config) *Client {
 }
 
 // Run starts the download or update process.
-func (c *Client) Run(ctx context.Context) error {
-	fileLock, err := internal.NewFileLock(c.config.LockFile, c.config.Verbose)
+func (u *Updater) Run(ctx context.Context) error {
+	fileLock, err := internal.NewFileLock(u.config.LockFile, u.config.Verbose)
 	if err != nil {
 		return fmt.Errorf("initializing file lock: %w", err)
 	}
@@ -69,24 +69,24 @@ func (c *Client) Run(ctx context.Context) error {
 		}
 	}()
 
-	jobProcessor := internal.NewJobProcessor(ctx, c.config.Parallelism)
+	jobProcessor := internal.NewJobProcessor(ctx, u.config.Parallelism)
 
-	reader, err := c.getReader()
+	reader, err := u.getReader()
 	if err != nil {
 		return fmt.Errorf("initializing database reader: %w", err)
 	}
 
-	writer, err := c.getWriter()
+	writer, err := u.getWriter()
 	if err != nil {
 		return fmt.Errorf("initializing database writer: %w", err)
 	}
 
 	var editions []database.ReadResult
 	var mu sync.Mutex
-	for _, editionID := range c.config.EditionIDs {
+	for _, editionID := range u.config.EditionIDs {
 		editionID := editionID
 		processFunc := func(ctx context.Context) error {
-			edition, err := c.downloadEdition(ctx, editionID, reader, writer)
+			edition, err := u.downloadEdition(ctx, editionID, reader, writer)
 			if err != nil {
 				return err
 			}
@@ -108,19 +108,19 @@ func (c *Client) Run(ctx context.Context) error {
 		return fmt.Errorf("running the job processor: %w", err)
 	}
 
-	if c.config.Output {
+	if u.config.Output {
 		result, err := json.Marshal(editions)
 		if err != nil {
 			return fmt.Errorf("marshaling result log: %w", err)
 		}
-		c.output.Print(string(result))
+		u.output.Print(string(result))
 	}
 
 	return nil
 }
 
 // downloadEdition downloads the file with retries.
-func (c *Client) downloadEdition(
+func (u *Updater) downloadEdition(
 	ctx context.Context,
 	editionID string,
 	r database.Reader,
@@ -135,7 +135,7 @@ func (c *Client) downloadEdition(
 	// Max zero retries has to be set to achieve that
 	// because the backoff never stops if MaxElapsedTime is zero.
 	exp := backoff.NewExponentialBackOff()
-	exp.MaxElapsedTime = c.config.RetryFor
+	exp.MaxElapsedTime = u.config.RetryFor
 	b := backoff.BackOff(exp)
 	if exp.MaxElapsedTime == 0 {
 		b = backoff.WithMaxRetries(exp, 0)
@@ -164,7 +164,7 @@ func (c *Client) downloadEdition(
 		},
 		b,
 		func(err error, d time.Duration) {
-			if c.config.Verbose {
+			if u.config.Verbose {
 				log.Printf("Couldn't download %s, retrying in %v: %v", editionID, d, err)
 			}
 		},

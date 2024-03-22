@@ -20,7 +20,7 @@ import (
 	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate"
 )
 
-func TestClient(t *testing.T) {
+func TestUpdater(t *testing.T) {
 	// mock existing databases.
 	tempDir, err := os.MkdirTemp("", "db")
 	require.NoError(t, err)
@@ -137,8 +137,8 @@ func TestClient(t *testing.T) {
 	require.NoError(t, err)
 	os.Stdout = w
 
-	client := geoipupdate.NewClient(config)
-	err = client.Run(context.Background())
+	updater := geoipupdate.NewUpdater(config)
+	err = updater.Run(context.Background())
 	require.NoError(t, err, "run successfully")
 
 	w.Close()
