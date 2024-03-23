@@ -7,11 +7,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -19,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/http2"
 
+	"github.com/maxmind/geoipupdate/v6/client"
 	"github.com/maxmind/geoipupdate/v6/internal"
 	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate/database"
 )
@@ -28,17 +31,18 @@ import (
 func TestUpdaterOutput(t *testing.T) {
 	now := time.Now().Truncate(time.Second).In(time.UTC)
 	testTime := time.Date(2023, 4, 27, 12, 4, 48, 0, time.UTC)
-	databases := []database.ReadResult{
+	outputs := []client.DownloadResponse{
 		{
-			EditionID:  "GeoLite2-City",
-			OldHash:    "A",
-			NewHash:    "B",
-			ModifiedAt: testTime,
-		}, {
-			EditionID:  "GeoIP2-Country",
-			OldHash:    "C",
-			NewHash:    "D",
-			ModifiedAt: testTime,
+			LastModified:    testTime,
+			MD5:             "B",
+			Reader:          io.NopCloser(strings.NewReader("")),
+			UpdateAvailable: true,
+		},
+		{
+			LastModified:    testTime,
+			MD5:             "D",
+			Reader:          io.NopCloser(strings.NewReader("")),
+			UpdateAvailable: true,
 		},
 	}
 
@@ -56,10 +60,17 @@ func TestUpdaterOutput(t *testing.T) {
 
 	// create a fake Updater with a mocked database reader and writer.
 	u := &Updater{
-		config: config,
-		reader: &mockReader{i: 0, result: databases},
-		output: log.New(logOutput, "", 0),
-		writer: &mockWriter{},
+		config:       config,
+		output:       log.New(logOutput, "", 0),
+		updateClient: &mockUpdateClient{i: 0, outputs: outputs},
+		writer: &mockWriter{
+			md5s: map[string]string{
+				// These are the "MD5s" that we currently have before running an
+				// update.
+				"GeoLite2-City":    "A",
+				"GeoLite2-Country": "C",
+			},
+		},
 	}
 
 	err := u.Run(context.Background())
@@ -69,13 +80,29 @@ func TestUpdaterOutput(t *testing.T) {
 	var outputDatabases []database.ReadResult
 	err = json.Unmarshal(logOutput.Bytes(), &outputDatabases)
 	require.NoError(t, err)
-	require.Equal(t, len(outputDatabases), len(databases))
 
-	for i := 0; i < len(databases); i++ {
-		require.Equal(t, databases[i].EditionID, outputDatabases[i].EditionID)
-		require.Equal(t, databases[i].OldHash, outputDatabases[i].OldHash)
-		require.Equal(t, databases[i].NewHash, outputDatabases[i].NewHash)
-		require.Equal(t, databases[i].ModifiedAt, outputDatabases[i].ModifiedAt)
+	wantDatabases := []database.ReadResult{
+		{
+			EditionID:  "GeoLite2-City",
+			OldHash:    "A",
+			NewHash:    "B",
+			ModifiedAt: testTime,
+		},
+		{
+			EditionID:  "GeoLite2-Country",
+			OldHash:    "C",
+			NewHash:    "D",
+			ModifiedAt: testTime,
+		},
+	}
+
+	require.Equal(t, len(wantDatabases), len(outputDatabases))
+
+	for i := 0; i < len(wantDatabases); i++ {
+		require.Equal(t, wantDatabases[i].EditionID, outputDatabases[i].EditionID)
+		require.Equal(t, wantDatabases[i].OldHash, outputDatabases[i].OldHash)
+		require.Equal(t, wantDatabases[i].NewHash, outputDatabases[i].NewHash)
+		require.Equal(t, wantDatabases[i].ModifiedAt, outputDatabases[i].ModifiedAt)
 		// comparing time wasn't supported with require in older go versions.
 		if !afterOrEqual(outputDatabases[i].CheckedAt, now) {
 			t.Errorf("database %s was not updated", outputDatabases[i].EditionID)
@@ -84,13 +111,13 @@ func TestUpdaterOutput(t *testing.T) {
 
 	// Test with a write error.
 
-	u.reader.(*mockReader).i = 0
+	u.updateClient.(*mockUpdateClient).i = 0
 
 	streamErr := http2.StreamError{
 		Code: http2.ErrCodeInternal,
 	}
 	u.writer = &mockWriter{
-		WriteFunc: func(_ *database.ReadResult) error {
+		writeFunc: func(_ string, _ io.ReadCloser, _ string, _ time.Time) error {
 			return streamErr
 		},
 	}
@@ -159,8 +186,10 @@ func TestRetryWhenWriting(t *testing.T) {
 	defer sv.Close()
 
 	config := &Config{
+		AccountID:         10,
 		URL:               sv.URL,
 		EditionIDs:        []string{"foo-db-name"},
+		LicenseKey:        "foo",
 		LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
 		Output:            true,
 		Parallelism:       1,
@@ -170,6 +199,13 @@ func TestRetryWhenWriting(t *testing.T) {
 
 	logOutput := &bytes.Buffer{}
 
+	updateClient, err := client.New(
+		config.AccountID,
+		config.LicenseKey,
+		client.WithEndpoint(config.URL),
+	)
+	require.NoError(t, err)
+
 	writer, err := database.NewLocalFileWriter(
 		config.DatabaseDirectory,
 		config.PreserveFileTimes,
@@ -178,16 +214,10 @@ func TestRetryWhenWriting(t *testing.T) {
 	require.NoError(t, err)
 
 	u := &Updater{
-		config: config,
-		reader: database.NewHTTPReader(
-			config.URL,
-			config.AccountID,
-			config.LicenseKey,
-			config.Verbose,
-			http.DefaultClient,
-		),
-		output: log.New(logOutput, "", 0),
-		writer: writer,
+		config:       config,
+		output:       log.New(logOutput, "", 0),
+		updateClient: updateClient,
+		writer:       writer,
 	}
 
 	ctx := context.Background()
@@ -197,7 +227,7 @@ func TestRetryWhenWriting(t *testing.T) {
 		_, err = u.downloadEdition(
 			ctx,
 			"foo-db-name",
-			u.reader,
+			u.updateClient,
 			u.writer,
 		)
 
@@ -211,32 +241,45 @@ func TestRetryWhenWriting(t *testing.T) {
 	assert.Empty(t, logOutput.String())
 }
 
-type mockReader struct {
-	i      int
-	result []database.ReadResult
+type mockUpdateClient struct {
+	i       int
+	outputs []client.DownloadResponse
 }
 
-func (mr *mockReader) Read(_ context.Context, _, _ string) (*database.ReadResult, error) {
-	if mr.i >= len(mr.result) {
-		return nil, errors.New("out of bounds")
+func (m *mockUpdateClient) Download(
+	_ context.Context,
+	_,
+	_ string,
+) (client.DownloadResponse, error) {
+	if m.i >= len(m.outputs) {
+		return client.DownloadResponse{}, errors.New("out of bounds")
 	}
-	res := mr.result[mr.i]
-	mr.i++
-	return &res, nil
+	res := m.outputs[m.i]
+	m.i++
+	return res, nil
 }
 
 type mockWriter struct {
-	WriteFunc func(*database.ReadResult) error
+	md5s      map[string]string
+	writeFunc func(string, io.ReadCloser, string, time.Time) error
 }
 
-func (w *mockWriter) Write(r *database.ReadResult) error {
-	if w.WriteFunc != nil {
-		return w.WriteFunc(r)
+func (w *mockWriter) Write(
+	editionID string,
+	reader io.ReadCloser,
+	md5 string,
+	lastModified time.Time,
+) error {
+	if w.writeFunc != nil {
+		return w.writeFunc(editionID, reader, md5, lastModified)
 	}
 
 	return nil
 }
-func (w mockWriter) GetHash(_ string) (string, error) { return "", nil }
+
+func (w mockWriter) GetHash(editionID string) (string, error) {
+	return w.md5s[editionID], nil
+}
 
 func afterOrEqual(t1, t2 time.Time) bool {
 	return t1.After(t2) || t1.Equal(t2)

@@ -64,20 +64,22 @@ func TestGetMetadata(t *testing.T) {
 
 	ctx := context.Background()
 
+	accountID := 10
+	licenseKey := "license"
+
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			server := test.server(t)
 			defer server.Close()
 
-			r := NewHTTPReader(
-				server.URL, // fixed, as the server is mocked above.
-				10,         // fixed, as it's not valuable for the purpose of the test.
-				"license",  // fixed, as it's not valuable for the purpose of the test.
-				false,      // verbose
-				http.DefaultClient,
+			c, err := New(
+				accountID,
+				licenseKey,
+				WithEndpoint(server.URL),
 			)
+			require.NoError(t, err)
 
-			result, err := r.getMetadata(ctx, "edition-1")
+			result, err := c.getMetadata(ctx, "edition-1")
 			test.checkResult(t, result, err)
 		})
 	}
