@@ -89,7 +89,7 @@ func (w *LocalFileWriter) Write(result *ReadResult) (err error) {
 		return fmt.Errorf("validating hash for %s: %w", result.EditionID, err)
 	}
 
-	// move the temoporary database file into it's final location and
+	// move the temoporary database file into its final location and
 	// sync the directory.
 	if err = fw.syncAndRename(databaseFilePath); err != nil {
 		return fmt.Errorf("renaming temp file: %w", err)

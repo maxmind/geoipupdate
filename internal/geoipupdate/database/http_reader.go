@@ -66,7 +66,7 @@ func NewHTTPReader(
 }
 
 // Read attempts to fetch database updates for a specific editionID.
-// It takes an editionID and it's previously downloaded hash if available
+// It takes an editionID and its previously downloaded hash if available
 // as arguments and returns a ReadResult struct as a response.
 // It's the responsibility of the Writer to close the io.ReadCloser
 // included in the response after consumption.
