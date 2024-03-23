@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -24,24 +23,23 @@ type metadata struct {
 	MD5       string `json:"md5"`
 }
 
-func (r *HTTPReader) getMetadata(ctx context.Context, editionID string) (*metadata, error) {
+func (c *Client) getMetadata(
+	ctx context.Context,
+	editionID string,
+) (*metadata, error) {
 	params := url.Values{}
 	params.Add("edition_id", editionID)
 
-	metadataRequestURL := fmt.Sprintf(metadataEndpoint, r.path) + params.Encode()
-
-	if r.verbose {
-		log.Printf("Requesting metadata for %s: %s", editionID, metadataRequestURL)
-	}
+	metadataRequestURL := fmt.Sprintf(metadataEndpoint, c.endpoint) + params.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, metadataRequestURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating metadata request: %w", err)
 	}
 	req.Header.Add("User-Agent", "geoipupdate/"+vars.Version)
-	req.SetBasicAuth(strconv.Itoa(r.accountID), r.licenseKey)
+	req.SetBasicAuth(strconv.Itoa(c.accountID), c.licenseKey)
 
-	response, err := r.client.Do(req)
+	response, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("performing metadata request: %w", err)
 	}

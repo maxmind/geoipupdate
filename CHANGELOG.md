@@ -4,8 +4,6 @@
 
 * `geoipupdate` now supports retrying on more types of errors
   such as HTTP2 INTERNAL_ERROR.
-* `HTTPReader` no longer retries on HTTP errors and therefore
-  `retryFor` was removed from `NewHTTPReader`.
 * Now `geoipupdate` doesn't requires the user to specify the config file
   even if all the other arguments are set via the environment variables.
   Reported by jsf84ksnf. GitHub #284.
@@ -15,9 +13,17 @@
     a database edition.
   * `/geoip/databases/{edition-id}/download` which is responsible for downloading
     the content of a database edition. This new endpoint redirects downloads to R2
-    presigned URLs, so systems running geoipupdate need to be able to reach
+    presigned URLs, so systems running `geoipupdate` need to be able to
+    reach
     `mm-prod-geoip-databases.a2649acb697e2c09b632799562c076f2.r2.cloudflarestorage.com`
     in addition to `updates.maxmind.com`.
+* BREAKING CHANGE: The public package API has been redesigned. The previous
+  API was not easy to use and had become a maintenance burden. We now
+  expose a `Client` at `github.com/maxmind/geoipupdate/client` with a
+  `Download()` method. The intention is to expose less of the `geoipupdate`
+  internals and provide a simpler and easier to use package. Many
+  previously exposed methods and types are now either internal only or have
+  been removed.
 
 ## 6.1.0 (2024-01-09)
 

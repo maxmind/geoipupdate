@@ -14,17 +14,22 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 
+	"github.com/maxmind/geoipupdate/v6/client"
 	"github.com/maxmind/geoipupdate/v6/internal"
 	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate/database"
 )
 
+type updateClient interface {
+	Download(context.Context, string, string) (client.DownloadResponse, error)
+}
+
 // Updater uses config data to initiate a download or update
 // process for GeoIP databases.
 type Updater struct {
-	config *Config
-	reader database.Reader
-	output *log.Logger
-	writer database.Writer
+	config       *Config
+	output       *log.Logger
+	updateClient updateClient
+	writer       database.Writer
 }
 
 // NewUpdater initialized a new Updater struct.
@@ -36,13 +41,15 @@ func NewUpdater(config *Config) (*Updater, error) {
 	}
 	httpClient := &http.Client{Transport: transport}
 
-	reader := database.NewHTTPReader(
-		config.URL,
+	updateClient, err := client.New(
 		config.AccountID,
 		config.LicenseKey,
-		config.Verbose,
-		httpClient,
+		client.WithEndpoint(config.URL),
+		client.WithHTTPClient(httpClient),
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	writer, err := database.NewLocalFileWriter(
 		config.DatabaseDirectory,
@@ -54,10 +61,10 @@ func NewUpdater(config *Config) (*Updater, error) {
 	}
 
 	return &Updater{
-		config: config,
-		reader: reader,
-		output: log.New(os.Stdout, "", 0),
-		writer: writer,
+		config:       config,
+		output:       log.New(os.Stdout, "", 0),
+		updateClient: updateClient,
+		writer:       writer,
 	}, nil
 }
 
@@ -83,7 +90,7 @@ func (u *Updater) Run(ctx context.Context) error {
 	for _, editionID := range u.config.EditionIDs {
 		editionID := editionID
 		processFunc := func(ctx context.Context) error {
-			edition, err := u.downloadEdition(ctx, editionID, u.reader, u.writer)
+			edition, err := u.downloadEdition(ctx, editionID, u.updateClient, u.writer)
 			if err != nil {
 				return err
 			}
@@ -120,7 +127,7 @@ func (u *Updater) Run(ctx context.Context) error {
 func (u *Updater) downloadEdition(
 	ctx context.Context,
 	editionID string,
-	r database.Reader,
+	uc updateClient,
 	w database.Writer,
 ) (*database.ReadResult, error) {
 	editionHash, err := w.GetHash(editionID)
@@ -141,7 +148,41 @@ func (u *Updater) downloadEdition(
 	var edition *database.ReadResult
 	err = backoff.RetryNotify(
 		func() error {
-			if edition, err = r.Read(ctx, editionID, editionHash); err != nil {
+			res, err := uc.Download(ctx, editionID, editionHash)
+			if err != nil {
+				if internal.IsPermanentError(err) {
+					return backoff.Permanent(err)
+				}
+
+				return err
+			}
+			defer res.Reader.Close()
+
+			if !res.UpdateAvailable {
+				if u.config.Verbose {
+					log.Printf("No new updates available for %s", editionID)
+					log.Printf("Database %s up to date", editionID)
+				}
+
+				edition = &database.ReadResult{
+					EditionID: editionID,
+					OldHash:   editionHash,
+					NewHash:   editionHash,
+				}
+				return nil
+			}
+
+			if u.config.Verbose {
+				log.Printf("Updates available for %s", editionID)
+			}
+
+			err = u.writer.Write(
+				editionID,
+				res.Reader,
+				res.MD5,
+				res.LastModified,
+			)
+			if err != nil {
 				if internal.IsPermanentError(err) {
 					return backoff.Permanent(err)
 				}
@@ -149,14 +190,12 @@ func (u *Updater) downloadEdition(
 				return err
 			}
 
-			if err = w.Write(edition); err != nil {
-				if internal.IsPermanentError(err) {
-					return backoff.Permanent(err)
-				}
-
-				return err
+			edition = &database.ReadResult{
+				EditionID:  editionID,
+				OldHash:    editionHash,
+				NewHash:    res.MD5,
+				ModifiedAt: res.LastModified,
 			}
-
 			return nil
 		},
 		b,

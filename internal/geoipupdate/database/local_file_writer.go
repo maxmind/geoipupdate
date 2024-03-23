@@ -1,3 +1,4 @@
+// Package database writes MMDBs to disk.
 package database
 
 import (
@@ -46,30 +47,28 @@ func NewLocalFileWriter(
 }
 
 // Write writes the result struct returned by a Reader to a database file.
-func (w *LocalFileWriter) Write(result *ReadResult) (err error) {
-	// exit early if we've got the latest database version.
-	if strings.EqualFold(result.OldHash, result.NewHash) {
-		if w.verbose {
-			log.Printf("Database %s up to date", result.EditionID)
-		}
-		return nil
-	}
-
+func (w *LocalFileWriter) Write(
+	editionID string,
+	reader io.ReadCloser,
+	newMD5 string,
+	lastModified time.Time,
+) (err error) {
 	defer func() {
-		if closeErr := result.reader.Close(); closeErr != nil {
+		_, _ = io.Copy(io.Discard, reader) //nolint:errcheck // Best effort.
+		if closeErr := reader.Close(); closeErr != nil {
 			err = errors.Join(
 				err,
-				fmt.Errorf("closing reader for %s: %w", result.EditionID, closeErr),
+				fmt.Errorf("closing reader for %s: %w", editionID, closeErr),
 			)
 		}
 	}()
 
-	databaseFilePath := w.getFilePath(result.EditionID)
+	databaseFilePath := w.getFilePath(editionID)
 
 	// write the Reader's result into a temporary file.
 	fw, err := newFileWriter(databaseFilePath + tempExtension)
 	if err != nil {
-		return fmt.Errorf("setting up database writer for %s: %w", result.EditionID, err)
+		return fmt.Errorf("setting up database writer for %s: %w", editionID, err)
 	}
 	defer func() {
 		if closeErr := fw.close(); closeErr != nil {
@@ -80,13 +79,13 @@ func (w *LocalFileWriter) Write(result *ReadResult) (err error) {
 		}
 	}()
 
-	if err = fw.write(result.reader); err != nil {
-		return fmt.Errorf("writing to the temp file for %s: %w", result.EditionID, err)
+	if err = fw.write(reader); err != nil {
+		return fmt.Errorf("writing to the temp file for %s: %w", editionID, err)
 	}
 
 	// make sure the hash of the temp file matches the expected hash.
-	if err = fw.validateHash(result.NewHash); err != nil {
-		return fmt.Errorf("validating hash for %s: %w", result.EditionID, err)
+	if err = fw.validateHash(newMD5); err != nil {
+		return fmt.Errorf("validating hash for %s: %w", editionID, err)
 	}
 
 	// move the temoporary database file into its final location and
@@ -102,13 +101,13 @@ func (w *LocalFileWriter) Write(result *ReadResult) (err error) {
 
 	// check if we need to set the file's modified at time
 	if w.preserveFileTime {
-		if err = setModifiedAtTime(databaseFilePath, result.ModifiedAt); err != nil {
+		if err = setModifiedAtTime(databaseFilePath, lastModified); err != nil {
 			return err
 		}
 	}
 
 	if w.verbose {
-		log.Printf("Database %s successfully updated: %+v", result.EditionID, result.NewHash)
+		log.Printf("Database %s successfully updated: %+v", editionID, newMD5)
 	}
 
 	return nil

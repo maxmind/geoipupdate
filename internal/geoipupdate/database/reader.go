@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"time"
 )
 
@@ -16,7 +15,6 @@ type Reader interface {
 
 // ReadResult is the struct returned by a Reader's Get method.
 type ReadResult struct {
-	reader     io.ReadCloser
 	EditionID  string    `json:"edition_id"`
 	OldHash    string    `json:"old_hash"`
 	NewHash    string    `json:"new_hash"`
