@@ -180,11 +180,11 @@ func TestRetryWhenWriting(t *testing.T) {
 	u := &Updater{
 		config: config,
 		reader: database.NewHTTPReader(
-			config.Proxy,
 			config.URL,
 			config.AccountID,
 			config.LicenseKey,
 			config.Verbose,
+			http.DefaultClient,
 		),
 		output: log.New(logOutput, "", 0),
 		writer: writer,

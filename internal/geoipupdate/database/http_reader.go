@@ -44,20 +44,14 @@ type HTTPReader struct {
 // NewHTTPReader creates a Reader that downloads database updates via
 // HTTP.
 func NewHTTPReader(
-	proxy *url.URL,
 	path string,
 	accountID int,
 	licenseKey string,
 	verbose bool,
+	httpClient *http.Client,
 ) *HTTPReader {
-	transport := http.DefaultTransport
-	if proxy != nil {
-		proxyFunc := http.ProxyURL(proxy)
-		transport.(*http.Transport).Proxy = proxyFunc
-	}
-
 	return &HTTPReader{
-		client:     &http.Client{Transport: transport},
+		client:     httpClient,
 		path:       path,
 		accountID:  accountID,
 		licenseKey: licenseKey,

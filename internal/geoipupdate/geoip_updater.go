@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -28,12 +29,19 @@ type Updater struct {
 
 // NewUpdater initialized a new Updater struct.
 func NewUpdater(config *Config) (*Updater, error) {
+	transport := http.DefaultTransport
+	if config.Proxy != nil {
+		proxyFunc := http.ProxyURL(config.Proxy)
+		transport.(*http.Transport).Proxy = proxyFunc
+	}
+	httpClient := &http.Client{Transport: transport}
+
 	reader := database.NewHTTPReader(
-		config.Proxy,
 		config.URL,
 		config.AccountID,
 		config.LicenseKey,
 		config.Verbose,
+		httpClient,
 	)
 
 	writer, err := database.NewLocalFileWriter(

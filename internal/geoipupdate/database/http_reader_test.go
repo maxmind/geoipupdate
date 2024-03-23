@@ -231,11 +231,11 @@ func TestRead(t *testing.T) {
 			defer server.Close()
 
 			r := NewHTTPReader(
-				nil,        // request proxy.
 				server.URL, // fixed, as the server is mocked above.
 				10,         // fixed, as it's not valuable for the purpose of the test.
 				"license",  // fixed, as it's not valuable for the purpose of the test.
 				false,      // verbose
+				http.DefaultClient,
 			)
 
 			reader, err := r.get(ctx, edition.EditionID, edition.MD5)
@@ -305,11 +305,11 @@ func TestGetMetadata(t *testing.T) {
 			defer server.Close()
 
 			r := NewHTTPReader(
-				nil,        // request proxy.
 				server.URL, // fixed, as the server is mocked above.
 				10,         // fixed, as it's not valuable for the purpose of the test.
 				"license",  // fixed, as it's not valuable for the purpose of the test.
 				false,      // verbose
+				http.DefaultClient,
 			)
 
 			result, err := r.getMetadata(ctx, "edition-1")
