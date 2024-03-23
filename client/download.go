@@ -1,18 +1,14 @@
-// Package database provides an abstraction over getting and writing a
-// database file.
-package database
+package client
 
 import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -20,44 +16,6 @@ import (
 	"github.com/maxmind/geoipupdate/v6/internal"
 	"github.com/maxmind/geoipupdate/v6/internal/vars"
 )
-
-const (
-	metadataEndpoint = "%s/geoip/updates/metadata?"
-	downloadEndpoint = "%s/geoip/databases/%s/download?"
-)
-
-// HTTPReader is a Reader that uses an HTTP client to retrieve
-// databases.
-type HTTPReader struct {
-	// client is an http client responsible of fetching database updates.
-	client *http.Client
-	// path is the request path.
-	path string
-	// accountID is used for request auth.
-	accountID int
-	// licenseKey is used for request auth.
-	licenseKey string
-	// verbose turns on/off debug logs.
-	verbose bool
-}
-
-// NewHTTPReader creates a Reader that downloads database updates via
-// HTTP.
-func NewHTTPReader(
-	path string,
-	accountID int,
-	licenseKey string,
-	verbose bool,
-	httpClient *http.Client,
-) *HTTPReader {
-	return &HTTPReader{
-		client:     httpClient,
-		path:       path,
-		accountID:  accountID,
-		licenseKey: licenseKey,
-		verbose:    verbose,
-	}
-}
 
 // Read attempts to fetch database updates for a specific editionID.
 // It takes an editionID and its previously downloaded hash if available
@@ -72,6 +30,8 @@ func (r *HTTPReader) Read(ctx context.Context, editionID, hash string) (*ReadRes
 
 	return result, nil
 }
+
+const downloadEndpoint = "%s/geoip/databases/%s/download?"
 
 // get makes an http request to fetch updates for a specific editionID if any.
 func (r *HTTPReader) get(
@@ -176,67 +136,6 @@ func (r *HTTPReader) get(
 		NewHash:    edition.MD5,
 		ModifiedAt: modifiedAt,
 	}, nil
-}
-
-// metadata represents the metadata content for a certain database returned by the
-// metadata endpoint.
-type metadata struct {
-	Date      string `json:"date"`
-	EditionID string `json:"edition_id"`
-	MD5       string `json:"md5"`
-}
-
-func (r *HTTPReader) getMetadata(ctx context.Context, editionID string) (*metadata, error) {
-	params := url.Values{}
-	params.Add("edition_id", editionID)
-
-	metadataRequestURL := fmt.Sprintf(metadataEndpoint, r.path) + params.Encode()
-
-	if r.verbose {
-		log.Printf("Requesting metadata for %s: %s", editionID, metadataRequestURL)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, metadataRequestURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("creating metadata request: %w", err)
-	}
-	req.Header.Add("User-Agent", "geoipupdate/"+vars.Version)
-	req.SetBasicAuth(strconv.Itoa(r.accountID), r.licenseKey)
-
-	response, err := r.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("performing metadata request: %w", err)
-	}
-	defer response.Body.Close()
-
-	responseBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("reading metadata response body: %w", err)
-	}
-
-	if response.StatusCode != http.StatusOK {
-		httpErr := internal.HTTPError{
-			Body:       string(responseBody),
-			StatusCode: response.StatusCode,
-		}
-		return nil, fmt.Errorf("unexpected HTTP status code: %w", httpErr)
-	}
-
-	var metadataResponse struct {
-		Databases []metadata `json:"databases"`
-	}
-
-	if err := json.Unmarshal(responseBody, &metadataResponse); err != nil {
-		return nil, fmt.Errorf("parsing metadata body: %w", err)
-	}
-
-	if len(metadataResponse.Databases) != 1 {
-		return nil, fmt.Errorf("response does not contain edition %s", editionID)
-	}
-
-	edition := metadataResponse.Databases[0]
-
-	return &edition, nil
 }
 
 // parseTime parses a string representation of a time into time.Time according to the

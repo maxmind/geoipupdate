@@ -1,11 +1,6 @@
-package database
+package client
 
 import (
-	"archive/tar"
-	"bytes"
-	"compress/gzip"
-	"context"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -240,80 +235,6 @@ func TestRead(t *testing.T) {
 
 			reader, err := r.get(ctx, edition.EditionID, edition.MD5)
 			test.checkResult(t, reader, err)
-		})
-	}
-}
-
-// TestGetMetadata checks the metadata fetching functionality.
-func TestGetMetadata(t *testing.T) {
-	tests := []struct {
-		description      string
-		preserveFileTime bool
-		server           func(t *testing.T) *httptest.Server
-		checkResult      func(t *testing.T, receivedMetadata *metadata, err error)
-	}{
-		{
-			description:      "successful request",
-			preserveFileTime: false,
-			server: func(t *testing.T) *httptest.Server {
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-					jsonData := `
-{
-    "databases": [
-        { "edition_id": "edition-1", "md5": "123456", "date": "2024-02-23" }
-    ]
-}
-`
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusOK)
-					_, err := w.Write([]byte(jsonData))
-					require.NoError(t, err)
-				}))
-				return server
-			},
-			checkResult: func(t *testing.T, receivedMetadata *metadata, err error) {
-				require.NoError(t, err)
-
-				expectedMetadata := &metadata{
-					EditionID: "edition-1", MD5: "123456", Date: "2024-02-23",
-				}
-				require.Equal(t, expectedMetadata, receivedMetadata)
-			},
-		},
-		{
-			description:      "server error",
-			preserveFileTime: false,
-			server: func(_ *testing.T) *httptest.Server {
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-					w.WriteHeader(http.StatusInternalServerError)
-				}))
-				return server
-			},
-			checkResult: func(t *testing.T, receivedMetadata *metadata, err error) {
-				require.Nil(t, receivedMetadata)
-				require.Error(t, err)
-				require.Regexp(t, "^unexpected HTTP status code", err.Error())
-			},
-		},
-	}
-
-	ctx := context.Background()
-
-	for _, test := range tests {
-		t.Run(test.description, func(t *testing.T) {
-			server := test.server(t)
-			defer server.Close()
-
-			r := NewHTTPReader(
-				server.URL, // fixed, as the server is mocked above.
-				10,         // fixed, as it's not valuable for the purpose of the test.
-				"license",  // fixed, as it's not valuable for the purpose of the test.
-				false,      // verbose
-				http.DefaultClient,
-			)
-
-			result, err := r.getMetadata(ctx, "edition-1")
-			test.checkResult(t, result, err)
 		})
 	}
 }
