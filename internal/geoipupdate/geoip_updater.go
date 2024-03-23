@@ -20,38 +20,37 @@ import (
 // Updater uses config data to initiate a download or update
 // process for GeoIP databases.
 type Updater struct {
-	config    *Config
-	getReader func() (database.Reader, error)
-	getWriter func() (database.Writer, error)
-	output    *log.Logger
+	config *Config
+	reader database.Reader
+	output *log.Logger
+	writer database.Writer
 }
 
 // NewUpdater initialized a new Updater struct.
-func NewUpdater(config *Config) *Updater {
-	getReader := func() (database.Reader, error) {
-		return database.NewHTTPReader(
-			config.Proxy,
-			config.URL,
-			config.AccountID,
-			config.LicenseKey,
-			config.Verbose,
-		), nil
-	}
+func NewUpdater(config *Config) (*Updater, error) {
+	reader := database.NewHTTPReader(
+		config.Proxy,
+		config.URL,
+		config.AccountID,
+		config.LicenseKey,
+		config.Verbose,
+	)
 
-	getWriter := func() (database.Writer, error) {
-		return database.NewLocalFileWriter(
-			config.DatabaseDirectory,
-			config.PreserveFileTimes,
-			config.Verbose,
-		)
+	writer, err := database.NewLocalFileWriter(
+		config.DatabaseDirectory,
+		config.PreserveFileTimes,
+		config.Verbose,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Updater{
-		config:    config,
-		getReader: getReader,
-		getWriter: getWriter,
-		output:    log.New(os.Stdout, "", 0),
-	}
+		config: config,
+		reader: reader,
+		output: log.New(os.Stdout, "", 0),
+		writer: writer,
+	}, nil
 }
 
 // Run starts the download or update process.
@@ -71,22 +70,12 @@ func (u *Updater) Run(ctx context.Context) error {
 
 	jobProcessor := internal.NewJobProcessor(ctx, u.config.Parallelism)
 
-	reader, err := u.getReader()
-	if err != nil {
-		return fmt.Errorf("initializing database reader: %w", err)
-	}
-
-	writer, err := u.getWriter()
-	if err != nil {
-		return fmt.Errorf("initializing database writer: %w", err)
-	}
-
 	var editions []database.ReadResult
 	var mu sync.Mutex
 	for _, editionID := range u.config.EditionIDs {
 		editionID := editionID
 		processFunc := func(ctx context.Context) error {
-			edition, err := u.downloadEdition(ctx, editionID, reader, writer)
+			edition, err := u.downloadEdition(ctx, editionID, u.reader, u.writer)
 			if err != nil {
 				return err
 			}

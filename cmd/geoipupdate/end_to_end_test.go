@@ -137,7 +137,9 @@ func TestUpdater(t *testing.T) {
 	require.NoError(t, err)
 	os.Stdout = w
 
-	updater := geoipupdate.NewUpdater(config)
+	updater, err := geoipupdate.NewUpdater(config)
+	require.NoError(t, err)
+
 	err = updater.Run(context.Background())
 	require.NoError(t, err, "run successfully")
 
