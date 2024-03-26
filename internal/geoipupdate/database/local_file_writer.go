@@ -46,7 +46,8 @@ func NewLocalFileWriter(
 	}, nil
 }
 
-// Write writes the result struct returned by a Reader to a database file.
+// Write writes the database to a file. The database content will be read from
+// reader.
 func (w *LocalFileWriter) Write(
 	editionID string,
 	reader io.ReadCloser,
@@ -65,7 +66,7 @@ func (w *LocalFileWriter) Write(
 
 	databaseFilePath := w.getFilePath(editionID)
 
-	// write the Reader's result into a temporary file.
+	// Write into a temporary file.
 	fw, err := newFileWriter(databaseFilePath + tempExtension)
 	if err != nil {
 		return fmt.Errorf("setting up database writer for %s: %w", editionID, err)
@@ -151,10 +152,9 @@ func (w *LocalFileWriter) getFilePath(editionID string) string {
 	return filepath.Join(w.dir, editionID) + extension
 }
 
-// fileWriter is used to write the content of a Reader's response
-// into a file.
+// fileWriter is used to write the content of a database into a file.
 type fileWriter struct {
-	// file is used for writing the Reader's response.
+	// file is used for writing.
 	file *os.File
 	// md5Writer is used to verify the integrity of the received data.
 	md5Writer hash.Hash
@@ -192,7 +192,7 @@ func (w *fileWriter) close() error {
 	return nil
 }
 
-// write writes the content of reader to the file.
+// write writes the content of r to the file.
 func (w *fileWriter) write(r io.Reader) error {
 	writer := io.MultiWriter(w.md5Writer, w.file)
 	if _, err := io.Copy(writer, r); err != nil {
