@@ -87,7 +87,7 @@ Report bugs to [support@maxmind.com](mailto:support@maxmind.com).
 
 Written by William Storey.
 
-This software is Copyright (c) 2018-2023 by MaxMind, Inc.
+This software is Copyright (c) 2018-2024 by MaxMind, Inc.
 
 This is free software, licensed under the Apache License, Version 2.0 or
 the MIT License, at your option.

@@ -5,8 +5,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate"
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate"
+	"github.com/maxmind/geoipupdate/v6/internal/vars"
 )
 
 const unknownVersion = "unknown"
@@ -49,8 +49,12 @@ func main() {
 		log.Printf("Using database directory %s", config.DatabaseDirectory)
 	}
 
-	client := geoipupdate.NewClient(config)
-	if err = client.Run(context.Background()); err != nil {
+	u, err := geoipupdate.NewUpdater(config)
+	if err != nil {
+		log.Fatalf("Error initializing updater: %s", err)
+	}
+
+	if err = u.Run(context.Background()); err != nil {
 		log.Fatalf("Error retrieving updates: %s", err)
 	}
 }

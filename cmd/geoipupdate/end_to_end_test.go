@@ -15,11 +15,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate"
 	"github.com/stretchr/testify/require"
+
+	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate"
 )
 
-func TestClient(t *testing.T) {
+func TestUpdater(t *testing.T) {
 	// mock existing databases.
 	tempDir, err := os.MkdirTemp("", "db")
 	require.NoError(t, err)
@@ -136,8 +137,10 @@ func TestClient(t *testing.T) {
 	require.NoError(t, err)
 	os.Stdout = w
 
-	client := geoipupdate.NewClient(config)
-	err = client.Run(context.Background())
+	updater, err := geoipupdate.NewUpdater(config)
+	require.NoError(t, err)
+
+	err = updater.Run(context.Background())
 	require.NoError(t, err, "run successfully")
 
 	w.Close()
