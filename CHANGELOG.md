@@ -24,6 +24,8 @@
   internals and provide a simpler and easier to use package. Many
   previously exposed methods and types are now either internal only or have
   been removed.
+* BREAKING CHANGE: If set, `GEOIPUPDATE_VERBOSE` must either be `0` or `1`.
+  All other values will return an error.
 * Setting `GEOIPUPDATE_VERBOSE` to `1` now works as expected. In the 6.0.0 and
   6.1.0 releases, the flag was ignored. Reported by pmcevoy. GitHub #298.
 
