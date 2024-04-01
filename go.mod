@@ -3,7 +3,7 @@ module github.com/maxmind/geoipupdate/v6
 go 1.20
 
 require (
-	github.com/cenkalti/backoff/v4 v4.2.1
+	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/gofrs/flock v0.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
