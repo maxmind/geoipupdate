@@ -2,11 +2,6 @@
 
 ## 7.0.0
 
-* `geoipupdate` now supports retrying on more types of errors
-  such as HTTP2 INTERNAL_ERROR.
-* Now `geoipupdate` doesn't requires the user to specify the config file
-  even if all the other arguments are set via the environment variables.
-  Reported by jsf84ksnf. GitHub #284.
 * BREAKING CHANGE: Improvements to the HTTP download API.
   The client now calls two new endpoints:
   * `/geoip/updates/metadata` which is responsible for getting information about
@@ -28,6 +23,11 @@
   All other values will return an error.
 * Setting `GEOIPUPDATE_VERBOSE` to `1` now works as expected. In the 6.0.0 and
   6.1.0 releases, the flag was ignored. Reported by pmcevoy. GitHub #298.
+* `geoipupdate` now supports retrying on more types of errors
+  such as HTTP2 INTERNAL_ERROR.
+* Now `geoipupdate` doesn't requires the user to specify the config file
+  even if all the other arguments are set via the environment variables.
+  Reported by jsf84ksnf. GitHub #284.
 
 ## 6.1.0 (2024-01-09)
 
