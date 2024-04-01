@@ -702,7 +702,7 @@ func TestSetConfigFromEnv(t *testing.T) {
 			Env: map[string]string{
 				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1a",
 			},
-			Err: "`PreserveFileTimes' must be 0 or 1",
+			Err: "`GEOIPUPDATE_PRESERVE_FILE_TIMES' must be 0 or 1",
 		},
 		{
 			Description: "RetryFor needs a unit",

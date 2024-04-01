@@ -342,7 +342,7 @@ func setConfigFromEnv(config *Config) error {
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_PRESERVE_FILE_TIMES"); ok {
 		if value != "0" && value != "1" {
-			return errors.New("`PreserveFileTimes' must be 0 or 1")
+			return errors.New("`GEOIPUPDATE_PRESERVE_FILE_TIMES' must be 0 or 1")
 		}
 		config.PreserveFileTimes = value == "1"
 	}
