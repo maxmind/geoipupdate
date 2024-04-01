@@ -87,22 +87,16 @@ func WithDatabaseDirectory(dir string) Option {
 	}
 }
 
-// WithVerbose returns an Option that sets the Verbose
-// value of a config.
-func WithVerbose(val bool) Option {
-	return func(c *Config) error {
-		c.Verbose = val
-		return nil
-	}
+// WithVerbose enable verbose output for the config.
+func WithVerbose(c *Config) error {
+	c.Verbose = true
+	return nil
 }
 
-// WithOutput returns an Option that sets the Output
-// value of a config.
-func WithOutput(val bool) Option {
-	return func(c *Config) error {
-		c.Output = val
-		return nil
-	}
+// WithOutput enables JSON output for the config.
+func WithOutput(c *Config) error {
+	c.Output = true
+	return nil
 }
 
 // WithConfigFile returns an Option that sets the configuration

@@ -773,9 +773,9 @@ func TestSetConfigFromFlags(t *testing.T) {
 			Description: "All option flag related config set",
 			Flags: []Option{
 				WithDatabaseDirectory("/tmp/db"),
-				WithOutput(true),
+				WithOutput,
 				WithParallelism(2),
-				WithVerbose(true),
+				WithVerbose,
 			},
 			Expected: Config{
 				DatabaseDirectory: filepath.Clean("/tmp/db"),

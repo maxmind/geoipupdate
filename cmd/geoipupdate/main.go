@@ -39,11 +39,11 @@ func main() {
 	}
 
 	if args.Output {
-		opts = append(opts, geoipupdate.WithOutput(args.Output))
+		opts = append(opts, geoipupdate.WithOutput)
 	}
 
 	if args.Verbose {
-		opts = append(opts, geoipupdate.WithVerbose(args.Verbose))
+		opts = append(opts, geoipupdate.WithVerbose)
 	}
 
 	config, err := geoipupdate.NewConfig(opts...)
