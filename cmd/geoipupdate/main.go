@@ -32,13 +32,21 @@ func main() {
 
 	args := getArgs()
 
-	config, err := geoipupdate.NewConfig(
+	opts := []geoipupdate.Option{
 		geoipupdate.WithConfigFile(args.ConfigFile),
 		geoipupdate.WithDatabaseDirectory(args.DatabaseDirectory),
 		geoipupdate.WithParallelism(args.Parallelism),
-		geoipupdate.WithVerbose(args.Verbose),
-		geoipupdate.WithOutput(args.Output),
-	)
+	}
+
+	if args.Output {
+		opts = append(opts, geoipupdate.WithOutput)
+	}
+
+	if args.Verbose {
+		opts = append(opts, geoipupdate.WithVerbose)
+	}
+
+	config, err := geoipupdate.NewConfig(opts...)
 	if err != nil {
 		log.Fatalf("Error loading configuration: %s", err)
 	}

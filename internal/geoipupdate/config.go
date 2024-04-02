@@ -87,22 +87,16 @@ func WithDatabaseDirectory(dir string) Option {
 	}
 }
 
-// WithVerbose returns an Option that sets the Verbose
-// value of a config.
-func WithVerbose(val bool) Option {
-	return func(c *Config) error {
-		c.Verbose = val
-		return nil
-	}
+// WithVerbose enable verbose output for the config.
+func WithVerbose(c *Config) error {
+	c.Verbose = true
+	return nil
 }
 
-// WithOutput returns an Option that sets the Output
-// value of a config.
-func WithOutput(val bool) Option {
-	return func(c *Config) error {
-		c.Output = val
-		return nil
-	}
+// WithOutput enables JSON output for the config.
+func WithOutput(c *Config) error {
+	c.Output = true
+	return nil
 }
 
 // WithConfigFile returns an Option that sets the configuration
@@ -348,7 +342,7 @@ func setConfigFromEnv(config *Config) error {
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_PRESERVE_FILE_TIMES"); ok {
 		if value != "0" && value != "1" {
-			return errors.New("`PreserveFileTimes' must be 0 or 1")
+			return errors.New("`GEOIPUPDATE_PRESERVE_FILE_TIMES' must be 0 or 1")
 		}
 		config.PreserveFileTimes = value == "1"
 	}
@@ -370,7 +364,10 @@ func setConfigFromEnv(config *Config) error {
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_VERBOSE"); ok {
-		config.Verbose = value != ""
+		if value != "0" && value != "1" {
+			return errors.New("`GEOIPUPDATE_VERBOSE' must be 0 or 1")
+		}
+		config.Verbose = value == "1"
 	}
 
 	return nil

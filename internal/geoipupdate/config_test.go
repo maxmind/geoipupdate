@@ -702,7 +702,7 @@ func TestSetConfigFromEnv(t *testing.T) {
 			Env: map[string]string{
 				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1a",
 			},
-			Err: "`PreserveFileTimes' must be 0 or 1",
+			Err: "`GEOIPUPDATE_PRESERVE_FILE_TIMES' must be 0 or 1",
 		},
 		{
 			Description: "RetryFor needs a unit",
@@ -731,6 +731,13 @@ func TestSetConfigFromEnv(t *testing.T) {
 				"GEOIPUPDATE_PARALLELISM": "0",
 			},
 			Err: "parallelism should be greater than 0, got '0'",
+		},
+		{
+			Description: "Invalid Verbose",
+			Env: map[string]string{
+				"GEOIPUPDATE_VERBOSE": "1a",
+			},
+			Err: "`GEOIPUPDATE_VERBOSE' must be 0 or 1",
 		},
 	}
 
@@ -773,9 +780,9 @@ func TestSetConfigFromFlags(t *testing.T) {
 			Description: "All option flag related config set",
 			Flags: []Option{
 				WithDatabaseDirectory("/tmp/db"),
-				WithOutput(true),
+				WithOutput,
 				WithParallelism(2),
-				WithVerbose(true),
+				WithVerbose,
 			},
 			Expected: Config{
 				DatabaseDirectory: filepath.Clean("/tmp/db"),

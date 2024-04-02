@@ -21,7 +21,7 @@ type Args struct {
 func getArgs() *Args {
 	confFileDefault := vars.DefaultConfigFile
 	// Set the default config file only if it exists.
-	// Othwerwise, geoipupdate requires the user to specify the config file
+	// Otherwise, geoipupdate requires the user to specify the config file
 	// even if all the other arguments are set via the environment variables.
 	if _, err := os.Stat(confFileDefault); errors.Is(err, os.ErrNotExist) {
 		confFileDefault = ""
