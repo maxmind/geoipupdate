@@ -1,0 +1,154 @@
+{{- /*
+Copyright VMware, Inc.
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if eq .Values.geoipupdate.kind "CronJob" -}}
+apiVersion: {{ include "common.capabilities.cronjob.apiVersion" . }}
+kind: CronJob
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  {{- $labels := include "common.tplvalues.merge" ( dict "values" ( list .Values.geoipupdate.cronjob.labels .Values.commonLabels ) "context" . ) }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $labels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: geoipupdate
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.geoipupdate.annotations .Values.commonAnnotations) "context" .) }}
+  {{- if $annotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.geoipupdate.cronjob.schedule | quote }}
+  {{- if .Values.geoipupdate.cronjob.timeZone }}
+  timeZone: {{ .Values.geoipupdate.cronjob.timeZone | quote }}
+  {{- end }}
+  concurrencyPolicy: {{ .Values.geoipupdate.cronjob.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ .Values.geoipupdate.cronjob.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.geoipupdate.cronjob.successfulJobsHistoryLimit }}
+  {{- if .Values.geoipupdate.cronjob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.geoipupdate.cronjob.startingDeadlineSeconds }}
+  {{- end }}
+  jobTemplate:
+    spec:
+      {{- if .Values.geoipupdate.cronjob.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ .Values.geoipupdate.cronjob.ttlSecondsAfterFinished }}
+      {{- end }}
+      template:
+        metadata:
+          labels: {{- include "common.labels.standard" ( dict "customLabels" $labels "context" $ ) | nindent 12 }}
+            app.kubernetes.io/component: geoipupdate
+          {{- if $annotations }}
+          annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 12 }}
+          {{- end }}
+        spec:
+          {{- include "geoipupdate.imagePullSecrets" . | nindent 10 }}
+          {{- if .Values.geoipupdate.cronjob.nodeSelector }}
+          nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.geoipupdate.cronjob.nodeSelector "context" $) | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: geoipupdate
+              image: {{ template "geoipupdate.image" . }}
+              imagePullPolicy: {{ .Values.geoipupdate.image.pullPolicy }}
+              {{- if .Values.diagnosticMode.enabled }}
+              command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 14 }}
+              {{- else if .Values.geoipupdate.command }}
+              command: {{- include "common.tplvalues.render" (dict "value" .Values.geoipupdate.command "context" $) | nindent 14 }}
+              {{- end }}
+              {{- if .Values.diagnosticMode.enabled }}
+              args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 14 }}
+              {{- else if .Values.geoipupdate.args }}
+              args: {{- include "common.tplvalues.render" (dict "value" .Values.geoipupdate.args "context" $) | nindent 14 }}
+              {{- end }}
+              env:
+                - name: GEOIPUPDATE_EDITION_IDS
+                  value: {{ .Values.geoipupdate.config.editionsIds | quote }}
+                - name: GEOIPUPDATE_ACCOUNT_ID
+                {{- if and .Values.geoipupdate.config.existingSecret .Values.geoipupdate.config.secretKeys.accoundId }}
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.geoipupdate.config.existingSecret | quote }}
+                      key: {{ .Values.geoipupdate.config.secretKeys.accoundId | quote }}
+                {{- else }}
+                  value: {{ .Values.geoipupdate.config.accoundId | quote }}
+                {{- end }}
+                - name: GEOIPUPDATE_LICENSE_KEY
+                {{- if and .Values.geoipupdate.config.existingSecret .Values.geoipupdate.config.secretKeys.licenceKey }}
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.geoipupdate.config.existingSecret | quote }}
+                      key: {{ .Values.geoipupdate.config.secretKeys.licenceKey | quote }}
+                {{- else }}
+                  value: {{ .Values.geoipupdate.config.licenceKey | quote }}
+                {{- end }}
+                {{- if .Values.geoipupdate.config.host }}
+                - name: GEOIPUPDATE_HOST
+                  value: {{ .Values.geoipupdate.config.host | quote }}
+                {{- end }}
+                {{- if .Values.geoipupdate.config.proxy }}
+                - name: GEOIPUPDATE_PROXY
+                  value: {{ .Values.geoipupdate.config.proxy | quote }}
+                {{- end }}
+                {{- if or .Values.geoipupdate.config.userPassword (and .Values.geoipupdate.config.existingSecret .Values.geoipupdate.config.secretKeys.userPassword) }}
+                - name: GEOIPUPDATE_PROXY_USER_PASSWORD
+                {{- if and .Values.geoipupdate.config.existingSecret .Values.geoipupdate.config.secretKeys.userPassword }}
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.geoipupdate.config.existingSecret | quote }}
+                      key: {{ .Values.geoipupdate.config.secretKeys.userPassword | quote }}
+                {{- else }}
+                  value: {{ .Values.geoipupdate.config.userPassword | quote }}
+                {{- end }}
+                {{- end }}
+                {{- if .Values.geoipupdate.config.preserveFilesTimes }}
+                - name: GEOIPUPDATE_PRESERVE_FILE_TIMES
+                  value: {{ .Values.geoipupdate.config.preserveFilesTimes | quote }}
+                {{- end }}
+                {{- if .Values.geoipupdate.config.verbose }}
+                - name: GEOIPUPDATE_VERBOSE
+                  value: {{ .Values.geoipupdate.config.verbose | quote }}
+                {{- end }}
+                {{- if .Values.geoipupdate.extraEnvVars }}
+                {{- include "common.tplvalues.render" (dict "value" .Values.geoipupdate.extraEnvVars "context" $) | nindent 14 }}
+                {{- end }}
+              envFrom:
+                {{- if .Values.geoipupdate.extraEnvVarsCM }}
+                - configMapRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.geoipupdate.extraEnvVarsCM "context" $) }}
+                {{- end }}
+                {{- if .Values.geoipupdate.extraEnvVarsSecret }}
+                - secretRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.geoipupdate.extraEnvVarsSecret "context" $) }}
+                {{- end }}
+              {{- if .Values.geoipupdate.containerSecurityContext.enabled }}
+              securityContext: {{- omit .Values.geoipupdate.containerSecurityContext "enabled" | toYaml | nindent 16 }}
+              {{- end }}
+              {{- if .Values.geoipupdate.resources }}
+              resources: {{- toYaml .Values.geoipupdate.resources | nindent 16 }}
+              {{- else if ne .Values.geoipupdate.resourcesPreset "none" }}
+              resources: {{- include "common.resources.preset" (dict "type" .Values.geoipupdate.resourcesPreset) | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                - name: geoipupdate-data-0
+                  mountPath: {{ .Values.persistence.mountPath }}
+                  {{- if .Values.persistence.subPath }}
+                  subPath: {{ .Values.persistence.subPath }}
+                  {{- end }}
+              {{- if .Values.geoipupdate.extraVolumeMounts }}
+              {{- include "common.tplvalues.render" (dict "value" .Values.geoipupdate.extraVolumeMounts "context" $) | nindent 14 }}
+              {{- end }}
+          restartPolicy: {{ .Values.geoipupdate.cronjob.restartPolicy }}
+          {{- if .Values.geoipupdate.podSecurityContext.enabled }}
+          securityContext:
+            fsGroup: {{ .Values.geoipupdate.podSecurityContext.fsGroup }}
+          {{- end }}
+          volumes:
+            - name: geoipupdate-data-0
+            {{- if .Values.persistence.enabled }}
+              persistentVolumeClaim:
+                claimName: {{ default (include "common.names.fullname" .) .Values.persistence.existingClaim }}
+            {{- else }}
+              emptyDir: {}
+            {{- end }}
+            {{- if .Values.geoipupdate.extraVolumes }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.geoipupdate.extraVolumes "context" $) | nindent 12 }}
+            {{- end }}
+{{- end }}

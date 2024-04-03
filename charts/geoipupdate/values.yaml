@@ -1,0 +1,425 @@
+# Copyright VMware, Inc.
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Common parameters
+##
+
+## @param kubeVersion Override Kubernetes version
+##
+kubeVersion: ""
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+
+## Enable diagnostic mode in the deployment
+##
+diagnosticMode:
+  ## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+  ##
+  enabled: false
+  ## @param diagnosticMode.command Command to override all containers in the deployment
+  ##
+  command:
+    - sleep
+  ## @param diagnosticMode.args Args to override all containers in the deployment
+  ##
+  args:
+    - infinity
+
+## @section GeoIP Update Parameters
+##
+geoipupdate:
+  ## GeoIP Update image
+  ## ref: https://github.com/maxmind/geoipupdate/pkgs/container/geoipupdate
+  ## @param geoipupdate.image.registry [default: REGISTRY_NAME] GeoIP Update image registry
+  ## @param geoipupdate.image.repository [default: REPOSITORY_NAME/geoipupdate] GeoIP Update image repository
+  ## @skip geoipupdate.image.tag GeoIP Update image tag (immutable tags are recommended)
+  ## @param geoipupdate.image.digest GeoIP Update image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
+  ## @param geoipupdate.image.pullPolicy GeoIP Update image pull policy
+  ## @param geoipupdate.image.pullSecrets GeoIP Update image pull secrets
+  ## @param geoipupdate.image.debug Enable GeoIP Update image debug mode
+  ##
+  image:
+    registry: ghcr.io
+    repository: maxmind/geoipupdate
+    tag: v6.1
+    digest: ""
+    ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+    ## ref: http://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
+    ##
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ## e.g:
+    ## pullSecrets:
+    ##   - myRegistryKeySecretName
+    ##
+    pullSecrets: []
+  ## Configure extra options for geoipupdate containers' liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ## @param geoipupdate.livenessProbe.enabled Enable livenessProbe on geoipupdate containers
+  ## @param geoipupdate.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param geoipupdate.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param geoipupdate.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param geoipupdate.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param geoipupdate.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 1
+  ## @param geoipupdate.readinessProbe.enabled Enable readinessProbe on geoipupdate containers
+  ## @param geoipupdate.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param geoipupdate.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param geoipupdate.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param geoipupdate.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param geoipupdate.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 1
+  ## @param geoipupdate.startupProbe.enabled Enable startupProbe on geoipupdate containers
+  ## @param geoipupdate.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param geoipupdate.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param geoipupdate.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param geoipupdate.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param geoipupdate.startupProbe.successThreshold Success threshold for startupProbe
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 1
+  ## @param geoipupdate.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param geoipupdate.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param geoipupdate.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## geoipupdate resource requests and limits
+  ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  ## @param geoipupdate.resources.limits The resources limits for the geoipupdate containers
+  ## @param geoipupdate.resources.requests The requested resources for the geoipupdate containers
+  ##
+  resources:
+    limits: {}
+    requests: {}
+  ## Configure Pods Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  ## @param geoipupdate.podSecurityContext.enabled Enabled geoipupdate pods' Security Context
+  ## @param geoipupdate.podSecurityContext.fsGroup Set geoipupdate pod's Security Context fsGroup
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+  ## Configure Container Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  ## @param geoipupdate.containerSecurityContext.enabled Enabled geoipupdate containers' Security Context
+  ## @param geoipupdate.containerSecurityContext.runAsUser Set geoipupdate containers' Security Context runAsUser
+  ## @param geoipupdate.containerSecurityContext.runAsNonRoot Set geoipupdate containers' Security Context runAsNonRoot
+  ## @param geoipupdate.containerSecurityContext.readOnlyRootFilesystem Set geoipupdate containers' Security Context runAsNonRoot
+  ##
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: false
+  
+  ## @param geoipupdate.kind Use a CronJob or Deployment
+  ##
+  kind: CronJob
+  ## @param geoipupdate.schedule CronJob parameters
+  ##
+  cronjob:
+    ## @param geoipupdate.schedule CronJob schedule
+    ##
+    schedule: "0 * * * *"
+    ## @param geoipupdate.schedule CronJob timeZone
+    ##
+    timeZone: ""
+    ## @param geoipupdate.schedule CronJob restartPolicy
+    ##
+    restartPolicy: OnFailure
+
+  ## @param geoipupdate.config GeoIP Update configuration
+  ##
+  config:
+    ## @param geoipupdate.config.existingSecret Name of existing secret to use for credentials
+    ## @param geoipupdate.config.secretKeys.accoundId Name of key in existing secret to use for accoundId. Only used when `geoipupdate.config.existingSecret` is set.
+    ## @param geoipupdate.config.secretKeys.licenceKey Name of key in existing secret to use for licenceKey. Only used when `geoipupdate.config.existingSecret` is set.
+    ## @param geoipupdate.config.secretKeys.userPassword Name of key in existing secret to use for userPassword. Only used when `geoipupdate.config.existingSecret` is set.
+    ##
+    existingSecret: ""
+    secretKeys:
+      accoundId: ""
+      licenceKey: ""
+      userPassword: ""
+    ## @param geoipupdate.config.editionsIds GEOIPUPDATE_EDITION_IDS - List of space-separated database edition IDs. Edition IDs may consist of letters, digits, and dashes. For example, GeoIP2-City would download the GeoIP2 City database (GeoIP2-City).
+    ##
+    editionsIds: ""
+    ## @param geoipupdate.config.accoundId GEOIPUPDATE_ACCOUNT_ID - Your MaxMind account ID.
+    ##
+    accoundId: ""
+    ## @param geoipupdate.config.licenceKey GEOIPUPDATE_LICENSE_KEY - Your case-sensitive MaxMind license key.
+    ##
+    licenceKey: ""
+    ## @param geoipupdate.config.frequency GEOIPUPDATE_FREQUENCY - The number of hours between geoipupdate runs. If this is not set or is set to 0, geoipupdate will run once and exit.
+    ##
+    frequency: ""
+    ## @param geoipupdate.config.host GEOIPUPDATE_HOST - The host name of the server to use. The default is updates.maxmind.com.
+    ##
+    host: ""
+    ## @param geoipupdate.config.proxy GEOIPUPDATE_PROXY - The proxy host name or IP address. You may optionally specify a port number, e.g., 127.0.0.1:8888. If no port number is specified, 1080 will be used.
+    ##
+    proxy: ""
+    ## @param geoipupdate.config.userPassword GEOIPUPDATE_PROXY_USER_PASSWORD - The proxy user name and password, separated by a colon. For instance, username:password.
+    ##
+    userPassword: ""
+    ## @param geoipupdate.config.preserveFilesTimes GEOIPUPDATE_PRESERVE_FILE_TIMES - Whether to preserve modification times of files downloaded from the server. This option is either 0 or 1. The default is 0.
+    ##
+    preserveFilesTimes: ""
+    ## @param geoipupdate.config.verbose GEOIPUPDATE_VERBOSE - Enable verbose mode. Prints out the steps that geoipupdate takes. Set to anything (e.g., 1) to enable.
+    ##
+    verbose: ""
+
+
+  ## @param geoipupdate.command Override default container command (useful when using custom images)
+  ##
+  command: []
+  ## @param geoipupdate.args Override default container args (useful when using custom images)
+  ##
+  args: []
+  ## @param geoipupdate.hostAliases geoipupdate pods host aliases
+  ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+  ##
+  hostAliases: []
+  ## @param geoipupdate.podLabels Extra labels for geoipupdate pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  ##
+  podLabels: {}
+  ## @param geoipupdate.podAnnotations Annotations for geoipupdate pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  podAnnotations: {}
+  ## @param geoipupdate.podAffinityPreset Pod affinity preset. Ignored if `geoipupdate.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAffinityPreset: ""
+  ## @param geoipupdate.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `geoipupdate.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAntiAffinityPreset: soft
+  ## Node geoipupdate.affinity preset
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ##
+  nodeAffinityPreset:
+    ## @param geoipupdate.nodeAffinityPreset.type Node affinity preset type. Ignored if `geoipupdate.affinity` is set. Allowed values: `soft` or `hard`
+    ##
+    type: ""
+    ## @param geoipupdate.nodeAffinityPreset.key Node label key to match. Ignored if `geoipupdate.affinity` is set
+    ##
+    key: ""
+    ## @param geoipupdate.nodeAffinityPreset.values Node label values to match. Ignored if `geoipupdate.affinity` is set
+    ## E.g.
+    ## values:
+    ##   - e2e-az1
+    ##   - e2e-az2
+    ##
+    values: []
+  ## @param geoipupdate.affinity Affinity for geoipupdate pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ## NOTE: `geoipupdate.podAffinityPreset`, `geoipupdate.podAntiAffinityPreset`, and `geoipupdate.nodeAffinityPreset` will be ignored when it's set
+  ##
+  affinity: {}
+  ## @param geoipupdate.nodeSelector Node labels for geoipupdate pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+  ##
+  nodeSelector: {}
+  ## @param geoipupdate.tolerations Tolerations for geoipupdate pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+  ## @param geoipupdate.updateStrategy geoipupdate deployment update strategy
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  ##
+  updateStrategy:
+    type: Recreate
+
+  ## @param geoipupdate.priorityClassName geoipupdate pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param geoipupdate.topologySpreadConstraints Topology Spread Constraints for pod assignment spread across your cluster among failure-domains. Evaluated as a template
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+  ##
+  topologySpreadConstraints: []
+  ## @param geoipupdate.schedulerName Name of the k8s scheduler (other than default) for geoipupdate pods
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  schedulerName: ""
+  ## @param geoipupdate.terminationGracePeriodSeconds Seconds Redmine pod needs to terminate gracefully
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param geoipupdate.lifecycleHooks for the geoipupdate container(s) to automate configuration before or after startup
+  ##
+  lifecycleHooks: {}
+  ## @param geoipupdate.extraEnvVars Array with extra environment variables to add to geoipupdate nodes
+  ## e.g:
+  ## extraEnvVars:
+  ##   - name: FOO
+  ##     value: "bar"
+  ##
+  extraEnvVars: []
+  ## @param geoipupdate.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for geoipupdate nodes
+  ##
+  extraEnvVarsCM: ""
+  ## @param geoipupdate.extraEnvVarsSecret Name of existing Secret containing extra env vars for geoipupdate nodes
+  ##
+  extraEnvVarsSecret: ""
+  ## @param geoipupdate.extraVolumes Optionally specify extra list of additional volumes for the geoipupdate pod(s)
+  ##
+  extraVolumes: []
+  ## @param geoipupdate.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the geoipupdate container(s)
+  ##
+  extraVolumeMounts: []
+  ## @param geoipupdate.sidecars Add additional sidecar containers to the geoipupdate pod(s)
+  ## e.g:
+  ## sidecars:
+  ##   - name: your-image-name
+  ##     image: your-image
+  ##     imagePullPolicy: Always
+  ##     ports:
+  ##       - name: portname
+  ##         containerPort: 1234
+  ##
+  sidecars: []
+  ## @param geoipupdate.initContainers Add additional init containers to the geoipupdate pod(s)
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ## e.g:
+  ## initContainers:
+  ##  - name: your-image-name
+  ##    image: your-image
+  ##    imagePullPolicy: Always
+  ##    command: ['sh', '-c', 'echo "hello world"']
+  ##
+  initContainers: []
+
+## @section Persistence Parameters
+##
+
+## Enable persistence using Persistent Volume Claims
+## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+##
+persistence:
+  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
+  ##
+  enabled: true
+  ## @param persistence.mountPath Path to mount the volume at.
+  ##
+  mountPath: /usr/share/GeoIP
+  ## @param persistence.subPath The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services
+  ##
+  subPath: ""
+  ## @param persistence.storageClass Storage class of backing PVC
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  storageClass: ""
+  ## @param persistence.annotations Persistent Volume Claim annotations
+  ##
+  annotations: {}
+  ## @param persistence.accessModes Persistent Volume Access Modes
+  ##
+  accessModes:
+    - ReadWriteOnce
+  ## @param persistence.size Size of data volume
+  ##
+  size: 1Gi
+  ## @param persistence.existingClaim The name of an existing PVC to use for persistence
+  ##
+  existingClaim: ""
+  ## @param persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
+  ## If set, the PVC can't have a PV dynamically provisioned for it
+  ## E.g.
+  ## selector:
+  ##   matchLabels:
+  ##     app: my-app
+  ##
+  selector: {}
+  ## @param persistence.dataSource Custom PVC data source
+  ##
+  dataSource: {}
+
+## @section Other Parameters
+##
+
+## RBAC configuration
+##
+rbac:
+  ## @param rbac.create Specifies whether RBAC resources should be created
+  ##
+  create: false
+  ## @param rbac.rules Custom RBAC rules to set
+  ## e.g:
+  ## rules:
+  ##   - apiGroups:
+  ##       - ""
+  ##     resources:
+  ##       - pods
+  ##     verbs:
+  ##       - get
+  ##       - list
+  ##
+  rules: []
+
+## ServiceAccount configuration
+##
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+  ##
+  create: true
+  ## @param serviceAccount.name The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the common.names.fullname template
+  ##
+  name: ""
+  ## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
+  ##
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+  ##
+  automountServiceAccountToken: true

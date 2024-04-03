@@ -1,0 +1,28 @@
+# Copyright VMware, Inc.
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: Analytics
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: 6.1.0
+dependencies:
+  - name: common
+    repository: oci://registry-1.docker.io/bitnamicharts
+    tags:
+      - bitnami-common
+    version: 2.x.x
+description: GeoIP Update
+home: https://dev.maxmind.com/geoip
+icon: ./icon.png
+keywords:
+  - geoip
+  - geoip2
+  - maxmind
+maintainers:
+  - name: kShuttle
+    url: https://kshuttle.io
+name: geoipupdate
+sources:
+  - https://github.com/maxmind/geoipupdate
+version: 1.1.0
