@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/maxmind/geoipupdate/v6/internal/vars"
 	flag "github.com/spf13/pflag"
+
+	"github.com/maxmind/geoipupdate/v6/internal/vars"
 )
 
 // Args are command line arguments.

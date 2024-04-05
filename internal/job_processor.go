@@ -50,7 +50,7 @@ func (j *JobProcessor) Run(ctx context.Context) error {
 		job := job
 		j.processor.Go(func() error {
 			if err := ctx.Err(); err != nil {
-				return fmt.Errorf("processing cancelled: %w", err)
+				return fmt.Errorf("processing canceled: %w", err)
 			}
 			return job(ctx)
 		})
