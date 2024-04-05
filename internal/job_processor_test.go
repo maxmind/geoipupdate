@@ -109,10 +109,10 @@ func TestJobQueueStop(t *testing.T) {
 	go func() {
 		err := jobProcessor.Run(ctx)
 		if err == nil {
-			t.Error(`expected "processing cancelled" error`)
+			t.Error(`expected "processing canceled" error`)
 		}
-		if !strings.Contains(err.Error(), "processing cancelled") {
-			t.Errorf(`expected "processing cancelled" error, got %q`, err)
+		if !strings.Contains(err.Error(), "processing canceled") {
+			t.Errorf(`expected "processing canceled" error, got %q`, err)
 		}
 		close(doneCh)
 	}()

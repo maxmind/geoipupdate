@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v6/internal/vars"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/maxmind/geoipupdate/v6/internal/vars"
 )
 
 func TestNewConfig(t *testing.T) {
