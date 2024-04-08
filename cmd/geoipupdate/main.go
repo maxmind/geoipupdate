@@ -5,8 +5,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate"
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate"
+	"github.com/maxmind/geoipupdate/v6/internal/vars"
 )
 
 const unknownVersion = "unknown"
@@ -32,13 +32,21 @@ func main() {
 
 	args := getArgs()
 
-	config, err := geoipupdate.NewConfig(
+	opts := []geoipupdate.Option{
 		geoipupdate.WithConfigFile(args.ConfigFile),
 		geoipupdate.WithDatabaseDirectory(args.DatabaseDirectory),
 		geoipupdate.WithParallelism(args.Parallelism),
-		geoipupdate.WithVerbose(args.Verbose),
-		geoipupdate.WithOutput(args.Output),
-	)
+	}
+
+	if args.Output {
+		opts = append(opts, geoipupdate.WithOutput)
+	}
+
+	if args.Verbose {
+		opts = append(opts, geoipupdate.WithVerbose)
+	}
+
+	config, err := geoipupdate.NewConfig(opts...)
 	if err != nil {
 		log.Fatalf("Error loading configuration: %s", err)
 	}
@@ -49,8 +57,12 @@ func main() {
 		log.Printf("Using database directory %s", config.DatabaseDirectory)
 	}
 
-	client := geoipupdate.NewClient(config)
-	if err = client.Run(context.Background()); err != nil {
+	u, err := geoipupdate.NewUpdater(config)
+	if err != nil {
+		log.Fatalf("Error initializing updater: %s", err)
+	}
+
+	if err = u.Run(context.Background()); err != nil {
 		log.Fatalf("Error retrieving updates: %s", err)
 	}
 }

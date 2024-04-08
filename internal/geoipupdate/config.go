@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
+	"github.com/maxmind/geoipupdate/v6/internal/vars"
 )
 
 // Config is a parsed configuration file.
@@ -37,7 +37,7 @@ type Config struct {
 	PreserveFileTimes bool
 	// Parallelism defines the number of concurrent downloads that
 	// can be triggered at the same time. It defaults to 1, which
-	// wouldn't change the existing behaviour of downloading files
+	// wouldn't change the existing behavior of downloading files
 	// sequentially.
 	Parallelism int
 	// Proxy is host name or IP address of a proxy server.
@@ -87,22 +87,16 @@ func WithDatabaseDirectory(dir string) Option {
 	}
 }
 
-// WithVerbose returns an Option that sets the Verbose
-// value of a config.
-func WithVerbose(val bool) Option {
-	return func(c *Config) error {
-		c.Verbose = val
-		return nil
-	}
+// WithVerbose enable verbose output for the config.
+func WithVerbose(c *Config) error {
+	c.Verbose = true
+	return nil
 }
 
-// WithOutput returns an Option that sets the Output
-// value of a config.
-func WithOutput(val bool) Option {
-	return func(c *Config) error {
-		c.Output = val
-		return nil
-	}
+// WithOutput enables JSON output for the config.
+func WithOutput(c *Config) error {
+	c.Output = true
+	return nil
 }
 
 // WithConfigFile returns an Option that sets the configuration
@@ -225,7 +219,7 @@ func setConfigFromFile(config *Config, path string) error {
 		case "AccountID", "UserId":
 			accountID, err := strconv.Atoi(value)
 			if err != nil {
-				return fmt.Errorf("invalid account ID format")
+				return errors.New("invalid account ID format")
 			}
 			config.AccountID = accountID
 			keysSeen["AccountID"] = struct{}{}
@@ -286,7 +280,7 @@ func setConfigFromEnv(config *Config) error {
 		var err error
 		config.AccountID, err = strconv.Atoi(value)
 		if err != nil {
-			return fmt.Errorf("invalid account ID format")
+			return errors.New("invalid account ID format")
 		}
 	}
 
@@ -300,7 +294,7 @@ func setConfigFromEnv(config *Config) error {
 
 		config.AccountID, err = strconv.Atoi(strings.TrimSpace(string(accountID)))
 		if err != nil {
-			return fmt.Errorf("invalid account ID format")
+			return errors.New("invalid account ID format")
 		}
 	}
 
@@ -348,7 +342,7 @@ func setConfigFromEnv(config *Config) error {
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_PRESERVE_FILE_TIMES"); ok {
 		if value != "0" && value != "1" {
-			return errors.New("`PreserveFileTimes' must be 0 or 1")
+			return errors.New("`GEOIPUPDATE_PRESERVE_FILE_TIMES' must be 0 or 1")
 		}
 		config.PreserveFileTimes = value == "1"
 	}
@@ -370,7 +364,10 @@ func setConfigFromEnv(config *Config) error {
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_VERBOSE"); ok {
-		config.Verbose = value != ""
+		if value != "0" && value != "1" {
+			return errors.New("`GEOIPUPDATE_VERBOSE' must be 0 or 1")
+		}
+		config.Verbose = value == "1"
 	}
 
 	return nil
@@ -396,15 +393,15 @@ func validateConfig(config *Config) error {
 	}
 
 	if len(config.EditionIDs) == 0 {
-		return fmt.Errorf("the `EditionIDs` option is required")
+		return errors.New("the `EditionIDs` option is required")
 	}
 
 	if config.AccountID == 0 {
-		return fmt.Errorf("the `AccountID` option is required")
+		return errors.New("the `AccountID` option is required")
 	}
 
 	if config.LicenseKey == "" {
-		return fmt.Errorf("the `LicenseKey` option is required")
+		return errors.New("the `LicenseKey` option is required")
 	}
 
 	return nil

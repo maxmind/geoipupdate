@@ -1,115 +1,135 @@
 [run]
-deadline = "10m"
+# This is needed for precious, which may run multiple instances
+# in parallel
+allow-parallel-runners = true
+go = "1.21"
 tests = true
+timeout = "10m"
 
 [linters]
-disable-all = true
-enable = [
-    "asasalint",
-    "asciicheck",
-    "bidichk",
-    "bodyclose",
-    "containedctx",
-    "contextcheck",
-    "depguard",
+enable-all = true
+disable = [
+    "cyclop",
+    "dogsled",
+    "dupl",
+
     # This is probably worthwhile, but there are a number of false positives
     # that would need to be addressed.
-    # "dupword",
-    "durationcheck",
-    "errcheck",
-    "errchkjson",
-    "errname",
-    "errorlint",
+    "dupword",
+
     # This doesn't seem to know about CTEs or DELETEs with RETURNING
-    # "execinquery",
-    "exhaustive",
+    "execinquery",
+
     # We often don't initialize all of the struct fields. This is fine
     # generally
-    # "exhaustruct",
+    "exhaustruct",
+
+    # Not relevant after 1.22
     "exportloopref",
-    "forbidigo",
+
     # We tried this linter but most places we do forced type asserts are
     # pretty safe, e.g., an atomic.Value when everything is encapsulated
     # in a small package.
-    # "forcetypeassert",
-    "goconst",
-    "gocyclo",
-    "gocritic",
-    "godot",
-    "gofumpt",
-    "gomodguard",
-    "gosec",
-    "gosimple",
-    # This only "caught" one thing, and it seemed like a reasonable use
-    # of Han script. Generally, I don't think we want to prevent the use
-    # of particulr scripts. The time.Local checks might be useful, but
-    # this didn't actually catch anything of note there.
-    # "gosmopolitan",
+    "forcetypeassert",
+
+    "funlen",
+    "gochecknoglobals",
+    "gochecknoinits",
+
     # Similar to the exhaustive linter and I don't know that we use these
     # sorts of sum types
-    # "gochecksumtype".
-    "govet",
-    "grouper",
+    "gochecksumtype",
+
+    "gocognit",
+    "goerr113",
+    "godox",
+    "gomnd",
+
+    # This only "caught" one thing, and it seemed like a reasonable use
+    # of Han script. Generally, I don't think we want to prevent the use
+    # of particular scripts. The time.Local checks might be useful, but
+    # this didn't actually catch anything of note there.
+    "gosmopolitan",
+
     # Seems too opinionated or at least would require going through all the
     # interfaces we have.
-    # "inamedparam"
-    "ineffassign",
-    "lll",
+    "inamedparam",
+
+    "ireturn",
+
     # We don't use these loggers
-    # "loggercheck",
-    "makezero",
+    "loggercheck",
+
     # Maintainability Index. Seems like it could be a good idea, but a
     # lot of things fail and we would need to make some decisions about
     # what to allow.
-    # "maintidx",
-    "misspell",
+    "maintidx",
+
     # Causes panics, e.g., when processing mmerrors
-    # "musttag",
-    "nakedret",
-    "nilerr",
+    "musttag",
+
+    "nestif",
+
     # Perhaps too opinionated. We do have some legitimate uses of "return nil, nil"
-    # "nilnil",
-    "noctx",
-    "nolintlint",
+    "nilnil",
+
+    "nlreturn",
+
     # We occasionally use named returns for documentation, which is helpful.
     # Named returns are only really a problem when used in conjunction with
     # a bare return statement. I _think_ Revive's bare-return covers that
     # case.
-    # "nonamedreturns",
-    "nosprintfhostport",
-    "perfsprint",
-    "predeclared",
-    "protogetter",
-    "revive",
-    "rowserrcheck",
-    # https://github.com/golangci/golangci-lint/issues/287
-    # "safesql",
-    "sloglint",
-    "sqlclosecheck",
-    "staticcheck",
-    "stylecheck",
+    "nonamedreturns",
+
+    "paralleltest",
+    "prealloc",
+
     # We have very few structs with multiple tags and for the couple we had, this
     # actually made it harder to read.
-    # "tagalign",
-    "tenv",
-    "testifylint",
-    "tparallel",
-    "typecheck",
-    "unconvert",
-    "unparam",
-    "unused",
-    "usestdlibvars",
-    "vetshadow",
-    "wastedassign",
-    # We don't currently wrap external errors in this module.
-    # "wrapcheck",
+    "tagalign",
+
+    # We probably _should_ be doing this!
+    "thelper",
+
+    # We don't follow this. Sometimes we test internal code.
+    "testpackage",
+
+    "varnamelen",
+
+    # This would probably be good, but we would need to configure it.
+    "wsl",
+
+    # These are all deprecated
+    "deadcode",
+    "exhaustivestruct",
+    "golint",
+    "ifshort",
+    "interfacer",
+    "maligned",
+    "nosnakecase",
+    "scopelint",
+    "structcheck",
+    "varcheck",
+
+    # Require Go 1.22
+    "copyloopvar",
+    "intrange",
 ]
 
-# Please note that we only use depguard for stdlib as gomodguard only
+# Please note that we only use depguard for blocking packages and
+# gomodguard for blocking modules.
 # supports modules currently. See https://github.com/ryancurrah/gomodguard/issues/12
+[[linters-settings.depguard.rules.main.deny]]
+pkg = "golang.org/x/exp/slog"
+desc = "Use log/slog instead."
+
 [[linters-settings.depguard.rules.main.deny]]
 pkg = "io/ioutil"
 desc = "Deprecated. Functions have been moved elsewhere."
+
+[[linters-settings.depguard.rules.main.deny]]
+pkg = "k8s.io/utils/strings/slices"
+desc = "Use slices"
 
 [[linters-settings.depguard.rules.main.deny]]
 # slices has better alternatives.
@@ -151,7 +171,7 @@ default-signifies-exhaustive = true
 # Forbid the following identifiers
 forbid = [
     { p = "Geoip", msg = "you should use `GeoIP`" },
-    { p = "^geoIP", msg = "you should use `geoip`" },
+    { p = "geoIP", msg = "you should use `geoip`" },
     { p = "^hubSpot", msg = "you should use `hubspot`" },
     { p = "Maxmind", msg = "you should use `MaxMind`" },
     { p = "^maxMind", msg = "you should use `maxmind`" },
@@ -170,7 +190,7 @@ forbid = [
     { p = "^pgtype.NewMap", msg = "you should use mmdatabase.NewTypeMap instead" },
     { p = "^serviceusage.NewService", msg = "you should use mmgcloud.NewServiceUsageService instead." },
     { p = "^sheets.NewService", msg = "you should use mmgcloud.NewSheetsService instead." },
-    { p = "^storage.NewClient", msg = "you should use mmgcloud.NewGStorageClient instead. This sets the HTTP client settings that we need for internal use." },
+    { p = "^storage.NewClient", msg = "you should use gstorage.NewClient instead. This sets the HTTP client settings that we need for internal use." },
     { p = "^os.IsNotExist", msg = "As per their docs, new code should use errors.Is(err, fs.ErrNotExist)." },
     { p = "^os.IsExist", msg = "As per their docs, new code should use errors.Is(err, fs.ErrExist)" },
     { p = "^net.LookupIP", msg = "You should use net.Resolver functions instead." },
@@ -184,132 +204,40 @@ forbid = [
     { p = "^net.LookupSRV", msg = "You should use net.Resolver functions instead." },
 ]
 
+[linters-settings.gci]
+sections = ["standard", "default", "prefix(github.com/maxmind/geoipupdate)"]
+
 [linters-settings.gocritic]
-enabled-checks = [
-    "appendAssign",
-    "appendCombine",
-    "argOrder",
-    "assignOp",
-    "badCall",
-    "badCond",
-    "badLock",
-    "badRegexp",
-    "badSorting",
-    "boolExprSimplify",
-    "builtinShadow",
-    "builtinShadowDecl",
-    "captLocal",
-    "caseOrder",
-    "codegenComment",
-    "commentedOutCode",
-    "commentedOutImport",
-    "commentFormatting",
-    "defaultCaseOrder",
+enable-all = true
+disabled-checks = [
     # Revive's defer rule already captures this. This caught no extra cases.
-    # "deferInLoop",
-    "deferUnlambda",
-    "deprecatedComment",
-    "docStub",
-    "dupArg",
-    "dupBranchBody",
-    "dupCase",
-    "dupImport",
-    "dupSubExpr",
-    "dynamicFmtString",
-    "elseif",
-    "emptyDecl",
-    "emptyFallthrough",
-    "emptyStringTest",
-    "equalFold",
-    "evalOrder",
-    "exitAfterDefer",
-    "exposedSyncMutex",
-    "externalErrorReassign",
+    "deferInLoop",
     # Given that all of our code runs on Linux and the / separate should
     # work fine, this seems less important.
-    # "filepathJoin",
-    "flagDeref",
-    "flagName",
-    "hexLiteral",
+    "filepathJoin",
     # This seems like it could be good, but we would need to update current
     # uses. It supports "--fix", but the fixing is a bit broken.
-    # "httpNoBody",
+    "httpNoBody",
     # This might be good, but we would have to revisit a lot of code.
-    # "hugeParam",
-    "ifElseChain",
-    "importShadow",
-    "indexAlloc",
-    "initClause",
-    "mapKey",
-    "methodExprCall",
-    "nestingReduce",
-    "newDeref",
-    "nilValReturn",
-    "octalLiteral",
-    "offBy1",
-    "paramTypeCombine",
-    "preferDecodeRune",
-    "preferFilepathJoin",
-    "preferFprint",
-    "preferStringWriter",
-    "preferWriteByte",
-    "ptrToRefParam",
-    "rangeExprCopy",
-    "rangeValCopy",
-    "redundantSprint",
-    "regexpMust",
-    "regexpPattern",
+    "hugeParam",
     # This might be good, but I don't think we want to encourage
     # significant changes to regexes as we port stuff from Perl.
-    # "regexpSimplify",
-    "returnAfterHttpError",
-    "ruleguard",
-    "singleCaseSwitch",
-    "sliceClear",
-    "sloppyLen",
+    "regexpSimplify",
     # This seems like it might also be good, but a lot of existing code
     # fails.
-    # "sloppyReassign",
-    # This complains about helper functions in tests.
-    # "sloppyTestFuncName",
-    "sloppyTypeAssert",
-    "sortSlice",
-    "sprintfQuotedString",
-    "sqlQuery",
-    "stringsCompare",
-    "stringConcatSimplify",
-    "stringXbytes",
-    "switchTrue",
-    "syncMapLoadAndDelete",
-    "timeExprSimplify",
-    "todoCommentWithoutDetail",
-    "tooManyResultsChecker",
-    "truncateCmp",
-    "typeAssertChain",
-    "typeDefFirst",
-    "typeSwitchVar",
-    "typeUnparen",
-    "underef",
-    "unlabelStmt",
-    "unlambda",
+    "sloppyReassign",
     # I am not sure we would want this linter and a lot of existing
     # code fails.
-    # "unnamedResult",
-    "unnecessaryBlock",
-    "unnecessaryDefer",
-    "unslice",
-    "valSwap",
-    "weakCond",
+    "unnamedResult",
     # Covered by nolintlint
-    # "whyNoLint"
-    "wrapperFunc",
-    "yodaStyleExpr",
+    "whyNoLint",
 ]
 
 [linters-settings.gofumpt]
 extra-rules = true
-lang-version = "1.18"
 
+# IMPORTANT: gomodguard blocks _modules_, not arbitrary packages. Be
+# sure to use the module path from the go.mod file for these.
 [linters-settings.gomodguard]
 [[linters-settings.gomodguard.blocked.modules]]
 [linters-settings.gomodguard.blocked.modules."github.com/avct/uasurfer"]
@@ -328,19 +256,15 @@ reason = "This is an outdated version."
 
 [[linters-settings.gomodguard.blocked.modules]]
 [linters-settings.gomodguard.blocked.modules."github.com/gofrs/uuid"]
-recommendations = ["github.maxmind.com/maxmind/mm_website/go/pkg/uuid"]
+recommendations = ["github.com/google/uuid"]
 
 [[linters-settings.gomodguard.blocked.modules]]
 [linters-settings.gomodguard.blocked.modules."github.com/gofrs/uuid/v5"]
-recommendations = ["github.maxmind.com/maxmind/mm_website/go/pkg/uuid"]
+recommendations = ["github.com/google/uuid"]
 
 [[linters-settings.gomodguard.blocked.modules]]
 [linters-settings.gomodguard.blocked.modules."github.com/satori/go.uuid"]
-recommendations = ["github.maxmind.com/maxmind/mm_website/go/pkg/uuid"]
-
-[[linters-settings.gomodguard.blocked.modules]]
-[linters-settings.gomodguard.blocked.modules."github.com/google/uuid"]
-recommendations = ["github.maxmind.com/maxmind/mm_website/go/pkg/uuid"]
+recommendations = ["github.com/google/uuid"]
 
 [[linters-settings.gomodguard.blocked.modules]]
 [linters-settings.gomodguard.blocked.modules."github.com/lib/pq"]
@@ -357,50 +281,33 @@ reason = "This library can lead to subtle deadlocks in certain use cases."
 reason = "This library's data is not actively maintained. Use GeoInfo data."
 
 [linters-settings.gomodguard.blocked.modules."github.com/pkg/errors"]
+recommendations = ["github.maxmind.com/maxmind/mm_website/go/pkg/mmerrors"]
 reason = "pkg/errors is no longer maintained."
 
 [[linters-settings.gomodguard.blocked.modules]]
 [linters-settings.gomodguard.blocked.modules."github.com/RackSec/srslog"]
-recommendations = ["github.com/RackSec/srslog"]
+recommendations = ["log/syslog"]
 reason = "This library's data is not actively maintained."
 
 [[linters-settings.gomodguard.blocked.modules]]
-[linters-settings.gomodguard.blocked.modules."github.com/ua-parser/uap-go/uaparser"]
+[linters-settings.gomodguard.blocked.modules."github.com/ua-parser/uap-go"]
 recommendations = ["github.com/xavivars/uasurfer"]
 reason = "The performance of this library is absolutely abysmal."
 
 [[linters-settings.gomodguard.blocked.modules]]
-[linters-settings.gomodguard.blocked.modules."github.com/ugorji/go/codec"]
+[linters-settings.gomodguard.blocked.modules."github.com/ugorji/go"]
 recommendations = ["encoding/json", "github.com/mailru/easyjson"]
 reason = "This library is poorly maintained. We should default to using encoding/json and use easyjson where performance really matters."
 
 [[linters-settings.gomodguard.blocked.modules]]
-[linters-settings.gomodguard.blocked.modules."io/ioutil"]
-
-[[linters-settings.gomodguard.blocked.modules]]
-[linters-settings.gomodguard.blocked.modules."gotest.tools/v3/assert"]
+[linters-settings.gomodguard.blocked.modules."gotest.tools/v3"]
 recommendations = ["github.com/stretchr/testify/assert"]
 reason = "Use github.com/stretchr/testify/assert"
 
 [[linters-settings.gomodguard.blocked.modules]]
-[linters-settings.gomodguard.blocked.modules."golang.org/x/exp/slog"]
-recommendations = ["log/slog"]
-reason = "Use log/slog"
-
-[[linters-settings.gomodguard.blocked.modules]]
-[linters-settings.gomodguard.blocked.modules."golang.org/x/exp/slices"]
-recommendations = ["slices"]
-reason = "Use slices"
-
-[[linters-settings.gomodguard.blocked.modules]]
 [linters-settings.gomodguard.blocked.modules."inet.af/netaddr"]
-recommendations = ["go4.org/netipx"]
+recommendations = ["net/netip", "go4.org/netipx"]
 reason = "inet.af/netaddr has been deprecated."
-
-[[linters-settings.gomodguard.blocked.modules]]
-[linters-settings.gomodguard.blocked.modules."k8s.io/utils/strings/slices"]
-recommendations = ["slices"]
-reason = "Use slices"
 
 [[linters-settings.gomodguard.blocked.versions]]
 [linters-settings.gomodguard.blocked.versions."github.com/jackc/pgconn"]
@@ -425,11 +332,16 @@ excludes = [
 
     # Prohibits defer (*os.File).Close, which we allow when reading from file.
     "G307",
+
+    # no longer relevant with 1.22
+    "G601",
+
+    # geoipupdate uses md5
+    "G401",
+    "G501",
 ]
 
 [linters-settings.govet]
-# This seems to be duplicate setting, but enable it for good measure.
-check-shadowing = true
 "enable-all" = true
 
 #  Although it is very useful in particular cases where we are trying to
@@ -444,243 +356,187 @@ strict = true
 line-length = 120
 tab-width = 4
 
+[linters-settings.misspell]
+locale = "US"
+
+[[linters-settings.misspell.extra-words]]
+typo = "marshall"
+correction = "marshal"
+
+[[linters-settings.misspell.extra-words]]
+typo = "marshalling"
+correction = "marshaling"
+
+[[linters-settings.misspell.extra-words]]
+typo = "marshalls"
+correction = "marshals"
+
+[[linters-settings.misspell.extra-words]]
+typo = "unmarshall"
+correction = "unmarshal"
+
+[[linters-settings.misspell.extra-words]]
+typo = "unmarshalling"
+correction = "unmarshaling"
+
+[[linters-settings.misspell.extra-words]]
+typo = "unmarshalls"
+correction = "unmarshals"
+
 [linters-settings.nolintlint]
-allow-leading-space = false
 allow-unused = false
 allow-no-explanation = ["lll", "misspell"]
 require-explanation = true
 require-specific = true
 
 [linters-settings.revive]
+enable-all-rules = true
 ignore-generated-header = true
 severity = "warning"
 
 # This might be nice but it is so common that it is hard
 # to enable.
-# [[linters-settings.revive.rules]]
-# name = "add-constant"
-
-# [[linters-settings.revive.rules]]
-# name = "argument-limit"
+[[linters-settings.revive.rules]]
+name = "add-constant"
+disabled = true
 
 [[linters-settings.revive.rules]]
-name = "atomic"
+name = "argument-limit"
+disabled = true
 
 [[linters-settings.revive.rules]]
-name = "bare-return"
-
-[[linters-settings.revive.rules]]
-name = "blank-imports"
-
-[[linters-settings.revive.rules]]
-name = "bool-literal-in-expr"
-
-[[linters-settings.revive.rules]]
-name = "call-to-gc"
-
-# [[linters-settings.revive.rules]]
-# name = "cognitive-complexity"
+name = "cognitive-complexity"
+disabled = true
 
 [[linters-settings.revive.rules]]
 name = "comment-spacings"
 arguments = ["easyjson", "nolint"]
+disabled = false
 
 # Probably a good rule, but we have a lot of names that
 # only have case differences.
-# [[linters-settings.revive.rules]]
-# name = "confusing-naming"
+[[linters-settings.revive.rules]]
+name = "confusing-naming"
+disabled = true
 
 [[linters-settings.revive.rules]]
-name = "confusing-results"
+name = "cyclomatic"
+disabled = true
+
+# Although being consistent might be nice, I don't know that it
+# is worth the effort enabling this rule. It doesn't have an
+# autofix option.
+[[linters-settings.revive.rules]]
+name = "enforce-repeated-arg-type-style"
+arguments = ["short"]
+disabled = true
 
 [[linters-settings.revive.rules]]
-name = "constant-logical-expr"
+name = "enforce-map-style"
+arguments = ["literal"]
+disabled = false
+
+# We have very few of these as we force nil slices in most places,
+# but there are a couple of cases.
+[[linters-settings.revive.rules]]
+name = "enforce-slice-style"
+arguments = ["literal"]
+disabled = false
 
 [[linters-settings.revive.rules]]
-name = "context-as-argument"
-
-[[linters-settings.revive.rules]]
-name = "context-keys-type"
-
-# [[linters-settings.revive.rules]]
-# name = "cyclomatic"
-
-[[linters-settings.revive.rules]]
-name = "datarace"
-
-[[linters-settings.revive.rules]]
-name = "deep-exit"
-
-[[linters-settings.revive.rules]]
-name = "defer"
-
-[[linters-settings.revive.rules]]
-name = "dot-imports"
-
-[[linters-settings.revive.rules]]
-name = "duplicated-imports"
-
-[[linters-settings.revive.rules]]
-name = "early-return"
-
-[[linters-settings.revive.rules]]
-name = "empty-block"
-
-[[linters-settings.revive.rules]]
-name = "empty-lines"
-
-[[linters-settings.revive.rules]]
-name = "errorf"
-
-[[linters-settings.revive.rules]]
-name = "error-naming"
-
-[[linters-settings.revive.rules]]
-name = "error-return"
-
-[[linters-settings.revive.rules]]
-name = "error-strings"
-
-[[linters-settings.revive.rules]]
-name = "exported"
-
-# [[linters-settings.revive.rules]]
-# name = "file-header"
+name = "file-header"
+disabled = true
 
 # We have a lot of flag parameters. This linter probably makes
 # a good point, but we would need some cleanup or a lot of nolints.
-# [[linters-settings.revive.rules]]
-# name = "flag-parameter"
-
-# [[linters-settings.revive.rules]]
-# name = "function-result-limit"
+[[linters-settings.revive.rules]]
+name = "flag-parameter"
+disabled = true
 
 [[linters-settings.revive.rules]]
-name = "get-return"
+name = "function-length"
+disabled = true
 
 [[linters-settings.revive.rules]]
-name = "identical-branches"
+name = "function-result-limit"
+disabled = true
 
 [[linters-settings.revive.rules]]
-name = "if-return"
+name = "line-length-limit"
+disabled = true
 
 [[linters-settings.revive.rules]]
-name = "imports-blacklist"
-
-[[linters-settings.revive.rules]]
-name = "import-shadowing"
-
-[[linters-settings.revive.rules]]
-name = "increment-decrement"
-
-[[linters-settings.revive.rules]]
-name = "indent-error-flow"
-
-# [[linters-settings.revive.rules]]
-# name = "line-length-limit"
-
-# [[linters-settings.revive.rules]]
-# name = "max-public-structs"
-
-[[linters-settings.revive.rules]]
-name = "modifies-parameter"
-
-[[linters-settings.revive.rules]]
-name = "modifies-value-receiver"
+name = "max-public-structs"
+disabled = true
 
 # We frequently use nested structs, particularly in tests.
-# [[linters-settings.revive.rules]]
-# name = "nested-structs"
-
 [[linters-settings.revive.rules]]
-name = "optimize-operands-order"
+name = "nested-structs"
+disabled = true
 
-[[linters-settings.revive.rules]]
-name = "package-comments"
-
-[[linters-settings.revive.rules]]
-name = "range"
-
+# This doesn't make sense with 1.22 loop var changes.
 [[linters-settings.revive.rules]]
 name = "range-val-address"
+disabled = true
 
+# This causes a ton of failures. Many are fairly safe. It might be nice to
+# enable, but probably not worth the effort.
 [[linters-settings.revive.rules]]
-name = "range-val-in-closure"
-
-[[linters-settings.revive.rules]]
-name = "receiver-naming"
-
-[[linters-settings.revive.rules]]
-name = "redefines-builtin-id"
-
-[[linters-settings.revive.rules]]
-name = "string-of-int"
-
-[[linters-settings.revive.rules]]
-name = "struct-tag"
-
-[[linters-settings.revive.rules]]
-name = "superfluous-else"
-
-[[linters-settings.revive.rules]]
-name = "time-equal"
-
-[[linters-settings.revive.rules]]
-name = "time-naming"
-
-[[linters-settings.revive.rules]]
-name = "unconditional-recursion"
-
-[[linters-settings.revive.rules]]
-name = "unexported-naming"
-
-[[linters-settings.revive.rules]]
-name = "unexported-return"
+name = "unchecked-type-assertion"
+disabled = true
 
 # This is covered elsewhere and we want to ignore some
 # functions such as fmt.Fprintf.
-# [[linters-settings.revive.rules]]
-# name = "unhandled-error"
-
 [[linters-settings.revive.rules]]
-name = "unnecessary-stmt"
-
-[[linters-settings.revive.rules]]
-name = "unreachable-code"
-
-[[linters-settings.revive.rules]]
-name = "unused-parameter"
+name = "unhandled-error"
+disabled = true
 
 # We generally have unused receivers in tests for meeting the
 # requirements of an interface.
-# [[linters-settings.revive.rules]]
-# name = "unused-receiver"
-
 [[linters-settings.revive.rules]]
-name = "use-any"
+name = "unused-receiver"
+disabled = true
 
-[[linters-settings.revive.rules]]
-name = "useless-break"
-
-[[linters-settings.revive.rules]]
-name = "var-declaration"
-
-[[linters-settings.revive.rules]]
-name = "var-naming"
-
-[[linters-settings.revive.rules]]
-name = "waitgroup-by-value"
+[linters-settings.tagliatelle.case.rules]
+avro = "snake"
+bson = "snake"
+env = "upperSnake"
+envconfig = "upperSnake"
+json = "snake"
+mapstructure = "snake"
+xml = "snake"
+yaml = "snake"
 
 [linters-settings.unparam]
 check-exported = true
 
+[linters-settings.wrapcheck]
+"ignoreSigs" = [
+    ".Errorf(",
+    "errgroup.NewMultiError(",
+    "errors.Join(",
+    "errors.New(",
+    ".Wait(",
+    ".WithStack(",
+    ".Wrap(",
+    ".Wrapf(",
+    "v4.Retry(",
+    "v4.RetryNotify(",
+]
+
 [issues]
 exclude-use-default = false
 
-# This goes off for MD5 usage, which we use heavily
-[[issues.exclude-rules]]
-text = "weak cryptographic primitive"
-linters = ["gosec"]
+exclude-dirs = [
+    "geoip-build/mmcsv",
+]
+
+exclude-files = [
+    "_easyjson\\.go$",
+    "_easyjson_test\\.go$",
+    "_xgb2code\\.go$",
+    "_json2vector\\.go$",
+]
 
 [[issues.exclude-rules]]
 linters = [
@@ -724,6 +580,14 @@ source = "// *no-ruleguard"
 
 [[issues.exclude-rules]]
 linters = [
+    "nolintlint",
+]
+# The contextcheck linter also uses "nolint" in a slightly different way,
+# leading to falso positives from nolintlint.
+source = "//nolint:contextcheck //.*"
+
+[[issues.exclude-rules]]
+linters = [
     "govet",
 ]
 # These are usually fine to shadow and not allowing shadowing for them can
@@ -756,6 +620,12 @@ linters = [
 ]
 # SA5008: unknown JSON option "intern" - easyjson specific option.
 text = 'SA5008: unknown JSON option "intern"'
+
+[[issues.exclude-rules]]
+linters = [
+    "wrapcheck",
+]
+text = "github.com/maxmind/geoipupdate"
 
 [[issues.exclude-rules]]
 linters = [

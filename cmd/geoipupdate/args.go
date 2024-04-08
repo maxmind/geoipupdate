@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 
-	"github.com/maxmind/geoipupdate/v6/pkg/geoipupdate/vars"
 	flag "github.com/spf13/pflag"
+
+	"github.com/maxmind/geoipupdate/v6/internal/vars"
 )
 
 // Args are command line arguments.
@@ -19,6 +21,13 @@ type Args struct {
 
 func getArgs() *Args {
 	confFileDefault := vars.DefaultConfigFile
+	// Set the default config file only if it exists.
+	// Otherwise, geoipupdate requires the user to specify the config file
+	// even if all the other arguments are set via the environment variables.
+	if _, err := os.Stat(confFileDefault); errors.Is(err, os.ErrNotExist) {
+		confFileDefault = ""
+	}
+
 	if value, ok := os.LookupEnv("GEOIPUPDATE_CONF_FILE"); ok {
 		confFileDefault = value
 	}
