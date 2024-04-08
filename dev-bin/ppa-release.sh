@@ -24,7 +24,7 @@ rm -rf "$RESULTS" cmd/geoipupdate/geoipupdate build
 
 make clean
 
-go mod vendor
+GOWORK="off" go mod vendor
 
 cp -a . "$SRC"
 rm -f "$SRC"/*gz
