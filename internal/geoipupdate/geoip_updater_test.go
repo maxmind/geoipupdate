@@ -21,9 +21,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/http2"
 
-	"github.com/maxmind/geoipupdate/v6/client"
-	"github.com/maxmind/geoipupdate/v6/internal"
-	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v7/client"
+	"github.com/maxmind/geoipupdate/v7/internal"
+	"github.com/maxmind/geoipupdate/v7/internal/geoipupdate/database"
 )
 
 // TestUpdaterOutput makes sure that the Updater outputs the result of its

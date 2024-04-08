@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/maxmind/geoipupdate/v6/internal"
-	"github.com/maxmind/geoipupdate/v6/internal/vars"
+	"github.com/maxmind/geoipupdate/v7/internal"
+	"github.com/maxmind/geoipupdate/v7/internal/vars"
 )
 
 const metadataEndpoint = "%s/geoip/updates/metadata?"
