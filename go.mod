@@ -1,4 +1,4 @@
-module github.com/maxmind/geoipupdate/v6
+module github.com/maxmind/geoipupdate/v7
 
 go 1.20
 
@@ -21,3 +21,6 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+// The module version (v6) did not match the tag version in this release.
+retract v7.0.0

@@ -17,7 +17,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate"
+	"github.com/maxmind/geoipupdate/v7/internal/geoipupdate"
 )
 
 func TestUpdater(t *testing.T) {
