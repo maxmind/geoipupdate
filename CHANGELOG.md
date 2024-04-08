@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 7.0.0
+## 7.0.0 (2024-04-08)
 
 * BREAKING CHANGE: Improvements to the HTTP download API.
   The client now calls two new endpoints:
