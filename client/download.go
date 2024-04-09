@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v6/internal"
-	"github.com/maxmind/geoipupdate/v6/internal/vars"
+	"github.com/maxmind/geoipupdate/v7/internal"
+	"github.com/maxmind/geoipupdate/v7/internal/vars"
 )
 
 // DownloadResponse describes the result of a Download call.

@@ -2,4 +2,4 @@
 package vars
 
 // Version defines the current geoipupdate version.
-var Version = "6.1.0"
+var Version = "7.0.1"

@@ -14,9 +14,9 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 
-	"github.com/maxmind/geoipupdate/v6/client"
-	"github.com/maxmind/geoipupdate/v6/internal"
-	"github.com/maxmind/geoipupdate/v6/internal/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v7/client"
+	"github.com/maxmind/geoipupdate/v7/internal"
+	"github.com/maxmind/geoipupdate/v7/internal/geoipupdate/database"
 )
 
 type updateClient interface {

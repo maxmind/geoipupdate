@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 7.0.0
+## 7.0.1 (2024-04-08)
+
+* The 7.0.0 release was broken and has been retracted. This release updates the
+  module path to match tagged version. Reported by Adam Weinberger. GitHub #306.
+
+## 7.0.0 (2024-04-08)
 
 * BREAKING CHANGE: Improvements to the HTTP download API.
   The client now calls two new endpoints:
