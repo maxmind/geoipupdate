@@ -37,6 +37,11 @@ fi
 
 tag="v$version"
 
+if ! grep -q "^module github.com/maxmind/geoipupdate/$(echo "$tag" |cut -d . -f 1)" go.mod; then
+    echo "Tag version does not match go.mod version!"
+    exit 1;
+fi
+
 perl -pi -e "s/(?<=Version = \").+?(?=\")/$version/g" internal/vars/version.go
 
 echo $'\nRelease notes:'
