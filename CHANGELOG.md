@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 7.1.0
+
+* Allow the `Host` configuration directive and the `GEOIPUPDATE_HOST`
+  environment variable to accept a value with the scheme set. If not set, it
+  will continue to default to `https://`. Pull request by Gabe Cook. GitHub
+  #310.
+
 ## 7.0.1 (2024-04-08)
 
 * The 7.0.0 release was broken and has been retracted. This release updates the
