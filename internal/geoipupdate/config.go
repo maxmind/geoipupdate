@@ -15,6 +15,8 @@ import (
 	"github.com/maxmind/geoipupdate/v7/internal/vars"
 )
 
+const schemeHTTPS = "https"
+
 // Config is a parsed configuration file.
 type Config struct {
 	// AccountID is the account ID.
@@ -231,7 +233,14 @@ func setConfigFromFile(config *Config, path string) error {
 			keysSeen["EditionIDs"] = struct{}{}
 			keysSeen["ProductIds"] = struct{}{}
 		case "Host":
-			config.URL = "https://" + value
+			u, err := url.Parse(value)
+			if err != nil {
+				return fmt.Errorf("failed to parse Host: %w", err)
+			}
+			if u.Scheme == "" {
+				u.Scheme = schemeHTTPS
+			}
+			config.URL = u.String()
 		case "LicenseKey":
 			config.LicenseKey = value
 		case "LockFile":
@@ -307,7 +316,14 @@ func setConfigFromEnv(config *Config) error {
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_HOST"); ok {
-		config.URL = "https://" + value
+		u, err := url.Parse(value)
+		if err != nil {
+			return fmt.Errorf("failed to parse GEOIPUPDATE_HOST: %w", err)
+		}
+		if u.Scheme == "" {
+			u.Scheme = schemeHTTPS
+		}
+		config.URL = u.String()
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_LICENSE_KEY"); ok {
@@ -425,7 +441,7 @@ func parseProxy(
 	} else {
 		scheme := strings.ToLower(matches[1])
 		// The http package only supports http, https, and socks5.
-		if scheme != "http" && scheme != "https" && scheme != "socks5" {
+		if scheme != "http" && scheme != schemeHTTPS && scheme != "socks5" {
 			return nil, fmt.Errorf("unsupported proxy type: %s", scheme)
 		}
 	}

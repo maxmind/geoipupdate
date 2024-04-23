@@ -17,8 +17,8 @@ EditionIDs GeoLite2-Country GeoLite2-City
 # The directory to store the database files. Defaults to DATADIR
 # DatabaseDirectory DATADIR
 
-# The server to use. Defaults to "updates.maxmind.com".
-# Host updates.maxmind.com
+# The server to use. Defaults to "https://updates.maxmind.com".
+# Host https://updates.maxmind.com
 
 # The proxy host name or IP address. You may optionally specify a
 # port number, e.g., 127.0.0.1:8888. If no port number is specified, 1080
