@@ -45,7 +45,7 @@ sensitive.
 
 `Host`
 
-:   The host name of the server to use. The default is `updates.maxmind.com`.
+:   The host name of the server to use. The default is `https://updates.maxmind.com`.
     This can be overridden at run time by the `GEOIPUPDATE_HOST` environment
     variable.
 

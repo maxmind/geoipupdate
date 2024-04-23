@@ -464,6 +464,20 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				Verbose:  true,
 			},
 		},
+		{
+			Description: "Host scheme is used",
+			Input:       "AccountID\t\t123\nLicenseKey\t\t456\nEditionIDs\t\tGeoIP2-City\nHost\t\thttp://test",
+			Output: &Config{
+				AccountID:         123,
+				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "456",
+				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
+				RetryFor:          5 * time.Minute,
+				Parallelism:       1,
+				URL:               "http://test",
+			},
+		},
 	}
 
 	for _, test := range tests {

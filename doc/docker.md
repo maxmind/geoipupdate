@@ -30,7 +30,7 @@ The following are optional:
 * `GEOIPUPDATE_FREQUENCY` - The number of hours between `geoipupdate` runs.
   If this is not set or is set to `0`, `geoipupdate` will run once and exit.
 * `GEOIPUPDATE_HOST` - The host name of the server to use. The default is
-  `updates.maxmind.com`.
+  `https://updates.maxmind.com`.
 * `GEOIPUPDATE_PROXY` - The proxy host name or IP address. You may optionally
   specify a port number, e.g., 127.0.0.1:8888. If no port number is specified,
   1080 will be used.
