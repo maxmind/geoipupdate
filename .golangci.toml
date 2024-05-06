@@ -9,6 +9,11 @@ timeout = "10m"
 [linters]
 enable-all = true
 disable = [
+    # The canonical form is not always the most common form for some headers
+    # and there is a small chance that switching existing strings could
+    # break something.
+    "canonicalheader",
+
     "cyclop",
     "dogsled",
     "dupl",
@@ -16,6 +21,9 @@ disable = [
     # This is probably worthwhile, but there are a number of false positives
     # that would need to be addressed.
     "dupword",
+
+    # We don't follow its policy about not defining dynamic errors.
+    "err113",
 
     # This doesn't seem to know about CTEs or DELETEs with RETURNING
     "execinquery",
@@ -41,8 +49,9 @@ disable = [
     "gochecksumtype",
 
     "gocognit",
-    "goerr113",
     "godox",
+
+    # We have to disable both "gomnd" and "mnd" temporarily, apparently.
     "gomnd",
 
     # This only "caught" one thing, and it seemed like a reasonable use
@@ -64,6 +73,10 @@ disable = [
     # lot of things fail and we would need to make some decisions about
     # what to allow.
     "maintidx",
+
+    # Using a const for every number doesn't necessarily increase code clarity,
+    # and it would be a ton of work to move everything to that.
+    "mnd",
 
     # Causes panics, e.g., when processing mmerrors
     "musttag",
