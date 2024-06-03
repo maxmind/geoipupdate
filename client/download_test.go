@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +38,7 @@ func TestDownload(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_, err := w.Write([]byte(jsonData))
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	})
 
 	tests := []struct {
@@ -61,18 +62,26 @@ func TestDownload(t *testing.T) {
 					}
 
 					err := tw.WriteHeader(header)
-					require.NoError(t, err)
+					if !assert.NoError(t, err) {
+						return
+					}
 					_, err = tw.Write([]byte(dbContent))
-					require.NoError(t, err)
+					if !assert.NoError(t, err) {
+						return
+					}
 
-					require.NoError(t, tw.Close())
-					require.NoError(t, gw.Close())
+					if !assert.NoError(t, tw.Close()) {
+						return
+					}
+					if !assert.NoError(t, gw.Close()) {
+						return
+					}
 
 					w.Header().Set("Content-Type", "application/gzip")
 					w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
 					w.Header().Set("Last-Modified", lastModified.Format(time.RFC1123))
 					_, err = io.Copy(w, &buf)
-					require.NoError(t, err)
+					assert.NoError(t, err)
 				})
 
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +137,7 @@ func TestDownload(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusOK)
 					_, err := w.Write([]byte(jsonData))
-					require.NoError(t, err)
+					assert.NoError(t, err)
 				}))
 				return server
 			},
@@ -145,13 +154,17 @@ func TestDownload(t *testing.T) {
 					var buf bytes.Buffer
 					gw := gzip.NewWriter(&buf)
 					tw := tar.NewWriter(gw)
-					require.NoError(t, tw.Close())
-					require.NoError(t, gw.Close())
+					if !assert.NoError(t, tw.Close()) {
+						return
+					}
+					if !assert.NoError(t, gw.Close()) {
+						return
+					}
 
 					w.Header().Set("Content-Type", "application/gzip")
 					w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
 					_, err := io.Copy(w, &buf)
-					require.NoError(t, err)
+					assert.NoError(t, err)
 				})
 
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -185,17 +198,25 @@ func TestDownload(t *testing.T) {
 					}
 
 					err := tw.WriteHeader(header)
-					require.NoError(t, err)
+					if !assert.NoError(t, err) {
+						return
+					}
 					_, err = tw.Write([]byte(dbContent))
-					require.NoError(t, err)
+					if !assert.NoError(t, err) {
+						return
+					}
 
-					require.NoError(t, tw.Close())
-					require.NoError(t, gw.Close())
+					if !assert.NoError(t, tw.Close()) {
+						return
+					}
+					if !assert.NoError(t, gw.Close()) {
+						return
+					}
 
 					w.Header().Set("Content-Type", "application/gzip")
 					w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
 					_, err = io.Copy(w, &buf)
-					require.NoError(t, err)
+					assert.NoError(t, err)
 				})
 
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
