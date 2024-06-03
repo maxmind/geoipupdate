@@ -112,18 +112,6 @@ disable = [
     # This would probably be good, but we would need to configure it.
     "wsl",
 
-    # These are all deprecated
-    "deadcode",
-    "exhaustivestruct",
-    "golint",
-    "ifshort",
-    "interfacer",
-    "maligned",
-    "nosnakecase",
-    "scopelint",
-    "structcheck",
-    "varcheck",
-
     # Require Go 1.22
     "copyloopvar",
     "intrange",
@@ -166,11 +154,6 @@ exclude-functions = [
     'os.Remove',
     'os.RemoveAll',
 ]
-
-# Ignoring Close so that we don't have to have a bunch of
-# `defer func() { _ = r.Close() }()` constructs when we
-# don't actually care about the error.
-ignore = "Close,fmt:.*"
 
 [linters-settings.errorlint]
 errorf = true
@@ -618,6 +601,16 @@ linters = [
     "wrapcheck",
 ]
 path = "_test.go"
+
+[[issues.exclude-rules]]
+linters = [
+    "errcheck",
+]
+# There are many cases where we want to just close resources and ignore the
+# error (e.g., for defer f.Close on a read). errcheck removed its built-in
+# wildcard ignore. I tried listing all of the cases, but it was too many
+# and some were very specific.
+source = "\\.Close"
 
 [[issues.exclude-rules]]
 linters = [
