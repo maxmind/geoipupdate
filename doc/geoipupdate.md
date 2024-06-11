@@ -62,15 +62,20 @@ open.
 
 # NOTES
 
-Typically you should run `geoipupdate` weekly. On most Unix-like systems,
-this can be achieved by using cron. Below is a sample crontab file that
-runs `geoipupdate` on each Wednesday at noon:
+Typically you should run `geoipupdate` at least twice a week. Consult
+our
+[database release schedule](https://support.maxmind.com/hc/en-us/articles/4408216129947-Download-and-Update-Databases#h_01G3XX402XKD3J1CMWKNKMDYYZ)
+for more information.
+
+On most Unix-like systems, this can be achieved by using cron. Below is a
+sample crontab file that runs `geoipupdate` on every Tuesday and Friday
+at 10:00 pm:
 
     # top of crontab
 
     MAILTO=your@email.com
 
-    0 12 * * 3 geoipupdate
+    0 20 * * 2,5 geoipupdate
 
     # end of crontab
 
