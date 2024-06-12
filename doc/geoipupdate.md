@@ -67,18 +67,9 @@ our
 [database release schedule](https://support.maxmind.com/hc/en-us/articles/4408216129947-Download-and-Update-Databases#h_01G3XX402XKD3J1CMWKNKMDYYZ)
 for more information.
 
-On most Unix-like systems, this can be achieved by using cron. Below is a
-sample crontab file that runs `geoipupdate` on every Tuesday and Friday
-at 10:00 pm:
-
-    # top of crontab
-
-    MAILTO=your@email.com
-
-    0 20 * * 2,5 geoipupdate
-
-    # end of crontab
-
+On most Unix-like systems, this can be achieved by using cron. You can
+find
+[an example crontab file on our Developer Portal](https://dev.maxmind.com/geoip/updating-databases#3-run-geoip-update).
 
 To use with a proxy server, update your `GeoIP.conf` file as specified in
 the `GeoIP.conf` man page. Alternatively, set the `GEOIPUPDATE_PROXY` or
