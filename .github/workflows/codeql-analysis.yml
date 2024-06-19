@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '0 11 * * 2'
 
+permissions:
+  security-events: write # Used by this action.
+
 jobs:
   CodeQL-Build:
 
