@@ -1,0 +1,21 @@
+name: modver
+
+on:
+  pull_request:
+
+permissions:
+  contents: read # This gets granted by default, so keep granting it.
+  packages: read # This gets granted by default, so keep granting it.
+  pull-requests: write # Needed to comment on the PR.
+
+jobs:
+  modver:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: bobg/modver@v2.8.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pull_request_url: https://github.com/${{ github.repository }}/pull/${{ github.event.number }}
