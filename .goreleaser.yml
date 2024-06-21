@@ -1,4 +1,5 @@
 project_name: 'geoipupdate'
+version: 2
 archives:
   - id: 'archives-unix'
     builds:
