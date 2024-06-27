@@ -1,6 +1,8 @@
 module github.com/maxmind/geoipupdate/v7
 
-go 1.20
+go 1.21.0
+
+toolchain go1.22.3
 
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0
