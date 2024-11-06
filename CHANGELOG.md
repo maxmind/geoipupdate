@@ -6,6 +6,9 @@
   environment variable to accept a value with the scheme set. If not set, it
   will continue to default to `https://`. Pull request by Gabe Cook. GitHub
   #310.
+* Export `HTTPError` to enable fine-grained error handling for users of
+  `github.com/maxmind/geoipupdate/client`. Pull request by Ryan Davis. GitHub
+  #341.
 
 ## 7.0.1 (2024-04-08)
 
