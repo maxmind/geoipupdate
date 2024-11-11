@@ -283,7 +283,7 @@ func (w *mockWriter) Write(
 	return nil
 }
 
-func (w mockWriter) GetHash(editionID string) (string, error) {
+func (w *mockWriter) GetHash(editionID string) (string, error) {
 	return w.md5s[editionID], nil
 }
 

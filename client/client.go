@@ -10,6 +10,8 @@ import (
 // Client downloads GeoIP2 and GeoLite2 MMDB databases.
 //
 // After creation, it is valid for concurrent use.
+//
+//nolint:recvcheck // changing this would be a breaking change.
 type Client struct {
 	accountID  int
 	endpoint   string
