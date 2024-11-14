@@ -25,9 +25,6 @@ disable = [
     # We don't follow its policy about not defining dynamic errors.
     "err113",
 
-    # This doesn't seem to know about CTEs or DELETEs with RETURNING
-    "execinquery",
-
     # We often don't initialize all of the struct fields. This is fine
     # generally
     "exhaustruct",
@@ -50,9 +47,6 @@ disable = [
 
     "gocognit",
     "godox",
-
-    # We have to disable both "gomnd" and "mnd" temporarily, apparently.
-    "gomnd",
 
     # This only "caught" one thing, and it seemed like a reasonable use
     # of Han script. Generally, I don't think we want to prevent the use
