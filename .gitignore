@@ -1,5 +1,6 @@
 *.swp
 /build
+/dist
 /cmd/geoipupdate/geoipupdate
 /vendor
 .idea

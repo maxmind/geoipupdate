@@ -146,7 +146,7 @@ func TestRetryWhenWriting(t *testing.T) {
 				`{"databases":[{"edition_id":"foo-db-name",` +
 					`"md5":"83e01ba43c2a66e30cb3007c1a300c78","date":"2023-04-27"}]}`)
 			_, err := w.Write(metadata)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			return
 		}
@@ -163,12 +163,16 @@ func TestRetryWhenWriting(t *testing.T) {
 			size: 1000,
 		}
 		header, err := tar.FileInfoHeader(info, info.Name())
-		require.NoError(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 		header.Name = "foo-db-name.mmdb"
 
 		// Create a tar Header from the FileInfo data
 		err = tarWriter.WriteHeader(header)
-		require.NoError(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
 		bytesToWrite := 1000
 		if try == 0 {
@@ -179,7 +183,9 @@ func TestRetryWhenWriting(t *testing.T) {
 
 		for i := 0; i < bytesToWrite; i++ {
 			_, err = tarWriter.Write([]byte("t"))
-			require.NoError(t, err)
+			if !assert.NoError(t, err) {
+				return
+			}
 		}
 		try++
 	}))
@@ -277,7 +283,7 @@ func (w *mockWriter) Write(
 	return nil
 }
 
-func (w mockWriter) GetHash(editionID string) (string, error) {
+func (w *mockWriter) GetHash(editionID string) (string, error) {
 	return w.md5s[editionID], nil
 }
 

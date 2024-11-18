@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/maxmind/geoipupdate/v7/internal"
 	"github.com/maxmind/geoipupdate/v7/internal/vars"
 )
 
@@ -51,7 +50,7 @@ func (c *Client) getMetadata(
 	}
 
 	if response.StatusCode != http.StatusOK {
-		httpErr := internal.HTTPError{
+		httpErr := HTTPError{
 			Body:       string(responseBody),
 			StatusCode: response.StatusCode,
 		}

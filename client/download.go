@@ -17,6 +17,11 @@ import (
 	"github.com/maxmind/geoipupdate/v7/internal/vars"
 )
 
+// HTTPError is an error from performing an HTTP request and receiving a non-200 status code.
+//
+// See https://dev.maxmind.com/geoip/docs/web-services/responses/#errors for more details.
+type HTTPError = internal.HTTPError
+
 // DownloadResponse describes the result of a Download call.
 type DownloadResponse struct {
 	// LastModified is the date that the database was last modified. It will
@@ -55,6 +60,9 @@ type DownloadResponse struct {
 //
 // If the current MD5 checksum matches what the server currently has, no
 // download is performed.
+//
+// Returns an [HTTPError] if the server returns a non-200 status code. This
+// can be used to identify problems with license.
 func (c Client) Download(
 	ctx context.Context,
 	editionID,
@@ -125,7 +133,7 @@ func (c *Client) download(
 		// TODO(horgh): Should we fully consume the body?
 		//nolint:errcheck // we are already returning an error.
 		buf, _ := io.ReadAll(io.LimitReader(response.Body, 256))
-		httpErr := internal.HTTPError{
+		httpErr := HTTPError{
 			Body:       string(buf),
 			StatusCode: response.StatusCode,
 		}

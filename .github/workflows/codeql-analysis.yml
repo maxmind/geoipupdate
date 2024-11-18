@@ -1,12 +1,12 @@
 name: "Code scanning - action"
 
 on:
-  push:
-    branches-ignore:
-      - 'dependabot/**'
   pull_request:
   schedule:
     - cron: '0 11 * * 2'
+
+permissions:
+  security-events: write # Used by this action.
 
 jobs:
   CodeQL-Build:

@@ -9,6 +9,11 @@ timeout = "10m"
 [linters]
 enable-all = true
 disable = [
+    # The canonical form is not always the most common form for some headers
+    # and there is a small chance that switching existing strings could
+    # break something.
+    "canonicalheader",
+
     "cyclop",
     "dogsled",
     "dupl",
@@ -17,8 +22,8 @@ disable = [
     # that would need to be addressed.
     "dupword",
 
-    # This doesn't seem to know about CTEs or DELETEs with RETURNING
-    "execinquery",
+    # We don't follow its policy about not defining dynamic errors.
+    "err113",
 
     # We often don't initialize all of the struct fields. This is fine
     # generally
@@ -41,9 +46,7 @@ disable = [
     "gochecksumtype",
 
     "gocognit",
-    "goerr113",
     "godox",
-    "gomnd",
 
     # This only "caught" one thing, and it seemed like a reasonable use
     # of Han script. Generally, I don't think we want to prevent the use
@@ -64,6 +67,10 @@ disable = [
     # lot of things fail and we would need to make some decisions about
     # what to allow.
     "maintidx",
+
+    # Using a const for every number doesn't necessarily increase code clarity,
+    # and it would be a ton of work to move everything to that.
+    "mnd",
 
     # Causes panics, e.g., when processing mmerrors
     "musttag",
@@ -98,18 +105,6 @@ disable = [
 
     # This would probably be good, but we would need to configure it.
     "wsl",
-
-    # These are all deprecated
-    "deadcode",
-    "exhaustivestruct",
-    "golint",
-    "ifshort",
-    "interfacer",
-    "maligned",
-    "nosnakecase",
-    "scopelint",
-    "structcheck",
-    "varcheck",
 
     # Require Go 1.22
     "copyloopvar",
@@ -153,11 +148,6 @@ exclude-functions = [
     'os.Remove',
     'os.RemoveAll',
 ]
-
-# Ignoring Close so that we don't have to have a bunch of
-# `defer func() { _ = r.Close() }()` constructs when we
-# don't actually care about the error.
-ignore = "Close,fmt:.*"
 
 [linters-settings.errorlint]
 errorf = true
@@ -605,6 +595,16 @@ linters = [
     "wrapcheck",
 ]
 path = "_test.go"
+
+[[issues.exclude-rules]]
+linters = [
+    "errcheck",
+]
+# There are many cases where we want to just close resources and ignore the
+# error (e.g., for defer f.Close on a read). errcheck removed its built-in
+# wildcard ignore. I tried listing all of the cases, but it was too many
+# and some were very specific.
+source = "\\.Close"
 
 [[issues.exclude-rules]]
 linters = [

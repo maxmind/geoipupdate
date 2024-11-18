@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/maxmind/geoipupdate/v7/internal/geoipupdate"
@@ -43,7 +44,9 @@ func TestUpdater(t *testing.T) {
 	// mock metadata handler.
 	metadataHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		queryParams, err := url.ParseQuery(r.URL.RawQuery)
-		require.NoError(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
 		var jsonData string
 		switch queryParams.Get("edition_id") {
@@ -74,7 +77,7 @@ func TestUpdater(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_, err = w.Write([]byte(jsonData))
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	})
 
 	// mock download handler.
@@ -92,18 +95,26 @@ func TestUpdater(t *testing.T) {
 		}
 
 		err := tw.WriteHeader(header)
-		require.NoError(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 		_, err = tw.Write([]byte(content))
-		require.NoError(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
-		require.NoError(t, tw.Close())
-		require.NoError(t, gw.Close())
+		if !assert.NoError(t, tw.Close()) {
+			return
+		}
+		if !assert.NoError(t, gw.Close()) {
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/gzip")
 		w.Header().Set("Content-Disposition", "attachment; filename=test.tar.gz")
 		w.Header().Set("Last-Modified", lastModified.Format(time.RFC1123))
 		_, err = io.Copy(w, &buf)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	})
 
 	// create test server.
