@@ -1,3 +1,9 @@
+geoipupdate (7.1.0-0+maxmind1) oracular; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald (MaxMind, Inc.) <goschwald@maxmind.com>  Mon, 18 Nov 2024 10:03:39 -0800
+
 geoipupdate (7.0.1-0+maxmind1) mantic; urgency=low
 
   * New upstream release.
