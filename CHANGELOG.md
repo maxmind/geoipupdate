@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 7.1.0
+## 7.1.0 (2024-11-18)
 
 * Allow the `Host` configuration directive and the `GEOIPUPDATE_HOST`
   environment variable to accept a value with the scheme set. If not set, it
