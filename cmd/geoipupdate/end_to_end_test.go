@@ -23,14 +23,12 @@ import (
 
 func TestUpdater(t *testing.T) {
 	// mock existing databases.
-	tempDir, err := os.MkdirTemp("", "db")
-	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	edition := "edition-1"
 	dbFile := filepath.Join(tempDir, edition+".mmdb")
 	// equivalent MD5: 618dd27a10de24809ec160d6807f363f
-	err = os.WriteFile(dbFile, []byte("edition-1 content"), os.ModePerm)
+	err := os.WriteFile(dbFile, []byte("edition-1 content"), os.ModePerm)
 	require.NoError(t, err)
 
 	edition = "edition-2"
