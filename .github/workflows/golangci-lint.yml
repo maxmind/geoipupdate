@@ -6,6 +6,8 @@ on:
   schedule:
     - cron: '5 5 * * SUN'
 
+permissions: {}
+
 jobs:
   golangci:
     name: lint
