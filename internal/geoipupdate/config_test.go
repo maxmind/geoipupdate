@@ -987,6 +987,7 @@ func withEnvVars(t *testing.T, newEnvVars map[string]string, f func()) {
 	origEnv := os.Environ()
 
 	for key, val := range newEnvVars {
+		//nolint:usetesting // t.Setenv causes errors on Windows for some reason.
 		err := os.Setenv(key, val)
 		require.NoError(t, err)
 	}
@@ -1000,6 +1001,7 @@ func withEnvVars(t *testing.T, newEnvVars map[string]string, f func()) {
 	// Reset the original environment variables
 	for _, pair := range origEnv {
 		parts := strings.SplitN(pair, "=", 2)
+		//nolint:usetesting // t.Setenv causes errors on Windows for some reason.
 		err := os.Setenv(parts[0], parts[1])
 		require.NoError(t, err)
 	}

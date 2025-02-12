@@ -29,9 +29,6 @@ disable = [
     # generally
     "exhaustruct",
 
-    # Not relevant after 1.22
-    "exportloopref",
-
     # We tried this linter but most places we do forced type asserts are
     # pretty safe, e.g., an atomic.Value when everything is encapsulated
     # in a small package.
@@ -97,6 +94,9 @@ disable = [
 
     # We probably _should_ be doing this!
     "thelper",
+
+    # Deprecated since golangci-lint 1.64.0. The usetesting linter replaces it.
+    "tenv",
 
     # We don't follow this. Sometimes we test internal code.
     "testpackage",
