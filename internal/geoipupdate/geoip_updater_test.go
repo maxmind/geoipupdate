@@ -98,7 +98,7 @@ func TestUpdaterOutput(t *testing.T) {
 
 	require.Equal(t, len(wantDatabases), len(outputDatabases))
 
-	for i := 0; i < len(wantDatabases); i++ {
+	for i := range wantDatabases {
 		require.Equal(t, wantDatabases[i].EditionID, outputDatabases[i].EditionID)
 		require.Equal(t, wantDatabases[i].OldHash, outputDatabases[i].OldHash)
 		require.Equal(t, wantDatabases[i].NewHash, outputDatabases[i].NewHash)
@@ -181,7 +181,7 @@ func TestRetryWhenWriting(t *testing.T) {
 			bytesToWrite = 100
 		}
 
-		for i := 0; i < bytesToWrite; i++ {
+		for range bytesToWrite {
 			_, err = tarWriter.Write([]byte("t"))
 			if !assert.NoError(t, err) {
 				return
