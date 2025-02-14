@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
+	"github.com/cenkalti/backoff/v5"
 
 	"github.com/maxmind/geoipupdate/v7/client"
 	"github.com/maxmind/geoipupdate/v7/internal"
@@ -134,26 +134,34 @@ func (u *Updater) downloadEdition(
 		return nil, err
 	}
 
-	// RetryFor value of 0 means that no retries should be performed.
-	// Max zero retries has to be set to achieve that
-	// because the backoff never stops if MaxElapsedTime is zero.
-	exp := backoff.NewExponentialBackOff()
-	exp.MaxElapsedTime = u.config.RetryFor
-	b := backoff.BackOff(exp)
-	if exp.MaxElapsedTime == 0 {
-		b = backoff.WithMaxRetries(exp, 0)
+	b := backoff.NewExponentialBackOff()
+
+	opts := []backoff.RetryOption{
+		backoff.WithBackOff(b),
+		backoff.WithNotify(func(err error, d time.Duration) {
+			if u.config.Verbose {
+				log.Printf("Couldn't download %s, retrying in %v: %v", editionID, d, err)
+			}
+		}),
+	}
+
+	if u.config.RetryFor == 0 {
+		opts = append(opts, backoff.WithMaxTries(1))
+	} else {
+		opts = append(opts, backoff.WithMaxElapsedTime(u.config.RetryFor))
 	}
 
 	var edition *database.ReadResult
-	err = backoff.RetryNotify(
-		func() error {
+	_, err = backoff.Retry(
+		ctx,
+		func() (bool, error) {
 			res, err := uc.Download(ctx, editionID, editionHash)
 			if err != nil {
 				if internal.IsPermanentError(err) {
-					return backoff.Permanent(err)
+					return false, backoff.Permanent(err)
 				}
 
-				return err
+				return false, err
 			}
 			defer res.Reader.Close()
 
@@ -168,7 +176,7 @@ func (u *Updater) downloadEdition(
 					OldHash:   editionHash,
 					NewHash:   editionHash,
 				}
-				return nil
+				return false, nil
 			}
 
 			if u.config.Verbose {
@@ -183,10 +191,10 @@ func (u *Updater) downloadEdition(
 			)
 			if err != nil {
 				if internal.IsPermanentError(err) {
-					return backoff.Permanent(err)
+					return false, backoff.Permanent(err)
 				}
 
-				return err
+				return false, err
 			}
 
 			edition = &database.ReadResult{
@@ -195,14 +203,9 @@ func (u *Updater) downloadEdition(
 				NewHash:    res.MD5,
 				ModifiedAt: res.LastModified,
 			}
-			return nil
+			return false, nil
 		},
-		b,
-		func(err error, d time.Duration) {
-			if u.config.Verbose {
-				log.Printf("Couldn't download %s, retrying in %v: %v", editionID, d, err)
-			}
-		},
+		opts...,
 	)
 	if err != nil {
 		return nil, err
