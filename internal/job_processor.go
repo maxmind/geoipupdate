@@ -47,7 +47,6 @@ func (j *JobProcessor) Run(ctx context.Context) error {
 
 	ctx, j.cancel = context.WithCancel(ctx)
 	for _, job := range j.jobs {
-		job := job
 		j.processor.Go(func() error {
 			if err := ctx.Err(); err != nil {
 				return fmt.Errorf("processing canceled: %w", err)

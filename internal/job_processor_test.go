@@ -55,7 +55,7 @@ func TestJobQueueRun(t *testing.T) {
 
 			ctx := context.Background()
 			jobProcessor := NewJobProcessor(ctx, test.Parallelism)
-			for i := 0; i < jobsNumber; i++ {
+			for range jobsNumber {
 				jobProcessor.Add(processorFunc)
 			}
 
@@ -100,7 +100,7 @@ func TestJobQueueStop(t *testing.T) {
 		return nil
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		jobProcessor.Add(processorFunc)
 	}
 

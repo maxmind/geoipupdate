@@ -88,7 +88,6 @@ func (u *Updater) Run(ctx context.Context) error {
 	var editions []database.ReadResult
 	var mu sync.Mutex
 	for _, editionID := range u.config.EditionIDs {
-		editionID := editionID
 		processFunc := func(ctx context.Context) error {
 			edition, err := u.downloadEdition(ctx, editionID, u.updateClient, u.writer)
 			if err != nil {
