@@ -166,9 +166,6 @@ linters-settings:
       - os.Remove
       - os.RemoveAll
 
-    # This is a workaround for https://github.com/golangci/golangci-lint/issues/4733
-    ignore: ""
-
   errorlint:
     errorf: true
     asserts: true
