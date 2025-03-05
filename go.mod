@@ -1,6 +1,7 @@
 module github.com/maxmind/geoipupdate/v7
 
-go 1.23
+go 1.23.0
+
 require (
 	github.com/cenkalti/backoff/v5 v5.0.2
 	github.com/gofrs/flock v0.12.1
