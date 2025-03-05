@@ -1,13 +1,12 @@
 module github.com/maxmind/geoipupdate/v7
 
 go 1.23
-
 require (
 	github.com/cenkalti/backoff/v5 v5.0.2
 	github.com/gofrs/flock v0.12.1
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/net v0.35.0
+	golang.org/x/net v0.36.0
 	golang.org/x/sync v0.11.0
 )
 
