@@ -205,7 +205,11 @@ func (w *fileWriter) write(r io.Reader) error {
 func (w *fileWriter) validateHash(h string) error {
 	tempFileHash := byteToString(w.md5Writer.Sum(nil))
 	if !strings.EqualFold(h, tempFileHash) {
-		return fmt.Errorf("md5 of new database (%s) does not match expected md5 (%s)", tempFileHash, h)
+		return fmt.Errorf(
+			"md5 of new database (%s) does not match expected md5 (%s)",
+			tempFileHash,
+			h,
+		)
 	}
 	return nil
 }

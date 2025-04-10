@@ -404,7 +404,8 @@ func validateConfig(config *Config) error {
 	// and many people still use this combination. With a real account id
 	// and license key now being required, we want to give those people a
 	// sensible error message.
-	if (config.AccountID == 0 || config.AccountID == 999999) && config.LicenseKey == "000000000000" {
+	if (config.AccountID == 0 || config.AccountID == 999999) &&
+		config.LicenseKey == "000000000000" {
 		return errors.New("geoipupdate requires a valid AccountID and LicenseKey combination")
 	}
 
