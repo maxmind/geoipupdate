@@ -31,7 +31,7 @@ func (c *Client) getMetadata(
 
 	metadataRequestURL := fmt.Sprintf(metadataEndpoint, c.endpoint) + params.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, metadataRequestURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, metadataRequestURL, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("creating metadata request: %w", err)
 	}

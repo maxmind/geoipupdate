@@ -96,7 +96,7 @@ func TestUpdaterOutput(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, len(wantDatabases), len(outputDatabases))
+	require.Len(t, outputDatabases, len(wantDatabases))
 
 	for i := range wantDatabases {
 		require.Equal(t, wantDatabases[i].EditionID, outputDatabases[i].EditionID)

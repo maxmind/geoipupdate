@@ -109,7 +109,7 @@ func (c *Client) download(
 	escapedEdition := url.PathEscape(editionID)
 	requestURL := fmt.Sprintf(downloadEndpoint, c.endpoint, escapedEdition) + params.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, http.NoBody)
 	if err != nil {
 		return nil, time.Time{}, fmt.Errorf("creating download request: %w", err)
 	}

@@ -82,10 +82,12 @@ EditionIDs GeoLite2-Country GeoLite2-City
 				LicenseKey:        "000000000001",
 				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
-				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
-				URL:               "https://updates.maxmind.com",
-				RetryFor:          5 * time.Minute,
-				Parallelism:       1,
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				URL:         "https://updates.maxmind.com",
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
 			},
 		},
 		{
@@ -135,10 +137,12 @@ ProductIds GeoLite2-Country GeoLite2-City
 				LicenseKey:        "000000000001",
 				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 				EditionIDs:        []string{"GeoLite2-Country", "GeoLite2-City"},
-				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
-				URL:               "https://updates.maxmind.com",
-				RetryFor:          5 * time.Minute,
-				Parallelism:       1,
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				URL:         "https://updates.maxmind.com",
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
 			},
 		},
 		{
@@ -319,10 +323,12 @@ Parallelism 2`,
 				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "abcd",
-				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
-				URL:               "https://updates.maxmind.com",
-				RetryFor:          5 * time.Minute,
-				Parallelism:       4,
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				URL:         "https://updates.maxmind.com",
+				RetryFor:    5 * time.Minute,
+				Parallelism: 4,
 			},
 		},
 		{
@@ -352,10 +358,12 @@ EditionIDs GeoIP2-City`,
 				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "abcd",
-				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
-				URL:               "https://updates.maxmind.com",
-				RetryFor:          5 * time.Minute,
-				Parallelism:       1,
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				URL:         "https://updates.maxmind.com",
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
 			},
 		},
 		{
@@ -372,10 +380,12 @@ SkipPeerVerification 1
 				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "abcd",
-				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
-				URL:               "https://updates.maxmind.com",
-				RetryFor:          5 * time.Minute,
-				Parallelism:       1,
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				URL:         "https://updates.maxmind.com",
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
 			},
 		},
 		{
@@ -386,10 +396,12 @@ SkipPeerVerification 1
 				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "123",
-				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
-				URL:               "https://updates.maxmind.com",
-				RetryFor:          5 * time.Minute,
-				Parallelism:       1,
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				URL:         "https://updates.maxmind.com",
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
 			},
 		},
 		{
@@ -408,10 +420,12 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 				EditionIDs:        []string{"GeoLite2-City", "GeoLite2-Country"},
 				LicenseKey:        "456",
-				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
-				URL:               "https://updates.maxmind.com",
-				RetryFor:          5 * time.Minute,
-				Parallelism:       1,
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				URL:         "https://updates.maxmind.com",
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
 			},
 		},
 		{
@@ -423,10 +437,12 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 				EditionIDs:        []string{"GeoLite2-City", "GeoLite2-Country"},
 				LicenseKey:        "456",
-				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
-				URL:               "https://updates.maxmind.com",
-				RetryFor:          5 * time.Minute,
-				Parallelism:       1,
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				URL:         "https://updates.maxmind.com",
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
 			},
 		},
 		{
@@ -472,10 +488,12 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 				EditionIDs:        []string{"GeoIP2-City"},
 				LicenseKey:        "456",
-				LockFile:          filepath.Clean(filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock")),
-				RetryFor:          5 * time.Minute,
-				Parallelism:       1,
-				URL:               "http://test",
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
+				URL:         "http://test",
 			},
 		},
 	}
@@ -762,11 +780,17 @@ func TestSetConfigFromEnv(t *testing.T) {
 			licenseKeyFile := test.Env["GEOIPUPDATE_LICENSE_KEY_FILE"]
 
 			if test.AccountIDFileContents != "" {
-				require.NoError(t, os.WriteFile(accountIDFile, []byte(test.AccountIDFileContents), 0o600))
+				require.NoError(
+					t,
+					os.WriteFile(accountIDFile, []byte(test.AccountIDFileContents), 0o600),
+				)
 			}
 
 			if test.LicenseKeyFileContents != "" {
-				require.NoError(t, os.WriteFile(licenseKeyFile, []byte(test.LicenseKeyFileContents), 0o600))
+				require.NoError(
+					t,
+					os.WriteFile(licenseKeyFile, []byte(test.LicenseKeyFileContents), 0o600),
+				)
 			}
 
 			withEnvVars(t, test.Env, func() {
