@@ -24,7 +24,7 @@ func TestDownload(t *testing.T) {
 	}
 	dbContent := "edition-1 content"
 
-	lastModified, err := time.ParseInLocation("2006-01-02", "2024-02-23", time.UTC)
+	lastModified, err := time.ParseInLocation(time.DateOnly, "2024-02-23", time.UTC)
 	require.NoError(t, err)
 
 	metadataHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
