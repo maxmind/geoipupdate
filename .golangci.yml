@@ -250,6 +250,12 @@ linters:
         - pattern: ^net.LookupSRV
           msg: You should use net.Resolver functions instead.
 
+    funcorder:
+      constructor: true
+      # Don't require that public methods come first. The rule might make sense
+      # but we have a significant amount of existing code that violates this.
+      struct-method: false
+
     gocritic:
       enable-all: true
       disabled-checks:
@@ -432,11 +438,6 @@ linters:
       require-specific: true
       allow-no-explanation:
         - misspell
-      # Setting allow-unused to false would be nice. We previously had it that
-      # way. However there is an unresolved issue where it occasionally fails
-      # when it should not. We think there might be some kind of caching bug in
-      # golangci-lint. See
-      # https://maxmind.slack.com/archives/C07ER81BQ4T/p1739389216305519.
       allow-unused: false
 
     revive:
@@ -615,6 +616,10 @@ linters:
 
   exclusions:
     generated: lax
+    # Warning on unused exclusions does not work well when running golangci-lint
+    # from precious as most exclusions will not be used for a particular directory.
+    # It is worth manually enabling this when cleaning up the config file though.
+    warn-unused: false
     rules:
       # This rule doesn't really make sense for tests where we don't have an open
       # connection and we might be passing around the response for other reasons.
@@ -686,18 +691,8 @@ linters:
           - wrapcheck
         text: github.com/maxmind/geoipupdate
 
-      - linters:
-          - wrapcheck
-        path: _easyjson.go
-
-      - linters:
-          - gocritic
-        text: octalLiteral
-        source: Chmod|WriteFile
-
     paths:
       - _easyjson\.go$
-      - _easyjson_test\.go$
       - _xgb2code\.go$
       - _json2vector\.go$
       - geoip-build/mmcsv
@@ -729,9 +724,7 @@ formatters:
 
   exclusions:
     generated: lax
-    paths:
-      - _easyjson\.go$
-      - _easyjson_test\.go$
-      - _xgb2code\.go$
-      - _json2vector\.go$
-      - geoip-build/mmcsv
+    # Warning on unused exclusions does not work well when running golangci-lint
+    # from precious as most exclusions will not be used for a particular directory.
+    # It is worth manually enabling this when cleaning up the config file though.
+    warn-unused: false
