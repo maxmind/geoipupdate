@@ -96,6 +96,9 @@ linters:
     # there are many cases where it is not.
     - nlreturn
 
+    # We allow inline errors in if statements as long as it stays on a single line.
+    - noinlineerr
+
     # We occasionally use named returns for documentation, which is helpful.
     # Named returns are only really a problem when used in conjunction with
     # a bare return statement. I _think_ Revive's bare-return covers that
@@ -120,6 +123,9 @@ linters:
     # Although some fixes in this seem good (e.g., err cuddling), I was
     # not able to disable some of the less desirable whitespace changes.
     - wsl
+    # This is a new, rewritten version of wsl. It would be worth exploring
+    # the options.
+    - wsl_v5
 
   settings:
     # Please note that we only use depguard for blocking packages and
@@ -127,6 +133,19 @@ linters:
     depguard:
       rules:
         main:
+          # Allow if package doesn't match the deny list or, if it does, allow
+          # if the allow list rule is more specific (longer).
+          list-mode: lax
+          allow:
+            # This is the modern package for Drive.
+            - google.golang.org/api/drive/v3
+            # This is the modern package for Sheets.
+            - google.golang.org/api/sheets/v4
+            # These package are used by cloud.google.com/go package APIs.
+            - google.golang.org/api/googleapi
+            - google.golang.org/api/iterator
+            - google.golang.org/api/option
+            - google.golang.org/api/transport/http
           deny:
             - pkg: github.com/likexian/gokit/assert
               desc: Use github.com/stretchr/testify/assert
@@ -136,12 +155,8 @@ linters:
               desc: Use slices instead.
             - pkg: golang.org/x/exp/slog
               desc: Use log/slog instead.
-            - pkg: google.golang.org/api/compute/v1
-              desc: Use cloud.google.com/go/compute/apiv1 instead.
-            - pkg: google.golang.org/api/cloudresourcemanager/v1
-              desc: Use cloud.google.com/go/resourcemanager/apiv3 instead.
-            - pkg: google.golang.org/api/serviceusage/v1
-              desc: Use cloud.google.com/go/serviceusage/apiv1 instead.
+            - pkg: google.golang.org/api
+              desc: These are maintenance mode/deprecated packages. Use cloud.google.com/go packages instead.
             - pkg: io/ioutil
               desc: Deprecated. Functions have been moved elsewhere.
             - pkg: k8s.io/utils/strings/slices
@@ -540,6 +555,18 @@ linters:
         - name: unused-receiver
           disabled: true
 
+        # This rule seems generally good, but it is unstable. If there is a
+        # package that violates it, you cannot just add a nolint to the file
+        # that it first complains about. You need to add nolints to _every_
+        # file in that package or otherwise it will randomly faily. This in
+        # turn causes issues for nolintlint as that will randomly think all
+        # but one of those nolints are unnecessary. More discussion on Slack:
+        # https://maxmind.slack.com/archives/C07ER81BQ4T/p1751312286948379
+        #
+        # TODO: reenable if this is fixed.
+        - name: var-naming
+          disabled: true
+
     sloglint:
       # Enforce not mixing key-value pairs and attributes.
       no-mixed-args: true
@@ -646,13 +673,6 @@ linters:
       - linters:
           - forbidigo
         text: "[Aa]ccountUserID|Account\\.UserID"
-
-      # For some reason the imports stuff in ruleguard doesn't work in golangci-lint.
-      # Perhaps it has an outdated version or something
-      - linters:
-          - gocritic
-        path: _test.go
-        text: "ruleguard: Prefer the alternative Context method instead"
 
       # The nolintlint linter behaves oddly with ruleguard rules
       - linters:

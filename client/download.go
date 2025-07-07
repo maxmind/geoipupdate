@@ -195,6 +195,7 @@ func parseTime(s string) (time.Time, error) {
 // editionReader embeds a tar.Reader and holds references to other readers to close.
 type editionReader struct {
 	*tar.Reader
+
 	gzCloser       io.Closer
 	responseCloser io.Closer
 }
