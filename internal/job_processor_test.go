@@ -72,7 +72,7 @@ func TestJobQueueRun(t *testing.T) {
 			select {
 			case <-doneCh:
 			case <-time.After(1000 * time.Millisecond):
-				t.Errorf("Timeout waiting for function completion")
+				t.Error("Timeout waiting for function completion")
 			}
 
 			// The maximum number of parallel downloads executed should not exceed
@@ -121,7 +121,7 @@ func TestJobQueueStop(t *testing.T) {
 	select {
 	case <-doneCh:
 	case <-time.After(1000 * time.Millisecond):
-		t.Errorf("Timeout waiting for function completion")
+		t.Error("Timeout waiting for function completion")
 	}
 
 	require.Equal(t, processedJobs, maxProcessedJobs)

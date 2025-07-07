@@ -62,7 +62,7 @@ func getArgs() *Args {
 	}
 
 	if *parallelism < 0 {
-		log.Printf("Parallelism must be a positive number")
+		log.Print("Parallelism must be a positive number")
 		printUsage()
 	}
 
