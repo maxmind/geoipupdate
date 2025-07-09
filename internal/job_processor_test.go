@@ -55,7 +55,7 @@ func TestJobQueueRun(t *testing.T) {
 
 			ctx := context.Background()
 			jobProcessor := NewJobProcessor(ctx, test.Parallelism)
-			for i := 0; i < jobsNumber; i++ {
+			for range jobsNumber {
 				jobProcessor.Add(processorFunc)
 			}
 
@@ -72,7 +72,7 @@ func TestJobQueueRun(t *testing.T) {
 			select {
 			case <-doneCh:
 			case <-time.After(1000 * time.Millisecond):
-				t.Errorf("Timeout waiting for function completion")
+				t.Error("Timeout waiting for function completion")
 			}
 
 			// The maximum number of parallel downloads executed should not exceed
@@ -100,7 +100,7 @@ func TestJobQueueStop(t *testing.T) {
 		return nil
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		jobProcessor.Add(processorFunc)
 	}
 
@@ -121,7 +121,7 @@ func TestJobQueueStop(t *testing.T) {
 	select {
 	case <-doneCh:
 	case <-time.After(1000 * time.Millisecond):
-		t.Errorf("Timeout waiting for function completion")
+		t.Error("Timeout waiting for function completion")
 	}
 
 	require.Equal(t, processedJobs, maxProcessedJobs)

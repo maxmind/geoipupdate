@@ -1,0 +1,750 @@
+version: "2"
+run:
+  # This is needed for precious, which may run multiple instances
+  # in parallel
+  go: "1.23"
+  tests: true
+  allow-parallel-runners: true
+linters:
+  default: all
+  disable:
+    # The canonical form is not always the most common form for some headers
+    # and there is a small chance that switching existing strings could
+    # break something.
+    - canonicalheader
+
+    - cyclop
+
+    # This forbids stuff like "_, _, _, err := ...". Although I agree that it
+    # is not ideal, the actual uses in our code-base are mostly due to third-
+    # party libraries.
+    - dogsled
+
+    # This seems to primarily go off for table-driven tests for us. I don't
+    # know if more sharing between these tests would actually make the code
+    # easier to follow.
+    - dupl
+
+    # This is very helpful for linting comments, but for strings in code it
+    # is pretty questionable, e.g., we have repeated strings in GeoIP build
+    # code for org names or in test cases. We should consider enabling if
+    # they allow limiting it to certain cases in the future.
+    - dupword
+
+    # We don't follow its policy about not defining dynamic errors.
+    - err113
+
+    # We often don't initialize all of the struct fields. This is fine
+    # generally
+    - exhaustruct
+
+    # We tried this linter but most places we do forced type asserts are
+    # pretty safe, e.g., an atomic.Value when everything is encapsulated
+    # in a small package.
+    - forcetypeassert
+
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+
+    # Similar to the exhaustive linter and I don't know that we use these
+    # sorts of sum types
+    - gochecksumtype
+
+    - gocognit
+
+    # We don't want to forbid TODO, FIXME, etc.
+    - godox
+
+    # This only "caught" one thing, and it seemed like a reasonable use
+    # of Han script. Generally, I don't think we want to prevent the use
+    # of particular scripts. The time.Local checks might be useful, but
+    # this didn't actually catch anything of note there.
+    - gosmopolitan
+
+    # Seems too opinionated or at least would require going through all the
+    # interfaces we have.
+    - inamedparam
+
+    # This is an ok rule generally, but we don't return that many interfaces
+    # and where we do, we tend to have a particular reason to do so.
+    - ireturn
+
+    # We use golines instead.
+    - lll
+
+    # Maintainability Index. Seems like it could be a good idea, but a
+    # lot of things fail and we would need to make some decisions about
+    # what to allow.
+    - maintidx
+
+    # Using a const for every number doesn't necessarily increase code clarity,
+    # and it would be a ton of work to move everything to that.
+    - mnd
+
+    # Causes panics, e.g., when processing mmerrors
+    - musttag
+
+    - nestif
+
+    # We do end up with a lot of debates on PRs about nil, nil returns. Such
+    # returns are often surprising, but there seem to be enough valid cases
+    # in our codebase that I am reluctant to enforce this.
+    - nilnil
+
+    # Checks for a new line before a return. Although that often seems helpful,
+    # there are many cases where it is not.
+    - nlreturn
+
+    # We allow inline errors in if statements as long as it stays on a single line.
+    - noinlineerr
+
+    # We occasionally use named returns for documentation, which is helpful.
+    # Named returns are only really a problem when used in conjunction with
+    # a bare return statement. I _think_ Revive's bare-return covers that
+    # case.
+    - nonamedreturns
+
+    # This is not something we want to enforce throughout our code.
+    - paralleltest
+
+    # This seems like premature optimization for most programs.
+    - prealloc
+
+    # We have very few structs with multiple tags and for the couple we had, this
+    # actually made it harder to read.
+    - tagalign
+    # We don't follow this. Sometimes we test internal code.
+    - testpackage
+    # We probably _should_ be doing this!
+    - thelper
+    - varnamelen
+
+    # Although some fixes in this seem good (e.g., err cuddling), I was
+    # not able to disable some of the less desirable whitespace changes.
+    - wsl
+    # This is a new, rewritten version of wsl. It would be worth exploring
+    # the options.
+    - wsl_v5
+
+  settings:
+    # Please note that we only use depguard for blocking packages and
+    # gomodguard for blocking modules.
+    depguard:
+      rules:
+        main:
+          # Allow if package doesn't match the deny list or, if it does, allow
+          # if the allow list rule is more specific (longer).
+          list-mode: lax
+          allow:
+            # This is the modern package for Drive.
+            - google.golang.org/api/drive/v3
+            # This is the modern package for Sheets.
+            - google.golang.org/api/sheets/v4
+            # These package are used by cloud.google.com/go package APIs.
+            - google.golang.org/api/googleapi
+            - google.golang.org/api/iterator
+            - google.golang.org/api/option
+            - google.golang.org/api/transport/http
+          deny:
+            - pkg: github.com/likexian/gokit/assert
+              desc: Use github.com/stretchr/testify/assert
+            - pkg: golang.org/x/exp/maps
+              desc: Use maps instead.
+            - pkg: golang.org/x/exp/slices
+              desc: Use slices instead.
+            - pkg: golang.org/x/exp/slog
+              desc: Use log/slog instead.
+            - pkg: google.golang.org/api
+              desc: These are maintenance mode/deprecated packages. Use cloud.google.com/go packages instead.
+            - pkg: io/ioutil
+              desc: Deprecated. Functions have been moved elsewhere.
+            - pkg: k8s.io/utils/strings/slices
+              desc: Use slices
+            - pkg: math/rand$
+              desc: Use math/rand/v2 or crypto/rand as appropriate.
+            - pkg: sort
+              desc: Use slices instead
+
+    errcheck:
+      # Don't allow setting of error to the blank identifier. If there is a legitimate
+      # reason, there should be a nolint with an explanation.
+      check-blank: true
+      exclude-functions:
+        # If we are rolling back a transaction, we are often already in an error
+        # state.
+        - (*database/sql.Tx).Rollback
+
+        # It is reasonable to ignore errors if Cleanup fails in most cases.
+        - (*github.com/google/renameio/v2.PendingFile).Cleanup
+
+        # We often do not care if unlocking failed as we are exiting anyway.
+        - (*github.com/gofrs/flock.Flock).Unlock
+
+        # We often don't care if removing a file failed (e.g., it doesn't exist)
+        - os.Remove
+        - os.RemoveAll
+
+    errchkjson:
+      report-no-exported: true
+
+    errorlint:
+      errorf: true
+      asserts: true
+      comparison: true
+
+    exhaustive:
+      default-signifies-exhaustive: true
+
+    forbidigo:
+      # Forbid the following identifiers
+      forbid:
+        - pattern: ^atomic.Value$
+          pkg: ^sync/atomic$
+          msg: Use atomic.Pointer instead.
+        - pattern: GeoFeed
+          msg: you should use the `Geofeed` qualifier instead
+        - pattern: Geoip
+          msg: you should use the `GeoIP` qualifier instead
+        - pattern: geoIP
+          msg: you should use the `geoip` qualifier instead
+        - pattern: ^hubSpot
+          msg: you should use the `hubspot` qualifier instead
+        - pattern: Maxmind
+          msg: you should use the `MaxMind` qualifier instead
+        - pattern: ^maxMind
+          msg: you should use the `maxmind` qualifier instead
+        - pattern: Minfraud
+          msg: you should use the `MinFraud` qualifier instead
+        - pattern: ^minFraud
+          msg: you should use the `minfraud` qualifier instead
+        - pattern: "[Uu]ser[iI][dD]"
+          msg: you should use the `accountID` or the `AccountID` qualifier instead
+        - pattern: WithEnterpriseURLs
+          msg: Use ghe.NewClient instead.
+        - pattern: ^bigquery.NewClient
+          msg: you should use mmgcloud.NewBigQueryClient instead.
+        - pattern: ^drive.NewService
+          msg: you should use mmgdrive.NewGDrive instead.
+        - pattern: ^filepath.Walk$
+          msg: you should use filepath.WalkDir instead as it doesn't call os.Lstat on every entry.
+        - pattern: ^math.Min$
+          msg: you should use the min built-in instead.
+        - pattern: ^mux.Vars$
+          msg: use req.PathValue instead.
+        - pattern: ^net.ParseCIDR
+          msg: you should use netip.ParsePrefix unless you really need a *net.IPNet
+        - pattern: ^net.ParseIP
+          msg: you should use netip.ParseAddr unless you really need a net.IP
+        - pattern: ^pgtype.NewMap
+          msg: you should use mmdatabase.NewTypeMap instead
+        - pattern: ^sheets.NewService
+          msg: you should use mmgcloud.NewSheetsService instead.
+        - pattern: ^storage.NewClient
+          msg: you should use gstorage.NewClient instead. This sets the HTTP client settings that we need for internal use.
+        - pattern: ^os.IsNotExist
+          msg: As per their docs, new code should use errors.Is(err, fs.ErrNotExist).
+        - pattern: ^os.IsExist
+          msg: As per their docs, new code should use errors.Is(err, fs.ErrExist)
+        - pattern: ^net.LookupIP
+          msg: You should use net.Resolver functions instead.
+        - pattern: ^net.LookupCNAME
+          msg: You should use net.Resolver functions instead.
+        - pattern: ^net.LookupHost
+          msg: You should use net.Resolver functions instead.
+        - pattern: ^net.LookupPort
+          msg: You should use net.Resolver functions instead.
+        - pattern: ^net.LookupTXT
+          msg: You should use net.Resolver functions instead.
+        - pattern: ^net.LookupAddr
+          msg: You should use net.Resolver functions instead.
+        - pattern: ^net.LookupMX
+          msg: You should use net.Resolver functions instead.
+        - pattern: ^net.LookupNS
+          msg: You should use net.Resolver functions instead.
+        - pattern: ^net.LookupSRV
+          msg: You should use net.Resolver functions instead.
+
+    funcorder:
+      constructor: true
+      # Don't require that public methods come first. The rule might make sense
+      # but we have a significant amount of existing code that violates this.
+      struct-method: false
+
+    gocritic:
+      enable-all: true
+      disabled-checks:
+        # Revive's defer rule already captures this. This caught no extra cases.
+        - deferInLoop
+
+        # Given that all of our code runs on Linux and the / separate should
+        # work fine, this seems less important.
+        - filepathJoin
+
+        # This might be good, but we would have to revisit a lot of code.
+        - hugeParam
+
+        # This might be good, but I don't think we want to encourage
+        # significant changes to regexes as we port stuff from Perl.
+        - regexpSimplify
+
+        # This seems like it might also be good, but a lot of existing code
+        # fails.
+        - sloppyReassign
+
+        # I am not sure we would want this linter and a lot of existing
+        # code fails.
+        - unnamedResult
+
+        # Covered by nolintlint
+        - whyNoLint
+
+    gomoddirectives:
+      replace-allow-list:
+        # We want to use an old version due to race conditions in the latest
+        # release.
+        - github.com/fsnotify/fsnotify
+        # We want to use an old version due to a logging issue.
+        - github.com/snowflakedb/gosnowflake
+      toolchain-forbidden: true
+      go-version-pattern: \d\.\d+(\.0)?
+
+    # IMPORTANT: gomodguard blocks _modules_, not arbitrary packages. Be
+    # sure to use the module path from the go.mod file for these.
+    # See https://github.com/ryancurrah/gomodguard/issues/12
+    gomodguard:
+      blocked:
+        modules:
+          - github.com/avct/uasurfer:
+              recommendations:
+                - github.com/xavivars/uasurfer
+              reason: The original avct module appears abandoned.
+          - github.com/BurntSushi/toml:
+              recommendations:
+                - github.com/pelletier/go-toml/v2
+              reason: This library panics frequently on invalid input.
+          - github.com/pelletier/go-toml:
+              recommendations:
+                - github.com/pelletier/go-toml/v2
+              reason: This is an outdated version.
+          - github.com/gofrs/uuid:
+              recommendations:
+                - github.com/google/uuid
+          - github.com/gofrs/uuid/v5:
+              recommendations:
+                - github.com/google/uuid
+          - github.com/satori/go.uuid:
+              recommendations:
+                - github.com/google/uuid
+          - github.com/google/uuid:
+              recommendations:
+                - github.com/google/uuid
+          - github.com/lib/pq:
+              recommendations:
+                - github.com/jackc/pgx
+              reason: This library is no longer actively maintained.
+          - github.com/neilotoole/errgroup:
+              recommendations:
+                - golang.org/x/sync/errgroup
+              reason: This library can lead to subtle deadlocks in certain use cases.
+          - github.com/pariz/gountries:
+              reason: This library's data is not actively maintained. Use GeoInfo data.
+            github.com/pkg/errors:
+              recommendations:
+                - errors
+              reason: pkg/errors is no longer maintained.
+          - github.com/RackSec/srslog:
+              recommendations:
+                - log/syslog
+              reason: This library's data is not actively maintained.
+          - github.com/ua-parser/uap-go:
+              recommendations:
+                - github.com/xavivars/uasurfer
+              reason: The performance of this library is absolutely abysmal.
+          - github.com/ugorji/go:
+              recommendations:
+                - encoding/json
+                - github.com/mailru/easyjson
+              reason: This library is poorly maintained. We should default to using encoding/json and use easyjson where performance really matters.
+          - github.com/zeebo/assert:
+              recommendations:
+                - github.com/stretchr/testify/assert
+              reason: Use github.com/stretchr/testify/assert
+          - gopkg.in/yaml.v2:
+              recommendations:
+                - github.com/goccy/go-yaml
+              reason: Not actively maintained.
+          - gopkg.in/yaml.v3:
+              recommendations:
+                - github.com/goccy/go-yaml
+              reason: Not actively maintained.
+          - gotest.tools/v3:
+              recommendations:
+                - github.com/stretchr/testify/assert
+              reason: Use github.com/stretchr/testify/assert
+          - inet.af/netaddr:
+              recommendations:
+                - net/netip
+                - go4.org/netipx
+              reason: inet.af/netaddr has been deprecated.
+        versions:
+          - github.com/jackc/pgconn:
+              reason: Use github.com/jackc/pgx/v5
+          - github.com/jackc/pgtype:
+              reason: Use github.com/jackc/pgx/v5
+          - github.com/jackc/pgx:
+              version: < 5.0.0
+              reason: Use github.com/jackc/pgx/v5
+
+    gosec:
+      excludes:
+        # G104 - "Audit errors not checked." We use errcheck for this.
+        - G104
+
+        # G306 - "Expect WriteFile permissions to be 0600 or less".
+        - G306
+
+        # Prohibits defer (*os.File).Close, which we allow when reading from file.
+        - G307
+
+        # We use md5 in geoipupdate
+        - G401
+        - G501
+
+        # no longer relevant with 1.22
+        - G601
+
+    govet:
+      disable:
+        # Although it is very useful in particular cases where we are trying to
+        # use as little memory as possible, there are even more cases where
+        # other organizations may make more sense.
+        - fieldalignment
+      enable-all: true
+      settings:
+        shadow:
+          strict: true
+
+    loggercheck:
+      # although it seems like this should remove the need for our custom
+      # Ruleguard check, it misses things that seems to catch. However, it
+      # is possible that this will catch things that misses as that check
+      # is very simple.
+      no-printf-like: true
+
+    misspell:
+      locale: US
+      extra-words:
+        - typo: marshall
+          correction: marshal
+        - typo: marshalling
+          correction: marshaling
+        - typo: marshalls
+          correction: marshals
+        - typo: unmarshall
+          correction: unmarshal
+        - typo: unmarshalling
+          correction: unmarshaling
+        - typo: unmarshalls
+          correction: unmarshals
+
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-no-explanation:
+        - misspell
+      allow-unused: false
+
+    revive:
+      severity: warning
+      enable-all-rules: true
+      rules:
+        # This might be nice but it is so common that it is hard
+        # to enable.
+        - name: add-constant
+          disabled: true
+
+        - name: argument-limit
+          disabled: true
+
+        - name: cognitive-complexity
+          disabled: true
+
+        - name: comment-spacings
+          arguments:
+            - easyjson
+            - nolint
+          disabled: false
+
+        # Probably a good rule, but we have a lot of names that
+        # only have case differences.
+        - name: confusing-naming
+          disabled: true
+
+        - name: cyclomatic
+          disabled: true
+
+        # Although being consistent might be nice, I don't know that it
+        # is worth the effort enabling this rule. It doesn't have an
+        # autofix option.
+        - name: enforce-repeated-arg-type-style
+          arguments:
+            - short
+          disabled: true
+
+        - name: enforce-map-style
+          arguments:
+            - literal
+          disabled: false
+
+        # We have very few of these as we force nil slices in most places,
+        # but there are a couple of cases.
+        - name: enforce-slice-style
+          arguments:
+            - literal
+          disabled: false
+
+        - name: file-header
+          disabled: true
+
+        # We have a lot of flag parameters. This linter probably makes
+        # a good point, but we would need some cleanup or a lot of nolints.
+        - name: flag-parameter
+          disabled: true
+
+        - name: function-length
+          disabled: true
+
+        - name: function-result-limit
+          disabled: true
+
+        - name: line-length-limit
+          disabled: true
+
+        - name: max-public-structs
+          disabled: true
+
+        # We frequently use nested structs, particularly in tests.
+        - name: nested-structs
+          disabled: true
+
+        # This doesn't make sense with 1.22 loop var changes.
+        - name: range-val-address
+          disabled: true
+
+        # This flags things that do not seem like a problem, e.g. "sixHours".
+        - name: time-naming
+          disabled: true
+
+        # This causes a ton of failures. Many are fairly safe. It might be nice to
+        # enable, but probably not worth the effort.
+        - name: unchecked-type-assertion
+          disabled: true
+
+        # This seems to give many false positives.
+        - name: unconditional-recursion
+          disabled: true
+
+        # This is covered elsewhere and we want to ignore some
+        # functions such as fmt.Fprintf.
+        - name: unhandled-error
+          disabled: true
+
+        # We generally have unused receivers in tests for meeting the
+        # requirements of an interface.
+        - name: unused-receiver
+          disabled: true
+
+        # This rule seems generally good, but it is unstable. If there is a
+        # package that violates it, you cannot just add a nolint to the file
+        # that it first complains about. You need to add nolints to _every_
+        # file in that package or otherwise it will randomly faily. This in
+        # turn causes issues for nolintlint as that will randomly think all
+        # but one of those nolints are unnecessary. More discussion on Slack:
+        # https://maxmind.slack.com/archives/C07ER81BQ4T/p1751312286948379
+        #
+        # TODO: reenable if this is fixed.
+        - name: var-naming
+          disabled: true
+
+    sloglint:
+      # Enforce not mixing key-value pairs and attributes.
+      no-mixed-args: true
+
+      # Enforce not using global loggers.
+      no-global: all
+
+      # Enforce a snake case for keys.
+      key-naming-case: snake
+
+      # Make sure we don't use reserved keys.
+      forbidden-keys:
+        # These are included by our handler.
+        - time
+        - level
+        - logged_from
+        - message
+
+        # We don't use these two, but they are slog defaults. It would
+        # be better to avoid using them to reduce confusion and to make
+        # it easier to potentially use the defaults in the future.
+        - msg
+        - source
+
+    staticcheck:
+      checks:
+        - all
+
+        # SA1019: Using a deprecated function, variable, constant or field
+        #
+        # This is disabled as it interacts poorly with golangci-lint's caching.
+        # I believe https://github.com/golangci/golangci-lint-action/issues/420
+        # is the same underlying issue.
+        - -SA1019
+
+        # SA5008: unknown JSON option "intern" - easyjson specific option.
+        - -SA5008
+
+    tagliatelle:
+      case:
+        rules:
+          avro: snake
+          bson: snake
+          env: upperSnake
+          envconfig: upperSnake
+          json: snake
+          mapstructure: snake
+          xml: snake
+          yaml: snake
+
+    testifylint:
+      enable-all: true
+
+    unparam:
+      check-exported: true
+
+    usestdlibvars:
+      time-layout: true
+
+    usetesting:
+      os-temp-dir: true
+
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - errgroup.NewMultiError(
+        - errors.Join(
+        - errors.New(
+        - .Wait(
+        - .WithStack(
+        - .Wrap(
+        - .Wrapf(
+        - v5.Retry[T any](
+
+  exclusions:
+    generated: lax
+    # Warning on unused exclusions does not work well when running golangci-lint
+    # from precious as most exclusions will not be used for a particular directory.
+    # It is worth manually enabling this when cleaning up the config file though.
+    warn-unused: false
+    rules:
+      # This rule doesn't really make sense for tests where we don't have an open
+      # connection and we might be passing around the response for other reasons.
+      - linters:
+          - bodyclose
+        path: _test.go
+
+      # There are many cases where we want to just close resources and ignore the
+      # error (e.g., for defer f.Close on a read). errcheck removed its built-in
+      # wildcard ignore. I tried listing all of the cases, but it was too many
+      # and some were very specific.
+      - linters:
+          - errcheck
+        source: \.Close
+
+      # This refers to a minFraud field, not the MaxMind Account ID
+      - linters:
+          - forbidigo
+        source: "[Aa]ccountUserID|Account\\.UserID"
+
+      # we include both a source and text exclusion as the source exclusion
+      # misses matches where forbidigo reports the error on the first line
+      # of a chunk of a function call even though the use is on a later line.
+      - linters:
+          - forbidigo
+        text: "[Aa]ccountUserID|Account\\.UserID"
+
+      # The nolintlint linter behaves oddly with ruleguard rules
+      - linters:
+          - gocritic
+        source: // *no-ruleguard
+
+      # The contextcheck linter also uses "nolint" in a slightly different way,
+      # leading to falso positives from nolintlint.
+      - linters:
+          - nolintlint
+        source: //nolint:contextcheck //.*
+
+      # These are usually fine to shadow and not allowing shadowing for them can
+      # make the code unnecessarily verbose.
+      - linters:
+          - govet
+        text: 'shadow: declaration of "(ctx|err|ok)" shadows declaration'
+
+      - linters:
+          - contextcheck
+          # With recent changes to the linter, there were a lot of failures in
+          # the tests and it wasn't clear to me that fixing them would actually
+          # improve the readability.
+          - goconst
+          - nilerr
+          - wrapcheck
+        path: _test.go
+
+      # ST1016 - methods on the same type should have the same receiver name.
+      #    easyjson doesn't interact well with this.
+      - linters:
+          - staticcheck
+        text: ST1016
+
+      - linters:
+          - wrapcheck
+        text: github.com/maxmind/geoipupdate
+
+    paths:
+      - _easyjson\.go$
+      - _xgb2code\.go$
+      - _json2vector\.go$
+      - geoip-build/mmcsv
+
+formatters:
+  enable:
+    - gci
+    - gofumpt
+    - goimports
+    - golines
+
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/maxmind/geoipupdate)
+
+    gofumpt:
+      module-path: github.com/maxmind/geoipupdate
+      extra-rules: true
+
+    goimports:
+      local-prefixes:
+        - github.com/maxmind/geoipupdate
+
+    golines:
+      shorten-comments: true
+
+  exclusions:
+    generated: lax
+    # Warning on unused exclusions does not work well when running golangci-lint
+    # from precious as most exclusions will not be used for a particular directory.
+    # It is worth manually enabling this when cleaning up the config file though.
+    warn-unused: false

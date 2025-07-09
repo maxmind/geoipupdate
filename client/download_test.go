@@ -24,7 +24,7 @@ func TestDownload(t *testing.T) {
 	}
 	dbContent := "edition-1 content"
 
-	lastModified, err := time.ParseInLocation("2006-01-02", "2024-02-23", time.UTC)
+	lastModified, err := time.ParseInLocation(time.DateOnly, "2024-02-23", time.UTC)
 	require.NoError(t, err)
 
 	metadataHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -84,14 +84,16 @@ func TestDownload(t *testing.T) {
 					assert.NoError(t, err)
 				})
 
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
-						metadataHandler.ServeHTTP(w, r)
-						return
-					}
+				server := httptest.NewServer(
+					http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
+							metadataHandler.ServeHTTP(w, r)
+							return
+						}
 
-					downloadHandler.ServeHTTP(w, r)
-				}))
+						downloadHandler.ServeHTTP(w, r)
+					}),
+				)
 
 				return server
 			},
@@ -108,14 +110,16 @@ func TestDownload(t *testing.T) {
 			description:      "server error",
 			preserveFileTime: false,
 			server: func(_ *testing.T) *httptest.Server {
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
-						metadataHandler.ServeHTTP(w, r)
-						return
-					}
+				server := httptest.NewServer(
+					http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
+							metadataHandler.ServeHTTP(w, r)
+							return
+						}
 
-					w.WriteHeader(http.StatusInternalServerError)
-				}))
+						w.WriteHeader(http.StatusInternalServerError)
+					}),
+				)
 				return server
 			},
 			checkResult: func(t *testing.T, _ DownloadResponse, err error) {
@@ -127,18 +131,20 @@ func TestDownload(t *testing.T) {
 			description:      "wrong file format",
 			preserveFileTime: false,
 			server: func(t *testing.T) *httptest.Server {
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
-						metadataHandler.ServeHTTP(w, r)
-						return
-					}
+				server := httptest.NewServer(
+					http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
+							metadataHandler.ServeHTTP(w, r)
+							return
+						}
 
-					jsonData := `{"message": "Hello, world!", "status": "ok"}`
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusOK)
-					_, err := w.Write([]byte(jsonData))
-					assert.NoError(t, err)
-				}))
+						jsonData := `{"message": "Hello, world!", "status": "ok"}`
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(http.StatusOK)
+						_, err := w.Write([]byte(jsonData))
+						assert.NoError(t, err)
+					}),
+				)
 				return server
 			},
 			checkResult: func(t *testing.T, _ DownloadResponse, err error) {
@@ -167,14 +173,16 @@ func TestDownload(t *testing.T) {
 					assert.NoError(t, err)
 				})
 
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
-						metadataHandler.ServeHTTP(w, r)
-						return
-					}
+				server := httptest.NewServer(
+					http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
+							metadataHandler.ServeHTTP(w, r)
+							return
+						}
 
-					downloadHandler.ServeHTTP(w, r)
-				}))
+						downloadHandler.ServeHTTP(w, r)
+					}),
+				)
 
 				return server
 			},
@@ -219,14 +227,16 @@ func TestDownload(t *testing.T) {
 					assert.NoError(t, err)
 				})
 
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
-						metadataHandler.ServeHTTP(w, r)
-						return
-					}
+				server := httptest.NewServer(
+					http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
+							metadataHandler.ServeHTTP(w, r)
+							return
+						}
 
-					downloadHandler.ServeHTTP(w, r)
-				}))
+						downloadHandler.ServeHTTP(w, r)
+					}),
+				)
 
 				return server
 			},

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 7.1.1 (2025-07-09)
+
+* Update dependencies and re-build binaries with new Go version. No
+  substantive changes.
+
 ## 7.1.0 (2024-11-18)
 
 * Allow the `Host` configuration directive and the `GEOIPUPDATE_HOST`

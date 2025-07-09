@@ -22,19 +22,21 @@ func TestGetMetadata(t *testing.T) {
 			description:      "successful request",
 			preserveFileTime: false,
 			server: func(t *testing.T) *httptest.Server {
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-					jsonData := `
+				server := httptest.NewServer(
+					http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+						jsonData := `
 {
     "databases": [
         { "edition_id": "edition-1", "md5": "123456", "date": "2024-02-23" }
     ]
 }
 `
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusOK)
-					_, err := w.Write([]byte(jsonData))
-					assert.NoError(t, err)
-				}))
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(http.StatusOK)
+						_, err := w.Write([]byte(jsonData))
+						assert.NoError(t, err)
+					}),
+				)
 				return server
 			},
 			checkResult: func(t *testing.T, receivedMetadata *metadata, err error) {
@@ -50,9 +52,11 @@ func TestGetMetadata(t *testing.T) {
 			description:      "server error",
 			preserveFileTime: false,
 			server: func(_ *testing.T) *httptest.Server {
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-					w.WriteHeader(http.StatusInternalServerError)
-				}))
+				server := httptest.NewServer(
+					http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+						w.WriteHeader(http.StatusInternalServerError)
+					}),
+				)
 				return server
 			},
 			checkResult: func(t *testing.T, receivedMetadata *metadata, err error) {

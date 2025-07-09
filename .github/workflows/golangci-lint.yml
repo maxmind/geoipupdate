@@ -6,13 +6,17 @@ on:
   schedule:
     - cron: '5 5 * * SUN'
 
+permissions: {}
+
 jobs:
   golangci:
     name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9 # 8.0.0
         with:
           version: latest

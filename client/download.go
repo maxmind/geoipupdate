@@ -109,7 +109,7 @@ func (c *Client) download(
 	escapedEdition := url.PathEscape(editionID)
 	requestURL := fmt.Sprintf(downloadEndpoint, c.endpoint, escapedEdition) + params.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, http.NoBody)
 	if err != nil {
 		return nil, time.Time{}, fmt.Errorf("creating download request: %w", err)
 	}
@@ -195,6 +195,7 @@ func parseTime(s string) (time.Time, error) {
 // editionReader embeds a tar.Reader and holds references to other readers to close.
 type editionReader struct {
 	*tar.Reader
+
 	gzCloser       io.Closer
 	responseCloser io.Closer
 }

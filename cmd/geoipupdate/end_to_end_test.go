@@ -23,14 +23,12 @@ import (
 
 func TestUpdater(t *testing.T) {
 	// mock existing databases.
-	tempDir, err := os.MkdirTemp("", "db")
-	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	edition := "edition-1"
 	dbFile := filepath.Join(tempDir, edition+".mmdb")
 	// equivalent MD5: 618dd27a10de24809ec160d6807f363f
-	err = os.WriteFile(dbFile, []byte("edition-1 content"), os.ModePerm)
+	err := os.WriteFile(dbFile, []byte("edition-1 content"), os.ModePerm)
 	require.NoError(t, err)
 
 	edition = "edition-2"
@@ -38,7 +36,7 @@ func TestUpdater(t *testing.T) {
 	err = os.WriteFile(dbFile, []byte("old edition-2 content"), os.ModePerm)
 	require.NoError(t, err)
 
-	lastModified, err := time.ParseInLocation("2006-01-02", "2024-02-23", time.UTC)
+	lastModified, err := time.ParseInLocation(time.DateOnly, "2024-02-23", time.UTC)
 	require.NoError(t, err)
 
 	// mock metadata handler.
@@ -157,7 +155,6 @@ func TestUpdater(t *testing.T) {
 	w.Close()
 	out, err := io.ReadAll(r)
 	require.NoError(t, err)
-	//nolint:lll
 	expectedOutput := `\[{"edition_id":"edition\-1","old_hash":"618dd27a10de24809ec160d6807f363f","new_hash":"618dd27a10de24809ec160d6807f363f","checked_at":\d+},{"edition_id":"edition\-2","old_hash":"2242f06b3b2d147987b67017cb7a5ab8","new_hash":"c9bbf7cb507370339633b44001bae038","modified_at":1708646400,"checked_at":\d+}]`
 	require.Regexp(t, expectedOutput, string(out))
 

@@ -31,6 +31,7 @@ func (r *ReadResult) MarshalJSON() ([]byte, error) {
 	type partialResult ReadResult
 	s := &struct {
 		partialResult
+
 		ModifiedAt int64 `json:"modified_at,omitempty"`
 		CheckedAt  int64 `json:"checked_at,omitempty"`
 	}{
@@ -60,6 +61,7 @@ func (r *ReadResult) UnmarshalJSON(data []byte) error {
 	type partialResult ReadResult
 	s := &struct {
 		partialResult
+
 		ModifiedAt int64 `json:"modified_at,omitempty"`
 		CheckedAt  int64 `json:"checked_at,omitempty"`
 	}{}
