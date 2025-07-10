@@ -25,7 +25,7 @@ archives:
       - src: 'build/windows/*'
         dst: '.'
         strip_parent: true
-    format: 'zip'
+    formats: ['zip']
 builds:
   - id: 'geoipupdate-unix'
     main: './cmd/geoipupdate'
