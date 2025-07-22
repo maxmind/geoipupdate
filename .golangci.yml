@@ -504,6 +504,11 @@ linters:
             - literal
           disabled: false
 
+        - name: enforce-switch-style
+          # We have quite a few switches without defaults and most of them
+          # are not problematic.
+          arguments: ["allowNoDefault"]
+
         - name: file-header
           disabled: true
 
