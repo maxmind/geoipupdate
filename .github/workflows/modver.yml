@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: bobg/modver@0035b3b46089fc8f5ec9f3f5987e12fb618e120d # 2.11.0
+      - uses: bobg/modver@f646e42936f006762d533d8dae3908cb7065adc9 # 2.12.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pull_request_url: https://github.com/${{ github.repository }}/pull/${{ github.event.number }}
