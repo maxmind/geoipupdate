@@ -17,10 +17,10 @@ func TestLocalFileWriterWrite(t *testing.T) {
 	tests := []struct {
 		description string
 		//nolint:revive // support older versions
-		checkErr         func(require.TestingT, error, ...interface{})
+		checkErr         func(require.TestingT, error, ...any)
 		preserveFileTime bool
 		//nolint:revive // support older versions
-		checkTime    func(require.TestingT, interface{}, interface{}, ...interface{})
+		checkTime    func(require.TestingT, any, any, ...any)
 		editionID    string
 		reader       io.ReadCloser
 		newMD5       string
