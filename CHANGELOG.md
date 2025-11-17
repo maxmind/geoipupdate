@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 7.1.2
+
+* A config file can now be used to configure the Docker image. This was
+  documented but was not functional. Fixed by Shizun Ge. GitHub #433.
+
 ## 7.1.1 (2025-07-09)
 
 * Update dependencies and re-build binaries with new Go version. No
