@@ -7,22 +7,27 @@ The source code is available on [GitHub](https://github.com/maxmind/geoipupdate)
 
 ## Configuring
 
-The Docker image is configured by environment variables.
+An account ID, a license key, and edition ID(s) to update must be provided.
 
-User must set `EDITION_IDS`, `ACCOUNT_ID` and `LICENSE_KEY` via one for the following methods:
-
-1. Via [a configuration file](./GeoIP.conf.md) by setting environment variable `GEOIPUPDATE_CONF_FILE`.
-
-2. Via required the following required variables:
-  * `GEOIPUPDATE_EDITION_IDS` - List of space-separated database edition IDs. Edition IDs may consist of letters, digits, and dashes. For example. `GeoIP2-City` would download the GeoIP2 City database (`GeoIP2-City`).
+1. They can be set via configuration file by setting the environment
+   variable `GEOIPUPDATE_CONF_FILE` to a path inside the container. This
+   file is the same format as [GeoIP.conf](GeoIP.conf.md). Other options
+   may be set in this file as well.
+2. Or they can be set via environment variables:
+  * `GEOIPUPDATE_EDITION_IDS` - List of space-separated database edition
+    IDs. Edition IDs may consist of letters, digits, and dashes. For
+    example. `GeoIP2-City` would download the GeoIP2 City database
+    (`GeoIP2-City`).
   * One of:
     * `GEOIPUPDATE_ACCOUNT_ID` - Your MaxMind account ID.
-    * `GEOIPUPDATE_ACCOUNT_ID_FILE` - A file containing your MaxMind account ID.
+    * `GEOIPUPDATE_ACCOUNT_ID_FILE` - A file containing your MaxMind
+      account ID.
   * One of:
     * `GEOIPUPDATE_LICENSE_KEY` - Your case-sensitive MaxMind license key.
-    * `GEOIPUPDATE_LICENSE_KEY_FILE` - A file containing your case-sensitive MaxMind license key.
+    * `GEOIPUPDATE_LICENSE_KEY_FILE` - A file containing your
+      case-sensitive MaxMind license key.
 
-The following are optional:
+The following environment variables are optional:
 
 * `GEOIPUPDATE_FREQUENCY` - The number of hours between `geoipupdate` runs.
   If this is not set or is set to `0`, `geoipupdate` will run once and exit.
@@ -38,14 +43,14 @@ The following are optional:
   default is `0`.
 * `GEOIPUPDATE_VERBOSE` - Enable verbose mode. Prints out the steps that
   `geoipupdate` takes. Set to `1` to enable.
-* `GEOIPUPDATE_CONF_FILE` - The path of a configuration file to be used by
-  `geoipupdate`.
 * `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download the
   databases. The default is `/usr/share/GeoIP`.
 
 The environment variables can be placed in a file with one per line and
 passed in with the `--env-file` flag. Alternatively, you may pass them in
 individually with the `-e` flag.
+
+Environment variables override any options set in the config file.
 
 ## Running
 
