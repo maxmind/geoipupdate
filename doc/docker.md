@@ -7,23 +7,20 @@ The source code is available on [GitHub](https://github.com/maxmind/geoipupdate)
 
 ## Configuring
 
-The Docker image is configured by environment variables. The following
-variables are required:
+The Docker image is configured by environment variables.
 
-* `GEOIPUPDATE_EDITION_IDS` - List of space-separated database edition IDs.
-  Edition IDs may consist of letters, digits, and dashes. For example,
-  `GeoIP2-City` would download the GeoIP2 City database (`GeoIP2-City`).
+User must set `EDITION_IDS`, `ACCOUNT_ID` and `LICENSE_KEY` via one for the following methods:
 
-One of:
+1. Via [a configuration file](./GeoIP.conf.md) by setting environment variable `GEOIPUPDATE_CONF_FILE`.
 
-* `GEOIPUPDATE_ACCOUNT_ID` - Your MaxMind account ID.
-* `GEOIPUPDATE_ACCOUNT_ID_FILE` - A file containing your MaxMind account ID.
-
-One of:
-
-* `GEOIPUPDATE_LICENSE_KEY` - Your case-sensitive MaxMind license key.
-* `GEOIPUPDATE_LICENSE_KEY_FILE` - A file containing your case-sensitive
-  MaxMind license key.
+2. Via required the following required variables:
+  * `GEOIPUPDATE_EDITION_IDS` - List of space-separated database edition IDs. Edition IDs may consist of letters, digits, and dashes. For example. `GeoIP2-City` would download the GeoIP2 City database (`GeoIP2-City`).
+  * One of:
+    * `GEOIPUPDATE_ACCOUNT_ID` - Your MaxMind account ID.
+    * `GEOIPUPDATE_ACCOUNT_ID_FILE` - A file containing your MaxMind account ID.
+  * One of:
+    * `GEOIPUPDATE_LICENSE_KEY` - Your case-sensitive MaxMind license key.
+    * `GEOIPUPDATE_LICENSE_KEY_FILE` - A file containing your case-sensitive MaxMind license key.
 
 The following are optional:
 
