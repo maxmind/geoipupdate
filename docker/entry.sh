@@ -48,7 +48,7 @@ mkdir -p $log_dir
 return_value=0
 while true; do
     echo "# STATE: Running geoipupdate"
-    /usr/bin/geoipupdate $flags 1>$log_file
+    /usr/bin/geoipupdate $flags | tee $log_file
     return_value="${?}"
     if [ "$frequency" -eq 0 ]; then
         break
