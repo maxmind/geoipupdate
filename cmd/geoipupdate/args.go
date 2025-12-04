@@ -50,7 +50,7 @@ func getArgs() *Args {
 	displayVersion := flag.BoolP("version", "V", false, "Display the version and exit")
 	parallelism := flag.Int("parallelism", 0, "Set the number of parallel database downloads")
 
-	flag.Parse()
+	flag.Parse() //nolint: revive // getArgs is only called from main
 
 	if *help {
 		printUsage()
