@@ -22,7 +22,6 @@ import (
 	"golang.org/x/net/http2"
 
 	"github.com/maxmind/geoipupdate/v7/client"
-	"github.com/maxmind/geoipupdate/v7/internal"
 	"github.com/maxmind/geoipupdate/v7/internal/geoipupdate/database"
 )
 
@@ -141,7 +140,7 @@ func TestRetryWhenWriting(t *testing.T) {
 		if r.URL.Path == "/geoip/updates/metadata" {
 			w.Header().Set("Content-Type", "application/json")
 
-			// The md5 here bleongs to the tar.gz sent below.
+			// The md5 here belongs to the tar.gz sent below.
 			metadata := []byte(
 				`{"databases":[{"edition_id":"foo-db-name",` +
 					`"md5":"83e01ba43c2a66e30cb3007c1a300c78","date":"2023-04-27"}]}`)
@@ -226,25 +225,11 @@ func TestRetryWhenWriting(t *testing.T) {
 		writer:       writer,
 	}
 
-	ctx := context.Background()
-
-	jobProcessor := internal.NewJobProcessor(ctx, 1)
-	processFunc := func(ctx context.Context) error {
-		_, err = u.downloadEdition(
-			ctx,
-			"foo-db-name",
-			u.updateClient,
-			u.writer,
-		)
-
-		return err
-	}
-	jobProcessor.Add(processFunc)
-
-	err = jobProcessor.Run(ctx)
+	err = u.Run(t.Context())
 	require.NoError(t, err)
 
-	assert.Empty(t, logOutput.String())
+	require.Equal(t, 2, try, "it took two tries to write the database")
+	require.Contains(t, logOutput.String(), `"edition_id":"foo-db-name"`)
 }
 
 type mockUpdateClient struct {

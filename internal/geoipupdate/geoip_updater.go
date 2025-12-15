@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v5"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/maxmind/geoipupdate/v7/client"
 	"github.com/maxmind/geoipupdate/v7/internal"
@@ -83,12 +84,17 @@ func (u *Updater) Run(ctx context.Context) error {
 		}
 	}()
 
-	jobProcessor := internal.NewJobProcessor(ctx, u.config.Parallelism)
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(u.config.Parallelism)
 
 	var editions []database.ReadResult
 	var mu sync.Mutex
 	for _, editionID := range u.config.EditionIDs {
-		processFunc := func(ctx context.Context) error {
+		g.Go(func() error {
+			if err := ctx.Err(); err != nil {
+				return fmt.Errorf("stop updating on the first error: %w", err)
+			}
+
 			edition, err := u.downloadEdition(ctx, editionID, u.updateClient, u.writer)
 			if err != nil {
 				return err
@@ -100,15 +106,13 @@ func (u *Updater) Run(ctx context.Context) error {
 			editions = append(editions, *edition)
 			mu.Unlock()
 			return nil
-		}
-
-		jobProcessor.Add(processFunc)
+		})
 	}
 
-	// Run blocks until all jobs are processed or exits early after
+	// Wait blocks until all the editions are downloaded or exits early after
 	// the first encountered error.
-	if err := jobProcessor.Run(ctx); err != nil {
-		return fmt.Errorf("running the job processor: %w", err)
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("downloading editions: %w", err)
 	}
 
 	if u.config.Output {
