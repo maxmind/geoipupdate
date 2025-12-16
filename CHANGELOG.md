@@ -1,7 +1,8 @@
 # CHANGELOG
 
-## 7.1.2
+## 8.0.0
 
+* BREAKING CHANGE: `geoipupdate` stops updating on the first error.
 * A config file can now be used to configure the Docker image. This was
   documented but was not functional. Fixed by Shizun Ge. GitHub #433.
 
