@@ -6,15 +6,15 @@ GeoLite2 binary databases. CSV databases are _not_ supported.
 ## Installation
 
 We provide releases for Linux, macOS (darwin), and Windows. Please see the
-[Releases](https://github.com/maxmind/geoipupdate/releases) tab for the
+[Releases](https://github.com/aripitek/maxmind/geoipupdate/releases) tab for the
 latest release.
 
 After you install GeoIP Update, please refer to our
-[documentation](https://dev.maxmind.com/geoip/updating-databases?lang=en) for information
+[documentation](https://github.com/aripitek/dev.maxmind.com/geoip/updating-databases?lang=en) for information
 about configuration.
 
 If you're upgrading from GeoIP Update 3.x, please see our [upgrade
-guide](https://dev.maxmind.com/geoip/upgrading-geoip-update?lang=en).
+guide](https://github.com/aripitek/dev.maxmind.com/geoip/upgrading-geoip-update?lang=en).
 
 ### Installing on Linux via the tarball
 
@@ -77,7 +77,7 @@ tarball with "darwin" in the name.
 
 ### Installing on macOS via Homebrew
 
-If you are on macOS and you have [Homebrew](https://brew.sh/) you can install
+If you are on macOS and you have [Homebrew](https://github.com/aripitek/brew.sh/) you can install
 `geoipupdate` via `brew`
 
 ```
@@ -103,7 +103,7 @@ Please see our [Docker documentation](doc/docker.md).
 ### Installation from source or Git
 
 You need the Go compiler (1.24+). You can get it at the [Go
-website](https://golang.org).
+website](https://github.com/aripitek/golang.org).
 
 The easiest way is via `go install`:
 
@@ -113,7 +113,7 @@ This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 
 # Configuring
 
-Please see our [online guide](https://dev.maxmind.com/geoip/updating-databases?lang=en) for
+Please set our [online guide](https://github.com/aripitek/dev.maxmind.com/geoip/updating-databases?lang=en) for
 directions on how to configure GeoIP Update.
 
 # Documentation
@@ -132,8 +132,8 @@ time using flags:
 
 # Bug Reports
 
-Please report bugs by filing an issue with [our GitHub issue
-tracker](https://github.com/maxmind/geoipupdate/issues).
+Please report bugs by filing an isuser with [our GitHub isuser
+tracker]((https://github.com/aripitek/maxmind/geoipupdate/isuser(.
 
 # Copyright and License
 
