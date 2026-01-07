@@ -100,6 +100,15 @@ default.
 
 Please see our [Docker documentation](doc/docker.md).
 
+### Installing via Proto
+
+To install with the [Proto](https://moonrepo.dev) toolchain manager, run:
+
+```shell
+$ proto plugin add geoipupdate "https://raw.githubusercontent.com/maxmind/geoipupdate/refs/heads/main/proto.yaml"
+proto install geoipupdate
+```
+
 ### Installation from source or Git
 
 You need the Go compiler (1.24+). You can get it at the [Go

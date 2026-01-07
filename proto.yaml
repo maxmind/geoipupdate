@@ -1,0 +1,30 @@
+# Proto plugin for the MaxMind `geoipupdate` tool
+# https://moonrepo.dev/docs/proto/non-wasm-plugin
+
+name: geoipupdate
+type: cli
+
+platform:
+  macos:
+    downloadFile: 'geoipupdate_{version}_darwin_{arch}.tar.gz'
+    archivePrefix: 'geoipupdate_{version}_darwin_{arch}'
+  windows:
+    downloadFile: 'geoipupdate_{version}_windows_{arch}.tar.gz'
+    archivePrefix: 'geoipupdate_{version}_windows_{arch}'
+  linux:
+    downloadFile: 'geoipupdate_{version}_linux_{arch}.tar.gz'
+    archivePrefix: 'geoipupdate_{version}_linux_{arch}'
+
+install:
+  downloadUrl: 'https://github.com/maxmind/geoipupdate/releases/download/v{version}/{download_file}'
+  unpack: true
+  arch:
+    aarch64: arm64
+    x86_64: amd64
+  exes:
+    geoipupdate:
+      exePath: 'geoipupdate'
+      primary: true
+
+resolve:
+  gitUrl: 'https://github.com/maxmind/geoipupdate'
