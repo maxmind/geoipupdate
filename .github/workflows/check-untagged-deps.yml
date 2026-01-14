@@ -17,4 +17,4 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: horgh/check-untagged-go-deps@b2bec8a7a0c8da55e64b092013f7bf5dff1006ca # v1.0.1
+      - uses: horgh/check-untagged-go-deps@1e727f9fffc10de1d5db85032c02e17081077602 # v1.1.0
