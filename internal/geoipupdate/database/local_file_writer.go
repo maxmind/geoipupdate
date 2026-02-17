@@ -184,7 +184,7 @@ func (w *fileWriter) close() error {
 		}
 	}
 
-	err := os.Remove(w.file.Name()) //nolint:gosec // path from os.CreateTemp
+	err := os.Remove(w.file.Name()) //nolint:gosec // path from config
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("removing temporary file: %w", err)
 	}
@@ -222,7 +222,7 @@ func (w *fileWriter) syncAndRename(name string) error {
 	if err := w.file.Close(); err != nil {
 		return fmt.Errorf("closing temporary file: %w", err)
 	}
-	if err := os.Rename(w.file.Name(), name); err != nil { //nolint:gosec // path from os.CreateTemp
+	if err := os.Rename(w.file.Name(), name); err != nil { //nolint:gosec // path from config
 		return fmt.Errorf("moving database into place: %w", err)
 	}
 	return nil
