@@ -959,11 +959,11 @@ func TestParseProxy(t *testing.T) {
 			Proxy: "ftp://127.0.0.1:8888",
 			Err:   "unsupported proxy type: ftp",
 		},
-		{
+		{ //nolint:gosec // test data
 			Proxy:  "login:password@127.0.0.1",
 			Output: "http://login:password@127.0.0.1:1080",
 		},
-		{
+		{ //nolint:gosec // test data
 			Proxy:        "login:password@127.0.0.1",
 			UserPassword: "something:else",
 			Output:       "http://login:password@127.0.0.1:1080",
@@ -978,12 +978,12 @@ func TestParseProxy(t *testing.T) {
 			UserPassword: "something:else",
 			Output:       "http://something:else@127.0.0.1:8888",
 		},
-		{
+		{ //nolint:gosec // test data
 			Proxy:        "user:password@127.0.0.1:8888",
 			UserPassword: "user2:password2",
 			Output:       "http://user:password@127.0.0.1:8888",
 		},
-		{
+		{ //nolint:gosec // test data
 			Proxy:        "http://user:password@127.0.0.1:8888",
 			UserPassword: "user2:password2",
 			Output:       "http://user:password@127.0.0.1:8888",

@@ -116,7 +116,7 @@ func (c *Client) download(
 	req.Header.Add("User-Agent", "geoipupdate/"+vars.Version)
 	req.SetBasicAuth(strconv.Itoa(c.accountID), c.licenseKey)
 
-	response, err := c.httpClient.Do(req)
+	response, err := c.httpClient.Do(req) //nolint:gosec // URL is from known config
 	if err != nil {
 		return nil, time.Time{}, fmt.Errorf("performing download request: %w", err)
 	}
