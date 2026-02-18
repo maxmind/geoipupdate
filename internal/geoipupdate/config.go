@@ -296,7 +296,7 @@ func setConfigFromEnv(config *Config) error {
 	if value := os.Getenv("GEOIPUPDATE_ACCOUNT_ID_FILE"); value != "" {
 		var err error
 
-		accountID, err := os.ReadFile(filepath.Clean(value))
+		accountID, err := os.ReadFile(filepath.Clean(value)) //nolint:gosec // path from env var
 		if err != nil {
 			return fmt.Errorf("failed to open GEOIPUPDATE_ACCOUNT_ID_FILE: %w", err)
 		}
@@ -333,7 +333,7 @@ func setConfigFromEnv(config *Config) error {
 	if value := os.Getenv("GEOIPUPDATE_LICENSE_KEY_FILE"); value != "" {
 		var err error
 
-		licenseKey, err := os.ReadFile(filepath.Clean(value))
+		licenseKey, err := os.ReadFile(filepath.Clean(value)) //nolint:gosec // path from env var
 		if err != nil {
 			return fmt.Errorf("failed to open GEOIPUPDATE_LICENSE_KEY_FILE: %w", err)
 		}
