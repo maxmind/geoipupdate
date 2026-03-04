@@ -111,7 +111,7 @@ proto install geoipupdate
 
 ### Installation from source or Git
 
-You need the Go compiler (1.24+). You can get it at the [Go
+You need the Go compiler (1.25+). You can get it at the [Go
 website](https://golang.org).
 
 The easiest way is via `go install`:
@@ -146,7 +146,7 @@ tracker](https://github.com/maxmind/geoipupdate/issues).
 
 # Copyright and License
 
-This software is Copyright (c) 2018 - 2024 by MaxMind, Inc.
+This software is Copyright (c) 2018 - 2026 by MaxMind, Inc.
 
 This is free software, licensed under the [Apache License, Version
 2.0](LICENSE-APACHE) or the [MIT License](LICENSE-MIT), at your option.
