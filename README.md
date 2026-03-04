@@ -111,7 +111,7 @@ proto install geoipupdate
 
 ### Installation from source or Git
 
-You need the Go compiler (1.24+). You can get it at the [Go
+You need the Go compiler (1.25+). You can get it at the [Go
 website](https://golang.org).
 
 The easiest way is via `go install`:
