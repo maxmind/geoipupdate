@@ -1,0 +1,21 @@
+exclude = [
+    ".git",
+]
+
+[commands.golangci-lint-fmt]
+type = "both"
+cmd = ["golangci-lint", "fmt"]
+lint-flags = "--diff"
+ok-exit-codes = 0
+invoke = "once"
+include = ["**/*.go"]
+
+[commands.golangci-lint]
+type = "both"
+cmd = ["golangci-lint", "run"]
+tidy-flags = ["--fix"]
+ok-exit-codes = 0
+ignore-stderr = ".*"
+invoke = "once"
+path-args = "dir"
+include = ["**/*.go"]

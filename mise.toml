@@ -8,6 +8,7 @@ disable_backends = [
 [tools]
 go = "latest"
 "github:golangci/golangci-lint" = "latest"
+"github:houseabsolute/precious" = "latest"
 
 [hooks]
 enter = "mise install --quiet"
