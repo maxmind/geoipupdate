@@ -116,3 +116,39 @@ url = "https://dl.google.com/go/go1.26.1.darwin-amd64.tar.gz"
 [tools.go."platforms.windows-x64"]
 checksum = "sha256:9b68112c913f45b7aebbf13c036721264bbba7e03a642f8f7490c561eebd1ecc"
 url = "https://dl.google.com/go/go1.26.1.windows-amd64.zip"
+
+[[tools.node]]
+version = "25.8.0"
+backend = "core:node"
+
+[tools.node."platforms.linux-arm64"]
+checksum = "sha256:54c128f5286a4392a1fd1c765729b074a6873abff8a4f9bb3d63d571c2855e41"
+url = "https://nodejs.org/dist/v25.8.0/node-v25.8.0-linux-arm64.tar.gz"
+
+[tools.node."platforms.linux-arm64-musl"]
+checksum = "sha256:54c128f5286a4392a1fd1c765729b074a6873abff8a4f9bb3d63d571c2855e41"
+url = "https://nodejs.org/dist/v25.8.0/node-v25.8.0-linux-arm64.tar.gz"
+
+[tools.node."platforms.linux-x64"]
+checksum = "sha256:2ae6f70d74a459c0a96456e486dc60f3e7e65d7752ad302771834e58b27500af"
+url = "https://nodejs.org/dist/v25.8.0/node-v25.8.0-linux-x64.tar.gz"
+
+[tools.node."platforms.linux-x64-musl"]
+checksum = "sha256:2ae6f70d74a459c0a96456e486dc60f3e7e65d7752ad302771834e58b27500af"
+url = "https://nodejs.org/dist/v25.8.0/node-v25.8.0-linux-x64.tar.gz"
+
+[tools.node."platforms.macos-arm64"]
+checksum = "sha256:75ff6fd07e0a85fb4d2529f6189c996014b1d3d83180c31e65feb2b3eaeec5d9"
+url = "https://nodejs.org/dist/v25.8.0/node-v25.8.0-darwin-arm64.tar.gz"
+
+[tools.node."platforms.macos-x64"]
+checksum = "sha256:03fb559600c3ede0228d8b588ac6ad8b7b2cd0bac9422b56e7e2ef7f5c11b67c"
+url = "https://nodejs.org/dist/v25.8.0/node-v25.8.0-darwin-x64.tar.gz"
+
+[tools.node."platforms.windows-x64"]
+checksum = "sha256:5744746371a417179a701044739b5fa2b3164e943aa57f86059fb312f8032e86"
+url = "https://nodejs.org/dist/v25.8.0/node-v25.8.0-win-x64.zip"
+
+[[tools."npm:prettier"]]
+version = "3.8.1"
+backend = "npm:prettier"
