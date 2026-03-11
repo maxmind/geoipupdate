@@ -1,0 +1,20 @@
+[settings]
+lockfile = true
+disable_backends = [
+    "asdf",
+    "vfox",
+]
+
+[tools]
+go = "latest"
+"github:golangci/golangci-lint" = "latest"
+"github:houseabsolute/precious" = "latest"
+node = "latest"
+"npm:prettier" = "latest"
+
+[hooks]
+enter = "mise install --quiet"
+
+[[watch_files]]
+patterns = ["mise.toml", "mise.lock"]
+run = "mise install --quiet"
