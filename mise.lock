@@ -117,6 +117,38 @@ url = "https://dl.google.com/go/go1.26.1.darwin-amd64.tar.gz"
 checksum = "sha256:9b68112c913f45b7aebbf13c036721264bbba7e03a642f8f7490c561eebd1ecc"
 url = "https://dl.google.com/go/go1.26.1.windows-amd64.zip"
 
+[[tools.hugo]]
+version = "0.161.1"
+backend = "aqua:gohugoio/hugo"
+
+[tools.hugo."platforms.linux-arm64"]
+checksum = "sha256:382371ec3208236fb854ced51781f859b6c27a7d066b8fe90594eba14ba76d00"
+url = "https://github.com/gohugoio/hugo/releases/download/v0.161.1/hugo_0.161.1_linux-arm64.tar.gz"
+
+[tools.hugo."platforms.linux-arm64-musl"]
+checksum = "sha256:382371ec3208236fb854ced51781f859b6c27a7d066b8fe90594eba14ba76d00"
+url = "https://github.com/gohugoio/hugo/releases/download/v0.161.1/hugo_0.161.1_linux-arm64.tar.gz"
+
+[tools.hugo."platforms.linux-x64"]
+checksum = "sha256:fae28bf7909c1a42d1365b89d2e9e3d4194fbe5968ae0dd5504f562381018a1d"
+url = "https://github.com/gohugoio/hugo/releases/download/v0.161.1/hugo_0.161.1_linux-amd64.tar.gz"
+
+[tools.hugo."platforms.linux-x64-musl"]
+checksum = "sha256:fae28bf7909c1a42d1365b89d2e9e3d4194fbe5968ae0dd5504f562381018a1d"
+url = "https://github.com/gohugoio/hugo/releases/download/v0.161.1/hugo_0.161.1_linux-amd64.tar.gz"
+
+[tools.hugo."platforms.macos-arm64"]
+checksum = "sha256:b12e1cbebacf61f9cf67e0046c835142e70c829da7c16b05c1ec64a68885ee80"
+url = "https://github.com/gohugoio/hugo/releases/download/v0.161.1/hugo_0.161.1_darwin-universal.pkg"
+
+[tools.hugo."platforms.macos-x64"]
+checksum = "sha256:b12e1cbebacf61f9cf67e0046c835142e70c829da7c16b05c1ec64a68885ee80"
+url = "https://github.com/gohugoio/hugo/releases/download/v0.161.1/hugo_0.161.1_darwin-universal.pkg"
+
+[tools.hugo."platforms.windows-x64"]
+checksum = "sha256:7f8d030b37600c60bf2a782611257e6a768934fbe7724c1f3a1a501e6724cf0d"
+url = "https://github.com/gohugoio/hugo/releases/download/v0.161.1/hugo_0.161.1_windows-amd64.zip"
+
 [[tools.node]]
 version = "25.8.0"
 backend = "core:node"
