@@ -1,5 +1,5 @@
 title = "GeoIP Update"
-disableKinds = ["taxonomy"]
+disableKinds = ["taxonomy", "term", "RSS"]
 
 [[cascade]]
   layout = "default"
