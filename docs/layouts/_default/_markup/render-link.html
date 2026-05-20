@@ -3,8 +3,8 @@
 {{- if and (not $u.Scheme) (strings.HasSuffix $u.Path ".md") -}}
   {{- with $.Page.GetPage $u.Path -}}
     {{- $url = .RelPermalink -}}
+    {{- with $u.RawQuery }}{{ $url = printf "%s?%s" $url . }}{{ end -}}
+    {{- with $u.Fragment }}{{ $url = printf "%s#%s" $url . }}{{ end -}}
   {{- end -}}
-  {{- with $u.RawQuery }}{{ $url = printf "%s?%s" $url . }}{{ end -}}
-  {{- with $u.Fragment }}{{ $url = printf "%s#%s" $url . }}{{ end -}}
 {{- end -}}
 <a href="{{ $url | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
