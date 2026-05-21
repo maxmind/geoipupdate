@@ -7,6 +7,7 @@ disable_backends = [
 
 [tools]
 go = "latest"
+hugo = "latest"
 "github:golangci/golangci-lint" = "latest"
 "github:houseabsolute/precious" = "latest"
 node = "latest"
@@ -18,3 +19,11 @@ enter = "mise install --quiet"
 [[watch_files]]
 patterns = ["mise.toml", "mise.lock"]
 run = "mise install --quiet"
+
+[tasks.build-docs]
+description = "Build the docs site with Hugo"
+run = "hugo --source docs --minify"
+
+[tasks.serve-docs]
+description = "Serve the docs site locally with Hugo dev server"
+run = "hugo server --source docs"
