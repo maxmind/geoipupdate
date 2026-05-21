@@ -11,8 +11,10 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -230,6 +232,35 @@ func TestRetryWhenWriting(t *testing.T) {
 
 	require.Equal(t, 2, try, "it took two tries to write the database")
 	require.Contains(t, logOutput.String(), `"edition_id":"foo-db-name"`)
+}
+
+// TestNewUpdaterDoesNotMutateDefaultTransport verifies that NewUpdater does not
+// modify http.DefaultTransport when a proxy is configured. See issue #488.
+func TestNewUpdaterDoesNotMutateDefaultTransport(t *testing.T) {
+	defaultTransport := http.DefaultTransport.(*http.Transport)
+	originalProxy := defaultTransport.Proxy
+
+	proxyURL, err := url.Parse("http://proxy.example.com:8080")
+	require.NoError(t, err)
+
+	tempDir := t.TempDir()
+	config := &Config{
+		AccountID:         10,
+		LicenseKey:        "foo",
+		EditionIDs:        []string{"GeoLite2-City"},
+		DatabaseDirectory: tempDir,
+		LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
+		Proxy:             proxyURL,
+	}
+
+	_, err = NewUpdater(config)
+	require.NoError(t, err)
+
+	require.Equal(
+		t,
+		reflect.ValueOf(originalProxy).Pointer(),
+		reflect.ValueOf(defaultTransport.Proxy).Pointer(),
+	)
 }
 
 type mockUpdateClient struct {

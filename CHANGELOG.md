@@ -5,6 +5,10 @@
 - BREAKING CHANGE: `geoipupdate` stops updating on the first error.
 - A config file can now be used to configure the Docker image. This was
   documented but was not functional. Fixed by Shizun Ge. GitHub #433.
+- `NewUpdater` in the unexported `internal/geoipupdate` package no longer
+  mutates `http.DefaultTransport` when a proxy is configured. The CLI is the
+  only caller, so there is no user-visible behavior change. Reported by B.
+  Conners. GitHub #488.
 
 ## 7.1.1 (2025-07-09)
 

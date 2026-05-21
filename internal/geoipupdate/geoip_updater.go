@@ -35,12 +35,12 @@ type Updater struct {
 
 // NewUpdater initialized a new Updater struct.
 func NewUpdater(config *Config) (*Updater, error) {
-	transport := http.DefaultTransport
+	httpClient := &http.Client{}
 	if config.Proxy != nil {
-		proxyFunc := http.ProxyURL(config.Proxy)
-		transport.(*http.Transport).Proxy = proxyFunc
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		transport.Proxy = http.ProxyURL(config.Proxy)
+		httpClient.Transport = transport
 	}
-	httpClient := &http.Client{Transport: transport}
 
 	updateClient, err := client.New(
 		config.AccountID,
