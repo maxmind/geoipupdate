@@ -11,7 +11,7 @@ import (
 //
 // After creation, it is valid for concurrent use.
 //
-
+//nolint:recvcheck // changing this would be a breaking change.
 type Client struct {
 	accountID  int
 	endpoint   string
