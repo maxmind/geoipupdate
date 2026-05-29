@@ -1,4 +1,4 @@
-// Package client is a client for downloading GeoIP2 and GeoLite2 MMDB
+// Package client is a client for downloading GeoIP and GeoLite MMDB
 // databases.
 package client
 
@@ -7,11 +7,11 @@ import (
 	"net/http"
 )
 
-// Client downloads GeoIP2 and GeoLite2 MMDB databases.
+// Client downloads GeoIP and GeoLite MMDB databases.
 //
 // After creation, it is valid for concurrent use.
 //
-//nolint:recvcheck // changing this would be a breaking change.
+
 type Client struct {
 	accountID  int
 	endpoint   string
