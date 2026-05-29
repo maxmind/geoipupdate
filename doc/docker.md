@@ -16,7 +16,7 @@ An account ID, a license key, and edition ID(s) to update must be provided.
 2. Or they can be set via environment variables:
   * `GEOIPUPDATE_EDITION_IDS` - List of space-separated database edition
     IDs. Edition IDs may consist of letters, digits, and dashes. For
-    example. `GeoIP2-City` would download the GeoIP2 City database
+    example. `GeoIP2-City` would download the GeoIP City database
     (`GeoIP2-City`).
   * One of:
     * `GEOIPUPDATE_ACCOUNT_ID` - Your MaxMind account ID.

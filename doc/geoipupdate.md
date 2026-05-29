@@ -1,6 +1,6 @@
 # NAME
 
-geoipupdate - GeoIP2 and GeoLite2 Update Program
+geoipupdate - GeoIP and GeoLite Update Program
 
 # SYNOPSIS
 
@@ -8,7 +8,7 @@ geoipupdate - GeoIP2 and GeoLite2 Update Program
 
 # DESCRIPTION
 
-`geoipupdate` automatically updates GeoIP2 and GeoLite2 databases. The
+`geoipupdate` automatically updates GeoIP and GeoLite databases. The
 program connects to the MaxMind GeoIP Update server to check for new
 databases. If a new database is available, the program will download and
 install it.
@@ -91,7 +91,7 @@ the MIT License, at your option.
 # MORE INFORMATION
 
 Visit [our website](https://www.maxmind.com/en/geoip2-services-and-databases)
-to learn more about the GeoIP2 databases or to sign up for a subscription.
+to learn more about the GeoIP databases or to sign up for a subscription.
 
 # SEE ALSO
 
