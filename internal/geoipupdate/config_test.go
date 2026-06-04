@@ -26,12 +26,12 @@ func TestNewConfig(t *testing.T) {
 	}{
 		{
 			Description: "Default config",
-			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases/?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
 # Enter your account ID and license key below. These are available from
-# https://www.maxmind.com/en/my_license_key. If you are only using free
+# https://www.maxmind.com/en/accounts/current/license-key. If you are only using free
 # GeoLite databases, you may leave the 0 values.
 AccountID 42
 LicenseKey 000000000001
@@ -92,12 +92,12 @@ EditionIDs GeoLite2-Country GeoLite2-City
 		},
 		{
 			Description: "Default config, old names",
-			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases/?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
 # Enter your account ID and license key below. These are available from
-# https://www.maxmind.com/en/my_license_key. If you are only using free
+# https://www.maxmind.com/en/accounts/current/license-key. If you are only using free
 # GeoLite databases, you may leave the 0 values.
 UserId 42
 LicenseKey 000000000001
@@ -147,12 +147,12 @@ ProductIds GeoLite2-Country GeoLite2-City
 		},
 		{
 			Description: "Everything populated",
-			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases/?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
 # Enter your account ID and license key below. These are available from
-# https://www.maxmind.com/en/my_license_key. If you are only using free
+# https://www.maxmind.com/en/accounts/current/license-key. If you are only using free
 # GeoLite databases, you may leave the 0 values.
 AccountID 1234
 LicenseKey abcdefghi

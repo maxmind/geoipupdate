@@ -10,11 +10,11 @@ We provide releases for Linux, macOS (darwin), and Windows. Please see the
 release.
 
 After you install GeoIP Update, please refer to our
-[documentation](https://dev.maxmind.com/geoip/updating-databases?lang=en) for
+[documentation](https://dev.maxmind.com/geoip/updating-databases/?lang=en) for
 information about configuration.
 
 If you're upgrading from GeoIP Update 3.x, please see our
-[upgrade guide](https://dev.maxmind.com/geoip/upgrading-geoip-update?lang=en).
+[upgrade guide](https://dev.maxmind.com/geoip/upgrading-geoip-update/?lang=en).
 
 ### Installing on Linux via the tarball
 
@@ -110,7 +110,7 @@ proto install geoipupdate
 ### Installation from source or Git
 
 You need the Go compiler (1.25+). You can get it at the
-[Go website](https://golang.org).
+[Go website](https://go.dev).
 
 The easiest way is via `go install`:
 
@@ -121,7 +121,7 @@ This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 # Configuring
 
 Please see our
-[online guide](https://dev.maxmind.com/geoip/updating-databases?lang=en) for
+[online guide](https://dev.maxmind.com/geoip/updating-databases/?lang=en) for
 directions on how to configure GeoIP Update.
 
 # Documentation

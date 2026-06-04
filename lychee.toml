@@ -33,11 +33,18 @@ exclude = [
     '^https://updates\.maxmind\.com',
     '^https://www\.maxmind\.com/en/accounts/',
     '^https://www\.maxmind\.com/en/account/login',
+    # GitHub settings page: redirects to the login flow for anonymous requests.
+    '^https://github\.com/settings/',
+    # Works in a browser but returns 415 to lychee's automated request
+    '^https://austingroupbugs\.net',
     # Local / placeholder URLs (e.g. proxy or host examples in docs/code)
     '^file://',
     '^https?://example\.(com|org|net)',
     '^http://localhost',
     '127\.0\.0\.1',
+    # Placeholder proxy/host values used only in config parser tests.
+    '^http://test/?$',
+    '^http://[gG]arbage:1080/?$',
 ]
 
 # Exclude file paths from getting checked (regular expressions, matched against

@@ -64,12 +64,12 @@ open.
 
 Typically you should run `geoipupdate` at least twice a week. Consult
 our
-[database release schedule](https://support.maxmind.com/hc/en-us/articles/4408216129947-Download-and-Update-Databases#h_01G3XX402XKD3J1CMWKNKMDYYZ)
+[database release schedule](https://support.maxmind.com/knowledge-base/articles/download-and-update-maxmind-databases)
 for more information.
 
 On most Unix-like systems, this can be achieved by using cron. You can
 find
-[an example crontab file on our Developer Portal](https://dev.maxmind.com/geoip/updating-databases#3-run-geoip-update).
+[an example crontab file on our Developer Portal](https://dev.maxmind.com/geoip/updating-databases/#3-run-geoip-update).
 
 To use with a proxy server, update your `GeoIP.conf` file as specified in
 the `GeoIP.conf` man page. Alternatively, set the `GEOIPUPDATE_PROXY` or
@@ -90,7 +90,7 @@ the MIT License, at your option.
 
 # MORE INFORMATION
 
-Visit [our website](https://www.maxmind.com/en/geoip2-services-and-databases)
+Visit [our website](https://www.maxmind.com/en/solutions/ip-geolocation-databases-api-services)
 to learn more about the GeoIP databases or to sign up for a subscription.
 
 # SEE ALSO
