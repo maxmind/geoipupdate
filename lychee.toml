@@ -1,0 +1,66 @@
+# Lychee link checker configuration
+# https://lychee.cli.rs/#/usage/config
+#
+# Run locally with:
+#   lychee './**/*.md' './**/*.go'
+
+# Include URL fragments in checks
+include_fragments = true
+
+# Don't allow any redirects, so links that have moved are surfaced and can be
+# updated to their canonical destination.
+max_redirects = 0
+
+# Accept these HTTP status codes
+# 100-103: Informational responses
+# 200-299: Success responses
+# 403: Forbidden (some sites use this for rate limiting)
+# 429: Too Many Requests
+# 500-599: Server errors (temporary issues shouldn't fail CI)
+# 999: LinkedIn's custom status code
+accept = ["100..=103", "200..=299", "403", "429", "500..=599", "999"]
+
+# Exclude URL patterns from checking (treated as regular expressions)
+exclude = [
+    # GitHub blob URLs with line-number fragments (not parseable as page anchors)
+    '^https://github\.com/[^/]+/[^/]+/blob/[0-9a-fA-F]+/.+#L\d+$',
+    # Live / auth-gated MaxMind endpoints: appear as code string literals or
+    # require login, so they can't be verified by an anonymous request.
+    '^https://geoip\.maxmind\.com',
+    '^https://geolite\.info',
+    '^https://minfraud\.maxmind\.com',
+    '^https://sandbox\.maxmind\.com',
+    '^https://updates\.maxmind\.com',
+    '^https://www\.maxmind\.com/en/accounts/',
+    '^https://www\.maxmind\.com/en/account/login',
+    # GitHub settings page: redirects to the login flow for anonymous requests.
+    '^https://github\.com/settings/',
+    # Works in a browser but returns 415 to lychee's automated request
+    '^https://austingroupbugs\.net',
+    # Local / placeholder URLs (e.g. proxy or host examples in docs/code)
+    '^file://',
+    '^https?://example\.(com|org|net)',
+    '^http://localhost',
+    '127\.0\.0\.1',
+    # Placeholder proxy/host values used only in config parser tests.
+    '^http://test/?$',
+    '^http://[gG]arbage:1080/?$',
+]
+
+# Exclude file paths from getting checked (regular expressions, matched against
+# the path relative to the working directory). Patterns are segment-anchored
+# with (^|/) so short names like "build" don't match unintended paths.
+exclude_path = [
+    '(^|/)vendor/',
+    '(^|/)build/',
+    '(^|/)dist/',
+    # Changelog: historical entries are preserved as-is, not rewritten
+    '(^|/)CHANGELOG\.md$',
+]
+
+# Cache results for 1 day to speed up repeated checks
+cache = true
+max_cache_age = "1d"
+
+# Skip missing input files instead of erroring
+skip_missing = true

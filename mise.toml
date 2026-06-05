@@ -8,6 +8,7 @@ disable_backends = [
 [tools]
 go = "latest"
 hugo = "latest"
+lychee = "latest"
 "github:golangci/golangci-lint" = "latest"
 "github:houseabsolute/precious" = "latest"
 node = "latest"
@@ -27,3 +28,7 @@ run = "hugo --source docs --minify"
 [tasks.serve-docs]
 description = "Serve the docs site locally with Hugo dev server"
 run = "hugo server --source docs"
+
+[tasks.check-links]
+description = "Check links with lychee"
+run = "lychee --no-progress './**/*.md' './**/*.go'"
