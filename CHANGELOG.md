@@ -9,6 +9,8 @@
   mutates `http.DefaultTransport` when a proxy is configured. The CLI is the
   only caller, so there is no user-visible behavior change. Reported by B.
   Conners. GitHub #488.
+- Do not retry proxy CONNECT 4xx errors. These are now treated as permanent
+  failures.
 
 ## 7.1.1 (2025-07-09)
 
