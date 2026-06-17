@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"sync"
 	"time"
@@ -35,12 +36,12 @@ type Updater struct {
 
 // NewUpdater initialized a new Updater struct.
 func NewUpdater(config *Config) (*Updater, error) {
-	httpClient := &http.Client{}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.OnProxyConnectResponse = proxyConnectResponse
 	if config.Proxy != nil {
-		transport := http.DefaultTransport.(*http.Transport).Clone()
 		transport.Proxy = http.ProxyURL(config.Proxy)
-		httpClient.Transport = transport
 	}
+	httpClient := &http.Client{Transport: transport}
 
 	updateClient, err := client.New(
 		config.AccountID,
@@ -67,6 +68,22 @@ func NewUpdater(config *Config) (*Updater, error) {
 		updateClient: updateClient,
 		writer:       writer,
 	}, nil
+}
+
+func proxyConnectResponse(
+	_ context.Context,
+	_ *url.URL,
+	_ *http.Request,
+	res *http.Response,
+) error {
+	if res.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	return internal.HTTPError{
+		Body:       res.Status,
+		StatusCode: res.StatusCode,
+	}
 }
 
 // Run starts the download or update process.
@@ -161,7 +178,7 @@ func (u *Updater) downloadEdition(
 		func() (bool, error) {
 			res, err := uc.Download(ctx, editionID, editionHash)
 			if err != nil {
-				if internal.IsPermanentError(err) {
+				if !internal.IsRetryableError(err) {
 					return false, backoff.Permanent(err)
 				}
 
@@ -194,7 +211,7 @@ func (u *Updater) downloadEdition(
 				res.LastModified,
 			)
 			if err != nil {
-				if internal.IsPermanentError(err) {
+				if !internal.IsRetryableError(err) {
 					return false, backoff.Permanent(err)
 				}
 

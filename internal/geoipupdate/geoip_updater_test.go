@@ -24,6 +24,7 @@ import (
 	"golang.org/x/net/http2"
 
 	"github.com/maxmind/geoipupdate/v7/client"
+	"github.com/maxmind/geoipupdate/v7/internal"
 	"github.com/maxmind/geoipupdate/v7/internal/geoipupdate/database"
 )
 
@@ -261,6 +262,105 @@ func TestNewUpdaterDoesNotMutateDefaultTransport(t *testing.T) {
 		reflect.ValueOf(originalProxy).Pointer(),
 		reflect.ValueOf(defaultTransport.Proxy).Pointer(),
 	)
+}
+
+func TestDoesNotRetryProxyConnectForbidden(t *testing.T) {
+	tempDir := t.TempDir()
+
+	proxyAttempts := 0
+	proxyServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			proxyAttempts++
+			w.WriteHeader(http.StatusForbidden)
+		}),
+	)
+	defer proxyServer.Close()
+
+	proxyURL, err := url.Parse(proxyServer.URL)
+	require.NoError(t, err)
+
+	config := &Config{
+		AccountID:         10,
+		DatabaseDirectory: tempDir,
+		EditionIDs:        []string{"foo-db-name"},
+		LicenseKey:        "foo",
+		LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
+		Parallelism:       1,
+		Proxy:             proxyURL,
+		RetryFor:          5 * time.Minute,
+		URL:               "https://updates.maxmind.com",
+	}
+
+	u, err := NewUpdater(config)
+	require.NoError(t, err)
+
+	err = u.Run(t.Context())
+	require.Error(t, err)
+	var httpErr internal.HTTPError
+	require.ErrorAs(t, err, &httpErr)
+	require.Equal(t, http.StatusForbidden, httpErr.StatusCode)
+	require.Equal(t, 1, proxyAttempts)
+}
+
+// TestDoesNotRetryEnvProxyConnectForbidden verifies that a 403 from a proxy
+// discovered via the HTTPS_PROXY environment variable (Config.Proxy is nil)
+// is not retried. This reproduces the real-world failure where the
+// OnProxyConnectResponse hook was only installed when Config.Proxy was set.
+func TestDoesNotRetryEnvProxyConnectForbidden(t *testing.T) {
+	tempDir := t.TempDir()
+
+	proxyAttempts := 0
+	proxyServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			proxyAttempts++
+			w.WriteHeader(http.StatusForbidden)
+		}),
+	)
+	defer proxyServer.Close()
+
+	t.Setenv("HTTPS_PROXY", proxyServer.URL)
+
+	// Since Go's net/http package caches proxy environment variables (using envOnce)
+	// after the first HTTP request is made in the process, modifying HTTPS_PROXY via
+	// t.Setenv has no effect if any previous test has made an HTTP request.
+	// We temporarily override http.DefaultTransport.Proxy to read HTTPS_PROXY dynamically.
+	defaultTransport := http.DefaultTransport.(*http.Transport)
+	origProxy := defaultTransport.Proxy
+	defaultTransport.Proxy = func(req *http.Request) (*url.URL, error) {
+		if req.URL.Scheme == "https" {
+			if proxy := os.Getenv("HTTPS_PROXY"); proxy != "" {
+				return url.Parse(proxy)
+			}
+		}
+		if origProxy != nil {
+			return origProxy(req)
+		}
+		return nil, nil
+	}
+	defer func() {
+		defaultTransport.Proxy = origProxy
+	}()
+
+	config := &Config{
+		AccountID:         10,
+		DatabaseDirectory: tempDir,
+		EditionIDs:        []string{"foo-db-name"},
+		LicenseKey:        "foo",
+		LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
+		Parallelism:       1,
+		RetryFor:          5 * time.Minute,
+		URL:               "https://updates.maxmind.com",
+	}
+
+	u, err := NewUpdater(config)
+	require.NoError(t, err)
+
+	err = u.Run(t.Context())
+	require.Error(t, err)
+	var httpErr internal.HTTPError
+	require.ErrorAs(t, err, &httpErr)
+	require.Equal(t, http.StatusForbidden, httpErr.StatusCode)
+	require.Equal(t, 1, proxyAttempts)
 }
 
 type mockUpdateClient struct {
