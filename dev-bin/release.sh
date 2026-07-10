@@ -169,5 +169,3 @@ if ! goreleaser release --clean -f .goreleaser.yml --release-notes <(echo "$note
     git tag -d "$tag"
     exit 1
 fi
-
-git push --tags
