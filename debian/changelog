@@ -1,3 +1,9 @@
+geoipupdate (8.0.0-0+maxmind1) resolute; urgency=low
+
+  * New upstream release.
+
+ -- Gregory J. Oschwald <goschwald@maxmind.com>  Fri, 10 Jul 2026 13:35:03 -0700
+
 geoipupdate (7.1.1-0+maxmind1) plucky; urgency=low
 
   * New upstream release.
