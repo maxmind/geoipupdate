@@ -4,7 +4,7 @@ set -e
 set -x
 set -u
 
-DISTS=( plucky noble jammy focal )
+DISTS=( resolute noble jammy )
 
 VERSION=$(perl -MFile::Slurper=read_text -MDateTime <<EOF
 use v5.16;
