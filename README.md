@@ -114,7 +114,7 @@ You need the Go compiler (1.25+). You can get it at the
 
 The easiest way is via `go install`:
 
-    $ go install github.com/maxmind/geoipupdate/v7/cmd/geoipupdate@latest
+    $ go install github.com/maxmind/geoipupdate/v8/cmd/geoipupdate@latest
 
 This installs `geoipupdate` to `$GOPATH/bin/geoipupdate`.
 

@@ -1,4 +1,4 @@
-module github.com/maxmind/geoipupdate/v7
+module github.com/maxmind/geoipupdate/v8
 
 go 1.25.0
 
@@ -20,6 +20,3 @@ require (
 	golang.org/x/text v0.38.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-// The module version (v6) did not match the tag version in this release.
-retract v7.0.0

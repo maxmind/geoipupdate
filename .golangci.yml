@@ -715,7 +715,7 @@ linters:
 
       - linters:
           - wrapcheck
-        text: github.com/maxmind/geoipupdate
+        text: github.com/maxmind/geoipupdate/v8
 
     paths:
       - _easyjson\.go$
@@ -735,15 +735,15 @@ formatters:
       sections:
         - standard
         - default
-        - prefix(github.com/maxmind/geoipupdate)
+        - prefix(github.com/maxmind/geoipupdate/v8)
 
     gofumpt:
-      module-path: github.com/maxmind/geoipupdate
+      module-path: github.com/maxmind/geoipupdate/v8
       extra-rules: true
 
     goimports:
       local-prefixes:
-        - github.com/maxmind/geoipupdate
+        - github.com/maxmind/geoipupdate/v8
 
     golines:
       shorten-comments: true
