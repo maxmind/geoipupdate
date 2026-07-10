@@ -6,14 +6,24 @@ set -u
 
 DISTS=( resolute noble jammy )
 
-VERSION=$(perl -MFile::Slurper=read_text -MDateTime <<EOF
-use v5.16;
-my \$log = read_text(q{CHANGELOG.md});
-\$log =~ /\n## (\d+\.\d+\.\d+) \((\d{4}-\d{2}-\d{2})\)\n/;
-die 'Release time is not today!' unless DateTime->now->ymd eq \$2;
-say \$1;
-EOF
-)
+CHANGELOG=$(cat CHANGELOG.md)
+
+REGEX='
+## ([0-9]+\.[0-9]+\.[0-9]+) \(([0-9]{4}-[0-9]{2}-[0-9]{2})\)
+'
+
+if [[ ! $CHANGELOG =~ $REGEX ]]; then
+    echo "Could not find release version in CHANGELOG.md"
+    exit 1
+fi
+
+VERSION="${BASH_REMATCH[1]}"
+DATE="${BASH_REMATCH[2]}"
+
+if [[ "$DATE" != "$(date +"%Y-%m-%d")" ]]; then
+    echo "$DATE is not today!"
+    exit 1
+fi
 
 SRCDIST="geoipupdate-$VERSION.tar.gz"
 SRC=/tmp/geoipupdate-$VERSION/

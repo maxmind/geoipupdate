@@ -24,8 +24,8 @@ Then release to our PPA:
 - Set up to release to launchpad. You can see some information about
   prerequisites for this
   [here](https://github.com/maxmind/libmaxminddb/blob/main/README.dev.md).
-- Ensure you have the `dh-golang`, `golang-any`, `devscripts`,
-  `libfile-slurp-tiny-perl`, and `libdatetime-perl` packages installed.
+- Ensure you have the `dh-golang`, `golang-any`, and `devscripts` packages
+  installed.
 * Delete `dist` directory.
 * Check whether you need to update the `$DISTS` variable in
   `dev-bin/ppa-release.sh`. We should include all currently supported
