@@ -26,10 +26,11 @@ Then release to our PPA:
   [here](https://github.com/maxmind/libmaxminddb/blob/main/README.dev.md).
 - Ensure you have the `dh-golang`, `golang-any`, and `devscripts` packages
   installed.
+
 * Delete `dist` directory.
 * Check whether you need to update the `$DISTS` variable in
-  `dev-bin/ppa-release.sh`. We should include all currently supported
-  Ubuntu releases.
+  `dev-bin/ppa-release.sh`. We should include all currently supported Ubuntu
+  releases.
 * Run `dev-bin/ppa-release.sh`
 
 Gotcha with PPA:
