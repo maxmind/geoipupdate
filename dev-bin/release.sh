@@ -117,8 +117,11 @@ $notes"
 
 git tag -a -m "$message" "$tag"
 
-git push --tags
-
 # goreleaser's `--clean' should clear out `dist', but it didn't work for me.
 rm -rf dist
-goreleaser release --clean -f .goreleaser.yml --release-notes <(echo "$notes")
+if ! goreleaser release --clean -f .goreleaser.yml --release-notes <(echo "$notes"); then
+    git tag -d "$tag"
+    exit 1
+fi
+
+git push --tags
