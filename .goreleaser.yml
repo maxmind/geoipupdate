@@ -2,7 +2,7 @@ project_name: 'geoipupdate'
 version: 2
 archives:
   - id: 'archives-unix'
-    builds:
+    ids:
       - 'geoipupdate-unix'
     wrap_in_directory: true
     files:
@@ -14,7 +14,7 @@ archives:
         dst: '.'
         strip_parent: true
   - id: 'archives-windows'
-    builds:
+    ids:
       - 'geoipupdate-windows'
     wrap_in_directory: true
     files:
@@ -83,6 +83,9 @@ builds:
       post: 'make data OS=Windows_NT BUILDDIR="build/windows"'
     env:
       - CGO_ENABLED=0
+# Do not migrate this to dockers_v2 yet. As of GoReleaser 2.15.3, dockers_v2
+# invokes Docker Buildx with flags that Podman's Docker-compatible CLI does not
+# support, and releases are currently run in a Podman-backed environment.
 dockers:
   - ids:
       - 'geoipupdate-unix'
@@ -162,7 +165,7 @@ docker_manifests:
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"
 nfpms:
-  - builds:
+  - ids:
       - 'geoipupdate-packages'
     vendor: 'MaxMind, Inc.'
     homepage: https://www.maxmind.com/
