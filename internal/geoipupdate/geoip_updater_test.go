@@ -11,8 +11,10 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -21,9 +23,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/http2"
 
-	"github.com/maxmind/geoipupdate/v7/client"
-	"github.com/maxmind/geoipupdate/v7/internal"
-	"github.com/maxmind/geoipupdate/v7/internal/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v8/client"
+	"github.com/maxmind/geoipupdate/v8/internal"
+	"github.com/maxmind/geoipupdate/v8/internal/geoipupdate/database"
 )
 
 // TestUpdaterOutput makes sure that the Updater outputs the result of its
@@ -141,7 +143,7 @@ func TestRetryWhenWriting(t *testing.T) {
 		if r.URL.Path == "/geoip/updates/metadata" {
 			w.Header().Set("Content-Type", "application/json")
 
-			// The md5 here bleongs to the tar.gz sent below.
+			// The md5 here belongs to the tar.gz sent below.
 			metadata := []byte(
 				`{"databases":[{"edition_id":"foo-db-name",` +
 					`"md5":"83e01ba43c2a66e30cb3007c1a300c78","date":"2023-04-27"}]}`)
@@ -226,25 +228,139 @@ func TestRetryWhenWriting(t *testing.T) {
 		writer:       writer,
 	}
 
-	ctx := context.Background()
-
-	jobProcessor := internal.NewJobProcessor(ctx, 1)
-	processFunc := func(ctx context.Context) error {
-		_, err = u.downloadEdition(
-			ctx,
-			"foo-db-name",
-			u.updateClient,
-			u.writer,
-		)
-
-		return err
-	}
-	jobProcessor.Add(processFunc)
-
-	err = jobProcessor.Run(ctx)
+	err = u.Run(t.Context())
 	require.NoError(t, err)
 
-	assert.Empty(t, logOutput.String())
+	require.Equal(t, 2, try, "it took two tries to write the database")
+	require.Contains(t, logOutput.String(), `"edition_id":"foo-db-name"`)
+}
+
+// TestNewUpdaterDoesNotMutateDefaultTransport verifies that NewUpdater does not
+// modify http.DefaultTransport when a proxy is configured. See issue #488.
+func TestNewUpdaterDoesNotMutateDefaultTransport(t *testing.T) {
+	defaultTransport := http.DefaultTransport.(*http.Transport)
+	originalProxy := defaultTransport.Proxy
+
+	proxyURL, err := url.Parse("http://proxy.example.com:8080")
+	require.NoError(t, err)
+
+	tempDir := t.TempDir()
+	config := &Config{
+		AccountID:         10,
+		LicenseKey:        "foo",
+		EditionIDs:        []string{"GeoLite2-City"},
+		DatabaseDirectory: tempDir,
+		LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
+		Proxy:             proxyURL,
+	}
+
+	_, err = NewUpdater(config)
+	require.NoError(t, err)
+
+	require.Equal(
+		t,
+		reflect.ValueOf(originalProxy).Pointer(),
+		reflect.ValueOf(defaultTransport.Proxy).Pointer(),
+	)
+}
+
+func TestDoesNotRetryProxyConnectForbidden(t *testing.T) {
+	tempDir := t.TempDir()
+
+	proxyAttempts := 0
+	proxyServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			proxyAttempts++
+			w.WriteHeader(http.StatusForbidden)
+		}),
+	)
+	defer proxyServer.Close()
+
+	proxyURL, err := url.Parse(proxyServer.URL)
+	require.NoError(t, err)
+
+	config := &Config{
+		AccountID:         10,
+		DatabaseDirectory: tempDir,
+		EditionIDs:        []string{"foo-db-name"},
+		LicenseKey:        "foo",
+		LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
+		Parallelism:       1,
+		Proxy:             proxyURL,
+		RetryFor:          5 * time.Minute,
+		URL:               "https://updates.maxmind.com",
+	}
+
+	u, err := NewUpdater(config)
+	require.NoError(t, err)
+
+	err = u.Run(t.Context())
+	require.Error(t, err)
+	var httpErr internal.HTTPError
+	require.ErrorAs(t, err, &httpErr)
+	require.Equal(t, http.StatusForbidden, httpErr.StatusCode)
+	require.Equal(t, 1, proxyAttempts)
+}
+
+// TestDoesNotRetryEnvProxyConnectForbidden verifies that a 403 from a proxy
+// discovered via the HTTPS_PROXY environment variable (Config.Proxy is nil)
+// is not retried. This reproduces the real-world failure where the
+// OnProxyConnectResponse hook was only installed when Config.Proxy was set.
+func TestDoesNotRetryEnvProxyConnectForbidden(t *testing.T) {
+	tempDir := t.TempDir()
+
+	proxyAttempts := 0
+	proxyServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			proxyAttempts++
+			w.WriteHeader(http.StatusForbidden)
+		}),
+	)
+	defer proxyServer.Close()
+
+	t.Setenv("HTTPS_PROXY", proxyServer.URL)
+
+	// Since Go's net/http package caches proxy environment variables (using envOnce)
+	// after the first HTTP request is made in the process, modifying HTTPS_PROXY via
+	// t.Setenv has no effect if any previous test has made an HTTP request.
+	// We temporarily override http.DefaultTransport.Proxy to read HTTPS_PROXY dynamically.
+	defaultTransport := http.DefaultTransport.(*http.Transport)
+	origProxy := defaultTransport.Proxy
+	defaultTransport.Proxy = func(req *http.Request) (*url.URL, error) {
+		if req.URL.Scheme == "https" {
+			if proxy := os.Getenv("HTTPS_PROXY"); proxy != "" {
+				return url.Parse(proxy)
+			}
+		}
+		if origProxy != nil {
+			return origProxy(req)
+		}
+		return nil, nil
+	}
+	defer func() {
+		defaultTransport.Proxy = origProxy
+	}()
+
+	config := &Config{
+		AccountID:         10,
+		DatabaseDirectory: tempDir,
+		EditionIDs:        []string{"foo-db-name"},
+		LicenseKey:        "foo",
+		LockFile:          filepath.Join(tempDir, ".geoipupdate.lock"),
+		Parallelism:       1,
+		RetryFor:          5 * time.Minute,
+		URL:               "https://updates.maxmind.com",
+	}
+
+	u, err := NewUpdater(config)
+	require.NoError(t, err)
+
+	err = u.Run(t.Context())
+	require.Error(t, err)
+	var httpErr internal.HTTPError
+	require.ErrorAs(t, err, &httpErr)
+	require.Equal(t, http.StatusForbidden, httpErr.StatusCode)
+	require.Equal(t, 1, proxyAttempts)
 }
 
 type mockUpdateClient struct {

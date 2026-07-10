@@ -7,7 +7,7 @@ import (
 
 	flag "github.com/spf13/pflag"
 
-	"github.com/maxmind/geoipupdate/v7/internal/vars"
+	"github.com/maxmind/geoipupdate/v8/internal/vars"
 )
 
 // Args are command line arguments.
@@ -50,6 +50,7 @@ func getArgs() *Args {
 	displayVersion := flag.BoolP("version", "V", false, "Display the version and exit")
 	parallelism := flag.Int("parallelism", 0, "Set the number of parallel database downloads")
 
+	//nolint:revive // pre-existing deep exit
 	flag.Parse()
 
 	if *help {
@@ -76,7 +77,7 @@ func getArgs() *Args {
 }
 
 func printUsage() {
-	log.Printf("Usage: %s <arguments>\n", os.Args[0])
+	log.Printf("Usage: %s <arguments>\n", os.Args[0]) //nolint:gosec // logging program name
 	flag.PrintDefaults()
 	//nolint: revive // deep exit from main package
 	os.Exit(1)

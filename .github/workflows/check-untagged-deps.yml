@@ -1,0 +1,20 @@
+name: Check Untagged Dependencies
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: horgh/check-untagged-go-deps@1e727f9fffc10de1d5db85032c02e17081077602 # v1.1.0

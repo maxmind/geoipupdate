@@ -12,10 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v7/internal/vars"
+	"github.com/maxmind/geoipupdate/v8/internal/vars"
 )
 
-const schemeHTTPS = "https"
+const (
+	schemeHTTPS = "https"
+	schemeHTTP  = "http"
+	defaultURL  = "https://updates.maxmind.com"
+)
 
 // Config is a parsed configuration file.
 type Config struct {
@@ -121,7 +125,7 @@ func NewConfig(
 ) (*Config, error) {
 	// config defaults
 	config := &Config{
-		URL:               "https://updates.maxmind.com",
+		URL:               defaultURL,
 		DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
 		RetryFor:          5 * time.Minute,
 		Parallelism:       1,
@@ -442,7 +446,7 @@ func parseProxy(
 	} else {
 		scheme := strings.ToLower(matches[1])
 		// The http package only supports http, https, and socks5.
-		if scheme != "http" && scheme != schemeHTTPS && scheme != "socks5" {
+		if scheme != schemeHTTP && scheme != schemeHTTPS && scheme != "socks5" {
 			return nil, fmt.Errorf("unsupported proxy type: %s", scheme)
 		}
 	}

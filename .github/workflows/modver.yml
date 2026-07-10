@@ -12,11 +12,11 @@ jobs:
   modver:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: bobg/modver@0035b3b46089fc8f5ec9f3f5987e12fb618e120d # 2.11.0
+      - uses: bobg/modver@5b8d0533390faf5542fd9ab530ca3075c32a7201 # v2.14.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pull_request_url: https://github.com/${{ github.repository }}/pull/${{ github.event.number }}

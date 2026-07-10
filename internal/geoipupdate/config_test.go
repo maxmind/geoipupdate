@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/maxmind/geoipupdate/v7/internal/vars"
+	"github.com/maxmind/geoipupdate/v8/internal/vars"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -26,12 +26,12 @@ func TestNewConfig(t *testing.T) {
 	}{
 		{
 			Description: "Default config",
-			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases/?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
 # Enter your account ID and license key below. These are available from
-# https://www.maxmind.com/en/my_license_key. If you are only using free
+# https://www.maxmind.com/en/accounts/current/license-key. If you are only using free
 # GeoLite databases, you may leave the 0 values.
 AccountID 42
 LicenseKey 000000000001
@@ -92,12 +92,12 @@ EditionIDs GeoLite2-Country GeoLite2-City
 		},
 		{
 			Description: "Default config, old names",
-			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases/?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
 # Enter your account ID and license key below. These are available from
-# https://www.maxmind.com/en/my_license_key. If you are only using free
+# https://www.maxmind.com/en/accounts/current/license-key. If you are only using free
 # GeoLite databases, you may leave the 0 values.
 UserId 42
 LicenseKey 000000000001
@@ -147,12 +147,12 @@ ProductIds GeoLite2-Country GeoLite2-City
 		},
 		{
 			Description: "Everything populated",
-			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases?lang=en for instructions
+			Input: `# Please see https://dev.maxmind.com/geoip/updating-databases/?lang=en for instructions
 # on setting up geoipupdate, including information on how to download a
 # pre-filled GeoIP.conf file.
 
 # Enter your account ID and license key below. These are available from
-# https://www.maxmind.com/en/my_license_key. If you are only using free
+# https://www.maxmind.com/en/accounts/current/license-key. If you are only using free
 # GeoLite databases, you may leave the 0 values.
 AccountID 1234
 LicenseKey abcdefghi
@@ -959,11 +959,11 @@ func TestParseProxy(t *testing.T) {
 			Proxy: "ftp://127.0.0.1:8888",
 			Err:   "unsupported proxy type: ftp",
 		},
-		{
+		{ //nolint:gosec // test data
 			Proxy:  "login:password@127.0.0.1",
 			Output: "http://login:password@127.0.0.1:1080",
 		},
-		{
+		{ //nolint:gosec // test data
 			Proxy:        "login:password@127.0.0.1",
 			UserPassword: "something:else",
 			Output:       "http://login:password@127.0.0.1:1080",
@@ -978,12 +978,12 @@ func TestParseProxy(t *testing.T) {
 			UserPassword: "something:else",
 			Output:       "http://something:else@127.0.0.1:8888",
 		},
-		{
+		{ //nolint:gosec // test data
 			Proxy:        "user:password@127.0.0.1:8888",
 			UserPassword: "user2:password2",
 			Output:       "http://user:password@127.0.0.1:8888",
 		},
-		{
+		{ //nolint:gosec // test data
 			Proxy:        "http://user:password@127.0.0.1:8888",
 			UserPassword: "user2:password2",
 			Output:       "http://user:password@127.0.0.1:8888",

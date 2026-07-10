@@ -6,27 +6,18 @@ on:
   pull_request:
     branches: ["**"]
 
+permissions: {}
+
 jobs:
   zizmor:
-    name: zizmor latest via PyPI
     runs-on: ubuntu-latest
     permissions:
       security-events: write
-      # required for workflows in private repositories
-      contents: read
-      actions: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@bd01e18f51369d5a26f1651c3cb451d3417e3bba # 6.3.1
-        with:
-          enable-cache: false
-
       - name: Run zizmor
-        run: uvx zizmor@1.9.0 --format plain .
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7

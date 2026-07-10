@@ -19,25 +19,28 @@ log_dir="/tmp/geoipupdate"
 log_file="$log_dir/.healthcheck"
 flags="--output"
 frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
-export GEOIPUPDATE_CONF_FILE=""
 
 if [ -z "$GEOIPUPDATE_DB_DIR" ]; then
   export GEOIPUPDATE_DB_DIR="$database_dir"
 fi
 
-if [ -z "$GEOIPUPDATE_ACCOUNT_ID" ] && [ -z  "$GEOIPUPDATE_ACCOUNT_ID_FILE" ]; then
-    echo "ERROR: You must set the environment variable GEOIPUPDATE_ACCOUNT_ID or GEOIPUPDATE_ACCOUNT_ID_FILE!"
+if [ -z "${GEOIPUPDATE_CONF_FILE}" ]; then
+  has_error=0
+  if [ -z "$GEOIPUPDATE_ACCOUNT_ID" ] && [ -z  "$GEOIPUPDATE_ACCOUNT_ID_FILE" ]; then
+      echo "ERROR: You must set the environment variable GEOIPUPDATE_ACCOUNT_ID or GEOIPUPDATE_ACCOUNT_ID_FILE!"
+      has_error=1
+  fi
+  if [ -z "$GEOIPUPDATE_LICENSE_KEY" ] && [ -z  "$GEOIPUPDATE_LICENSE_KEY_FILE" ]; then
+      echo "ERROR: You must set the environment variable GEOIPUPDATE_LICENSE_KEY or GEOIPUPDATE_LICENSE_KEY_FILE!"
+      has_error=1
+  fi
+  if [ -z "$GEOIPUPDATE_EDITION_IDS" ]; then
+      echo "ERROR: You must set the environment variable GEOIPUPDATE_EDITION_IDS!"
+      has_error=1
+  fi
+  if [ "${has_error}" != "0" ]; then
     exit 1
-fi
-
-if [ -z "$GEOIPUPDATE_LICENSE_KEY" ] && [ -z  "$GEOIPUPDATE_LICENSE_KEY_FILE" ]; then
-    echo "ERROR: You must set the environment variable GEOIPUPDATE_LICENSE_KEY or GEOIPUPDATE_LICENSE_KEY_FILE!"
-    exit 1
-fi
-
-if [ -z "$GEOIPUPDATE_EDITION_IDS" ]; then
-    echo "ERROR: You must set the environment variable GEOIPUPDATE_EDITION_IDS!"
-    exit 1
+  fi
 fi
 
 mkdir -p $log_dir
