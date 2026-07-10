@@ -12,6 +12,19 @@ check_command() {
     fi
 }
 
+check_docker_auth() {
+    local registry="$1"
+    local name="$2"
+    local pattern="$3"
+    local config="${DOCKER_CONFIG:-$HOME/.docker}/config.json"
+
+    if [ ! -r "$config" ] || ! grep -Eq "$pattern" "$config"; then
+        echo "Error: Docker is not authenticated to $name."
+        echo "Run 'docker login $registry' before releasing."
+        exit 1
+    fi
+}
+
 # Verify gh CLI is authenticated
 if ! gh auth status &>/dev/null; then
     echo "Error: gh CLI is not authenticated. Run 'gh auth login' first."
@@ -33,6 +46,39 @@ fi
 check_command perl
 check_command go
 check_command goreleaser
+check_command docker
+
+docker_version=$(docker --version 2>&1)
+if [[ "$docker_version" != Docker\ version* ]]; then
+    echo "Error: docker must be Docker, but found: $docker_version"
+    echo "GoReleaser's Docker publishing expects Docker CLI output and fails with Podman."
+    exit 1
+fi
+
+if ! docker_version_output=$(docker version 2>&1); then
+    echo "Error: Docker is installed, but the Docker daemon is not reachable or the current user cannot access it."
+    if [ -n "${DOCKER_HOST:-}" ]; then
+        echo "DOCKER_HOST is set to: $DOCKER_HOST"
+        echo "Unset DOCKER_HOST if this should use the default Docker daemon."
+    fi
+    echo "$docker_version_output"
+    exit 1
+fi
+
+if ! docker buildx version &>/dev/null; then
+    echo "Error: Docker Buildx is not installed or not available to the Docker CLI."
+    echo "GoReleaser is configured to build Docker images with Buildx."
+    exit 1
+fi
+
+check_docker_auth \
+    docker.io \
+    "Docker Hub" \
+    '"(https://index\.docker\.io/v1/|docker\.io|registry-1\.docker\.io)"[[:space:]]*:'
+check_docker_auth \
+    ghcr.io \
+    "GitHub Container Registry" \
+    '"ghcr\.io"[[:space:]]*:'
 
 # Check that we're not on the main branch
 current_branch=$(git branch --show-current)
