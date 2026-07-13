@@ -38,11 +38,6 @@ open.
 
 :   Display help and exit.
 
-`--stack-trace`
-
-:   Show a stack trace on any error message. This is primarily useful for
-    debugging.
-
 `-V`, `--version`
 
 :   Display version information and exit.

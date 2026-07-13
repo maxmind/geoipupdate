@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maxmind/geoipupdate/v7/internal"
-	"github.com/maxmind/geoipupdate/v7/internal/vars"
+	"github.com/maxmind/geoipupdate/v8/internal"
+	"github.com/maxmind/geoipupdate/v8/internal/vars"
 )
 
 // HTTPError is an error from performing an HTTP request and receiving a non-200 status code.

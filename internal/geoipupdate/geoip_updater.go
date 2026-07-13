@@ -16,9 +16,9 @@ import (
 	"github.com/cenkalti/backoff/v5"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/maxmind/geoipupdate/v7/client"
-	"github.com/maxmind/geoipupdate/v7/internal"
-	"github.com/maxmind/geoipupdate/v7/internal/geoipupdate/database"
+	"github.com/maxmind/geoipupdate/v8/client"
+	"github.com/maxmind/geoipupdate/v8/internal"
+	"github.com/maxmind/geoipupdate/v8/internal/geoipupdate/database"
 )
 
 type updateClient interface {

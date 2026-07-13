@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/maxmind/geoipupdate/v7/internal/vars"
+	"github.com/maxmind/geoipupdate/v8/internal/vars"
 )
 
 func TestNewConfig(t *testing.T) {
