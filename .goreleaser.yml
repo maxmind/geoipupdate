@@ -172,6 +172,7 @@ nfpms:
     maintainer: 'MaxMind, Inc. <support@maxmind.com>'
     description: Program to perform automatic updates of GeoIP and GeoLite binary databases.
     license: Apache 2.0 or MIT
+    section: 'net'
     formats:
       - deb
       - rpm
