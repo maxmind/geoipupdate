@@ -1,5 +1,12 @@
 project_name: 'geoipupdate'
 version: 2
+# These run once, serially. As per-build post hooks they ran once per target,
+# in parallel, all writing the same files under build/.
+before:
+  hooks:
+    - 'make data BUILDDIR="build/unix"'
+    - 'make data BUILDDIR="build/packages" CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP'
+    - 'make data OS=Windows_NT BUILDDIR="build/windows"'
 archives:
   - id: 'archives-unix'
     ids:
@@ -51,8 +58,6 @@ builds:
         goarch: arm64
     flags:
       - '-trimpath'
-    hooks:
-      post: 'make data BUILDDIR="build/unix"'
     env:
       - CGO_ENABLED=0
   # This is a separate build as we want to specify different paths in the
@@ -69,8 +74,6 @@ builds:
       - 'linux'
     flags:
       - '-trimpath'
-    hooks:
-      post: 'make data BUILDDIR="build/packages" CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP'
     ldflags:
       - '-s -w -X main.version={{.Version}} -X main.defaultConfigFile=/etc/GeoIP.conf -X main.defaultDatabaseDirectory=/usr/share/GeoIP'
     env:
@@ -85,8 +88,6 @@ builds:
       - 'windows'
     flags:
       - '-trimpath'
-    hooks:
-      post: 'make data OS=Windows_NT BUILDDIR="build/windows"'
     env:
       - CGO_ENABLED=0
 # Do not migrate this to dockers_v2 yet. As of GoReleaser 2.15.3, dockers_v2
