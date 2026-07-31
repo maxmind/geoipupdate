@@ -211,12 +211,15 @@ nfpms:
   - ids:
       - 'geoipupdate-packages'
     vendor: 'MaxMind, Inc.'
-    homepage: https://www.maxmind.com/
+    homepage: https://github.com/maxmind/geoipupdate
     maintainer: 'MaxMind, Inc. <support@maxmind.com>'
     description: Program to perform automatic updates of GeoIP and GeoLite binary databases.
-    license: Apache 2.0 or MIT
+    license: 'Apache-2.0 OR MIT'
     section: 'net'
     mtime: '{{ .CommitDate }}'
+    rpm:
+      summary: 'Automatic updater for GeoIP and GeoLite binary databases'
+      buildhost: 'maxmind.com'
     formats:
       - deb
       - rpm
