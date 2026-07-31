@@ -58,6 +58,8 @@ builds:
         goarch: arm64
     flags:
       - '-trimpath'
+    ldflags:
+      - '-s -w -X main.version={{.Version}}'
     mod_timestamp: '{{ .CommitTimestamp }}'
     env:
       - CGO_ENABLED=0
@@ -90,6 +92,8 @@ builds:
       - 'windows'
     flags:
       - '-trimpath'
+    ldflags:
+      - '-s -w -X main.version={{.Version}}'
     mod_timestamp: '{{ .CommitTimestamp }}'
     env:
       - CGO_ENABLED=0
