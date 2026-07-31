@@ -100,7 +100,9 @@ dockers:
       - docker/healthcheck.sh
     build_flag_templates:
       - "--platform=linux/amd64"
-  - image_templates:
+  - ids:
+      - 'geoipupdate-unix'
+    image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
     dockerfile: docker/Dockerfile
@@ -111,7 +113,9 @@ dockers:
       - docker/healthcheck.sh
     build_flag_templates:
       - "--platform=linux/arm64"
-  - image_templates:
+  - ids:
+      - 'geoipupdate-unix'
+    image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"
     dockerfile: docker/Dockerfile
