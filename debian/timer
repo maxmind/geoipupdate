@@ -1,0 +1,15 @@
+[Unit]
+Description=Scheduled update of GeoIP2/GeoLite2 databases
+Documentation=man:geoipupdate(1) man:GeoIP.conf(5)
+
+[Timer]
+# Matches MaxMind's publication schedule, and Debian's since 6.0.0-2.
+OnCalendar=Wed,Sat America/New_York
+
+AccuracySec=1h
+RandomizedDelaySec=3h
+
+Persistent=true
+
+[Install]
+WantedBy=timers.target

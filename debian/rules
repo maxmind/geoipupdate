@@ -28,3 +28,8 @@ override_dh_auto_install:
 
 override_dh_installchangelogs:
 	dh_installchangelogs CHANGELOG.md
+
+override_dh_installsystemd:
+	@# Only the timer is enabled; starting the oneshot would block dpkg.
+	dh_installsystemd --no-enable --no-start geoipupdate.service
+	dh_installsystemd geoipupdate.timer
