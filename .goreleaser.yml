@@ -199,7 +199,7 @@ nfpms:
         dst: '/usr/share/man/man1/geoipupdate.1'
       - src: 'build/packages/GeoIP.conf'
         dst: '/etc/GeoIP.conf'
-        type: config
+        type: 'config|noreplace'
 release:
   name_template: "{{.Version}}"
   target_commitish: "{{ .FullCommit }}"
