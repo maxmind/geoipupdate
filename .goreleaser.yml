@@ -175,6 +175,8 @@ nfpms:
     formats:
       - deb
       - rpm
+    dependencies:
+      - 'ca-certificates'
     bindir: /usr/bin
     contents:
       - dst: /usr/share/GeoIP
