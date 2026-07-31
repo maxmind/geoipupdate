@@ -1,3 +1,22 @@
+geoipupdate (8.0.0-0+maxmind2) resolute; urgency=low
+
+  * Ship a systemd service and timer, and an /etc/cron.d entry for systems
+    without systemd, so the databases are refreshed again.
+  * Depend on ca-certificates.
+  * Replace debian/compat with debhelper-compat (= 13), and bump
+    Standards-Version to 4.7.3.
+  * Raise the golang-any floor to 2:1.25~0 to match go.mod.
+  * Drop debian/deb-build.pl in favour of dh_auto_build.
+  * Build a PIE binary.
+  * Drop the dead /usr/lib/go-1.13 PATH workaround.
+  * Rename debian/README.debian to debian/README.Debian so dh_installdocs
+    installs it.
+  * Drop GeoIP Legacy from the package description.
+  * Update debian/copyright: refresh years, rename MIT to Expat, drop
+    Files-Excluded.
+
+ -- Gregory J. Oschwald <goschwald@maxmind.com>  Fri, 31 Jul 2026 13:03:33 -0700
+
 geoipupdate (8.0.0-0+maxmind1) resolute; urgency=low
 
   * New upstream release.

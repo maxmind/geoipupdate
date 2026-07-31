@@ -1,20 +1,17 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: geoipupdate
 Source: https://github.com/maxmind/geoipupdate
-Files-Excluded:
-  vendor
-  Godeps/_workspace
 
 Files: *
-Copyright: 2018-2019 MaxMind, Inc.
-License: Apache-2.0 or MIT
+Copyright: 2018-2026 MaxMind, Inc.
+License: Apache-2.0 or Expat
 
 License: Apache-2.0
  On Debian systems, the full text of the Apache License
  Version 2.0 can be found in the file
  `/usr/share/common-licenses/Apache-2.0'.
 
-License: MIT
+License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
