@@ -58,6 +58,7 @@ builds:
         goarch: arm64
     flags:
       - '-trimpath'
+    mod_timestamp: '{{ .CommitTimestamp }}'
     env:
       - CGO_ENABLED=0
   # This is a separate build as we want to specify different paths in the
@@ -76,6 +77,7 @@ builds:
       - '-trimpath'
     ldflags:
       - '-s -w -X main.version={{.Version}} -X main.defaultConfigFile=/etc/GeoIP.conf -X main.defaultDatabaseDirectory=/usr/share/GeoIP'
+    mod_timestamp: '{{ .CommitTimestamp }}'
     env:
       - CGO_ENABLED=0
   - id: 'geoipupdate-windows'
@@ -88,6 +90,7 @@ builds:
       - 'windows'
     flags:
       - '-trimpath'
+    mod_timestamp: '{{ .CommitTimestamp }}'
     env:
       - CGO_ENABLED=0
 # Do not migrate this to dockers_v2 yet. As of GoReleaser 2.15.3, dockers_v2
@@ -184,6 +187,7 @@ nfpms:
     description: Program to perform automatic updates of GeoIP and GeoLite binary databases.
     license: Apache 2.0 or MIT
     section: 'net'
+    mtime: '{{ .CommitDate }}'
     formats:
       - deb
       - rpm
