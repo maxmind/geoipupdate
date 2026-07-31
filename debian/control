@@ -2,12 +2,12 @@ Source: geoipupdate
 Section: net
 Priority: optional
 Maintainer: William Storey <wstorey@maxmind.com>
-Build-Depends: debhelper (>= 9),
+Build-Depends: debhelper-compat (= 13),
                dh-golang,
-               golang-any (>= 2:1.21~0) | go,
+               golang-any (>= 2:1.25~0) | go,
                pandoc,
                perl
-Standards-Version: 4.2.1
+Standards-Version: 4.7.3
 Homepage: https://github.com/maxmind/geoipupdate
 Vcs-Browser: https://github.com/maxmind/geoipupdate
 Vcs-Git: https://github.com/maxmind/geoipupdate.git
@@ -16,8 +16,14 @@ XS-Go-Import-Path: github.com/maxmind/geoipupdate
 Package: geoipupdate
 Architecture: any
 Built-Using: ${misc:Built-Using}
-Depends: ${misc:Depends},
+Depends: ca-certificates,
+         ${misc:Depends},
          ${shlibs:Depends}
-Description: Tool for updating GeoIP and GeoLite databases
- The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP
- Legacy binary databases.
+Description: Tool for updating MaxMind GeoIP2 and GeoLite2 databases
+ The GeoIP Update program performs automatic updates of MaxMind's GeoIP2 and
+ GeoLite2 binary databases.
+ .
+ A MaxMind account is required. Put your account ID and license key in
+ /etc/GeoIP.conf; until you do, the systemd timer and the cron job shipped
+ with this package skip their scheduled runs rather than contacting MaxMind
+ with the placeholder credentials.
