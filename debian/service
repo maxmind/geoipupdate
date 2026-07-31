@@ -1,43 +1,30 @@
 [Unit]
-Description=Update of GeoIP2/GeoLite2 databases
-Documentation=man:geoipupdate(1) man:GeoIP.conf(5)
-After=network-online.target
-Wants=network-online.target
+Description=Weekly GeoIP update
+Documentation=man:geoipupdate(1)
+ConditionPathExists=/etc/GeoIP.conf
 
 [Service]
 Type=oneshot
-
-# The shipped GeoIP.conf leaves its AccountID placeholder uncommented, so a
-# presence test is not enough; skip the run until the value is real.
-ExecCondition=/bin/sh -c "grep -Eq '^[[:space:]]*AccountID[[:space:]]+0*[1-9][0-9]*' /etc/GeoIP.conf"
-
+# Stricter than Debian's guard: our GeoIP.conf placeholder is uncommented.
+ExecCondition=grep -Eq '^[[:space:]]*AccountID[[:space:]]+0*[1-9][0-9]*' /etc/GeoIP.conf
 ExecStart=/usr/bin/geoipupdate
-
-# Must track DATADIR in debian/rules and debian/dirs.
-ReadWritePaths=/usr/share/GeoIP
-WorkingDirectory=/usr/share/GeoIP
-
-# Hardening.
-AmbientCapabilities=
-CapabilityBoundingSet=
-KeyringMode=private
-LockPersonality=yes
-MemoryDenyWriteExecute=yes
-NoNewPrivileges=yes
-PrivateDevices=yes
-PrivateTmp=yes
-PrivateUsers=yes
-ProtectClock=yes
-ProtectControlGroups=yes
-ProtectHome=yes
-ProtectHostname=yes
-ProtectKernelLogs=yes
-ProtectKernelModules=yes
-ProtectKernelTunables=yes
+User=root
 ProtectSystem=strict
-RemoveIPC=yes
-RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
-RestrictNamespaces=yes
-RestrictRealtime=yes
-RestrictSUIDSGID=yes
-SystemCallArchitectures=native
+ProtectHome=true
+PrivateDevices=true
+PrivateTmp=true
+PrivateUsers=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectKernelLogs=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+RestrictNamespaces=true
+RestrictRealtime=true
+SystemCallFilter=@default @file-system @basic-io @system-service @signal @io-event @network-io
+# Our DATADIR, not Debian's /var/lib/GeoIP; moving it is tracked separately.
+ReadWritePaths=/usr/share/GeoIP/
+WorkingDirectory=/usr/share/GeoIP

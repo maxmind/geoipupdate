@@ -1,10 +1,12 @@
 geoipupdate (8.0.0-0+maxmind2) resolute; urgency=low
 
   * Ship a systemd service and timer, and an /etc/cron.d entry for systems
-    without systemd, so the databases are refreshed again.
+    without systemd, so the databases are refreshed again. Taken from Debian
+    7.1.1-1, with a stricter AccountID guard and our own DATADIR.
   * Depend on ca-certificates.
   * Replace debian/compat with debhelper-compat (= 13), and bump
     Standards-Version to 4.7.3.
+  * Set Rules-Requires-Root: no.
   * Raise the golang-any floor to 2:1.25~0 to match go.mod.
   * Drop debian/deb-build.pl in favour of dh_auto_build.
   * Build a PIE binary.
