@@ -3,6 +3,7 @@ geoipupdate (8.0.0-0+maxmind2) resolute; urgency=low
   * Ship a systemd service and timer, and an /etc/cron.d entry for systems
     without systemd, so the databases are refreshed again. Taken from Debian
     7.1.1-1, with a stricter AccountID guard and our own DATADIR.
+  * Run the update daily, at a time randomized per machine.
   * Depend on ca-certificates.
   * Replace debian/compat with debhelper-compat (= 13), and bump
     Standards-Version to 4.7.3.

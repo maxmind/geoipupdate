@@ -1,5 +1,5 @@
 [Unit]
-Description=Weekly GeoIP update
+Description=Daily GeoIP update
 Documentation=man:geoipupdate(1)
 ConditionPathExists=/etc/GeoIP.conf
 

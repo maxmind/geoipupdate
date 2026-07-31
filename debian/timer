@@ -3,8 +3,10 @@ Description=Periodic GeoIP update
 Documentation=man:geoipupdate(1)
 
 [Timer]
-OnCalendar=Wed,Sat America/New_York
-RandomizedDelaySec=3h
+# Debian runs this Wed+Sat; we run daily, spread across the whole day.
+OnCalendar=daily
+RandomizedDelaySec=24h
+FixedRandomDelay=true
 Persistent=true
 
 [Install]
