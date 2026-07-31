@@ -167,16 +167,19 @@ docker_manifests:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
   - name_template: "maxmindinc/geoipupdate:v{{ .Major }}"
+    skip_push: '{{ if .Prerelease }}true{{ else }}false{{ end }}'
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
   - name_template: "maxmindinc/geoipupdate:v{{ .Major }}.{{ .Minor }}"
+    skip_push: '{{ if .Prerelease }}true{{ else }}false{{ end }}'
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
   - name_template: "maxmindinc/geoipupdate:latest"
+    skip_push: '{{ if .Prerelease }}true{{ else }}false{{ end }}'
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
@@ -187,16 +190,19 @@ docker_manifests:
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"
   - name_template: "ghcr.io/maxmind/geoipupdate:v{{ .Major }}"
+    skip_push: '{{ if .Prerelease }}true{{ else }}false{{ end }}'
     image_templates:
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-amd64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"
   - name_template: "ghcr.io/maxmind/geoipupdate:v{{ .Major }}.{{ .Minor }}"
+    skip_push: '{{ if .Prerelease }}true{{ else }}false{{ end }}'
     image_templates:
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-amd64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"
   - name_template: "ghcr.io/maxmind/geoipupdate:latest"
+    skip_push: '{{ if .Prerelease }}true{{ else }}false{{ end }}'
     image_templates:
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-amd64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
@@ -244,3 +250,5 @@ nfpms:
 release:
   name_template: "{{.Version}}"
   target_commitish: "{{ .FullCommit }}"
+  prerelease: auto
+  make_latest: '{{ if .Prerelease }}false{{ else }}true{{ end }}'
