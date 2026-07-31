@@ -49,6 +49,8 @@ builds:
         goarch: arm64
       - goos: openbsd
         goarch: arm64
+    flags:
+      - '-trimpath'
     hooks:
       post: 'make data BUILDDIR="build/unix"'
     env:
@@ -65,6 +67,8 @@ builds:
       - 'arm64'
     goos:
       - 'linux'
+    flags:
+      - '-trimpath'
     hooks:
       post: 'make data BUILDDIR="build/packages" CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP'
     ldflags:
@@ -79,6 +83,8 @@ builds:
       - 'amd64'
     goos:
       - 'windows'
+    flags:
+      - '-trimpath'
     hooks:
       post: 'make data OS=Windows_NT BUILDDIR="build/windows"'
     env:
