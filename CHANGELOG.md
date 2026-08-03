@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 8.1.0
+
+- On RPM-based distributions, upgrading the package no longer replaces an edited
+  `/etc/GeoIP.conf`. Previously, when a release changed the configuration file
+  shipped in the package, the upgrade installed the new file and moved the
+  edited one aside to `/etc/GeoIP.conf.rpmsave`, silently leaving `geoipupdate`
+  without the configured account ID and license key. Local edits are now kept
+  and the new file is written to `/etc/GeoIP.conf.rpmnew` instead.
+- The Debian and RPM packages now depend on `ca-certificates`. Without it,
+  `geoipupdate` failed with `x509: certificate signed by unknown authority` on
+  minimal and container installations.
+- The `linux/arm64` and `linux/arm/v6` Docker images now contain the same build
+  of `geoipupdate` as the `linux/amd64` image. They previously contained the
+  build made for the Debian and RPM packages, which defaults to
+  `/etc/GeoIP.conf` and `/usr/share/GeoIP` rather than the paths under
+  `/usr/local` used by the other image. The images set the database directory
+  explicitly, so this was only visible to those relying on the default
+  configuration file path.
+- Binaries are now provided for `windows/arm64`, `freebsd/arm`, `freebsd/arm64`,
+  `openbsd/arm` and `openbsd/arm64`.
+- Binaries are now built with `-trimpath` and no longer embed paths from the
+  build machine. Timestamps in the binaries and packages now come from the
+  commit rather than from the time of the build.
+
 ## 8.0.0 (2026-07-10)
 
 - BREAKING CHANGE: `geoipupdate` stops updating on the first error.
