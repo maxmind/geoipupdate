@@ -83,9 +83,11 @@ builds:
       post: 'make data OS=Windows_NT BUILDDIR="build/windows"'
     env:
       - CGO_ENABLED=0
-# Do not migrate this to dockers_v2 yet. As of GoReleaser 2.15.3, dockers_v2
-# invokes Docker Buildx with flags that Podman's Docker-compatible CLI does not
-# support, and releases are currently run in a Podman-backed environment.
+# Releases run on a GitHub Actions runner, which has real Docker and Buildx, so
+# migrating this to dockers_v2 is no longer blocked by the release environment.
+# It would still break local `--snapshot` runs on a Podman-backed machine: as of
+# GoReleaser 2.15.3, dockers_v2 invokes Buildx with flags Podman's
+# Docker-compatible CLI does not support. Migrate as its own change.
 dockers:
   - ids:
       - 'geoipupdate-unix'
@@ -200,6 +202,9 @@ nfpms:
       - src: 'build/packages/GeoIP.conf'
         dst: '/etc/GeoIP.conf'
         type: config
+# There is deliberately no `changelog` section. The release body is the curated
+# CHANGELOG.md entry, which the release workflow extracts with
+# dev-bin/changelog-section.pl and passes as --release-notes.
 release:
   name_template: "{{.Version}}"
   target_commitish: "{{ .FullCommit }}"

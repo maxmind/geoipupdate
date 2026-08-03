@@ -1,0 +1,125 @@
+name: Release
+
+# Pushing a vX.Y.Z tag releases it. dev-bin/release.sh does the pre-tag
+# validation and pushes the tag; everything after that happens here.
+#
+# The gates below only assert things about the tagged tree, never about the
+# state of the repository around it, so a failed run can be re-run later
+# without going stale. Checks that are only true at tagging time -- that the
+# CHANGELOG date is today, that the branch is not behind origin/main -- stay in
+# dev-bin/release.sh.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions: {}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    # Scopes the Docker Hub credentials to releases and gives us somewhere to
+    # hang a required reviewer if we ever want one. Matches mmdbconvert.
+    environment: release
+    permissions:
+      contents: write # Create the release and upload its artifacts.
+      packages: write # Push images to ghcr.io.
+      id-token: write # Mint the OIDC token that signs the attestations.
+      attestations: write # Write the provenance attestations.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # GoReleaser needs the full history and every tag to work out the
+          # previous release.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          # Build with the Go version the module declares. Hand-run releases
+          # used whatever the release engineer had installed, which is how the
+          # last release shipped built by a newer Go than go.mod asks for.
+          go-version-file: go.mod
+          # A release must not be able to pick up a poisoned build cache.
+          cache: false
+
+      # `make data` runs as a GoReleaser build hook and shells out to pandoc via
+      # dev-bin/make-man-pages.pl to render the man pages. make, sed and perl
+      # are already on the runner; pandoc is not. rpmbuild is not needed --
+      # GoReleaser's nfpm writes rpms itself.
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes pandoc
+
+      - name: Check the tag against the tree it points at
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+              echo "::error::$TAG is not a release tag."
+              exit 1
+          fi
+
+          version="${TAG#v}"
+
+          if ! grep -q "^module github.com/maxmind/geoipupdate/${TAG%%.*}" go.mod; then
+              echo "::error::$TAG does not match the module major version in go.mod."
+              exit 1
+          fi
+
+          if ! grep -q "^var Version = \"$version\"\$" internal/vars/version.go; then
+              echo "::error::internal/vars/version.go does not say $version."
+              exit 1
+          fi
+
+      # Passing the notes explicitly is what keeps release bodies as the curated
+      # CHANGELOG entry. Drop this and GoReleaser falls back to generating a
+      # commit list. Not written under dist/, which `release --clean` wipes.
+      - name: Extract the release notes from CHANGELOG.md
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          dev-bin/changelog-section.pl "${TAG#v}" \
+            > "$RUNNER_TEMP/release-notes.md"
+          cat "$RUNNER_TEMP/release-notes.md"
+
+      # The arm64 and arm/v6 images are cross-built by buildx under QEMU.
+      - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        with:
+          distribution: goreleaser
+          # Pinned, so a GoReleaser release cannot silently change what we
+          # ship. README.dev.md names this version for local snapshot runs.
+          version: 2.17.1
+          args: release --clean --release-notes ${{ runner.temp }}/release-notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest the release artifacts
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/*.deb
+            dist/*.rpm
+            dist/*_checksums.txt

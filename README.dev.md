@@ -1,23 +1,32 @@
 # Releasing
 
-- Make sure you have [`goreleaser`](https://goreleaser.com/), rpmbuild, and
-  pandoc installed. (rpmbuild is in the Ubuntu package `rpm`).
-- Set release date in `CHANGELOG.md` and commit it.
-- Ensure you can run `docker` commands as your user (e.g., `docker images`).
-- Ensure Docker is set up to do cross-compilation. You can verify this with
-  `docker buildx ls`. It should list `linux/arm64` as an available platform. If
-  not, follow
-  [these instructions](https://docs.docker.com/build/building/multi-platform/).
-- Log in to your Docker Hub account (be sure to be in our organization):
-  `docker login`.
-- Follow
-  [these instructions](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry),
-  to log in to `ghcr.io` with `docker login`.
-- Run `GITHUB_TOKEN=<your token> ./dev-bin/release.sh`. For `goreleaser` you
-  will need a token with the `repo` scope. You may create a token
-  [here](https://github.com/settings/tokens/new).
+Releases are built and published by
+[`.github/workflows/release.yml`](.github/workflows/release.yml). Pushing a
+`vX.Y.Z` tag is what releases it. Nothing is built or published from a developer
+machine, so you do not need `goreleaser`, Docker, or a GitHub token locally.
 
-Then release to our PPA:
+- Set the release date in `CHANGELOG.md` and commit it to a release branch.
+- Run `./dev-bin/release.sh`. It validates the tree, bumps
+  `internal/vars/version.go`, commits, and pushes the tag.
+- Watch the run: `gh run watch --exit-status`. It builds the archives, the deb
+  and rpm packages, and the Docker images, publishes the GitHub release with the
+  `CHANGELOG.md` entry as its body, pushes the images to Docker Hub and
+  `ghcr.io`, and attaches build provenance attestations.
+- If the run fails, fix the problem and re-run it from the Actions tab. The
+  workflow's checks are all derived from the tagged tree, so a re-run does not
+  go stale. If the tag itself was wrong, delete it locally and on `origin` and
+  start over.
+
+To try a release locally without publishing anything, install `goreleaser`
+2.17.1 — the version
+[`.github/workflows/release.yml`](.github/workflows/release.yml) pins, so use
+the same one — and `pandoc`, then run
+`goreleaser release --snapshot --clean --skip=publish,docker`. Skipping `docker`
+avoids GoReleaser's Buildx invocations, which Podman's Docker-compatible CLI
+does not fully support.
+
+Then release to our PPA. This is still done by hand and is not part of the
+workflow:
 
 - Switch to the `ubuntu-ppa` branch. Merge the released tag into it. e.g.
   `git merge v4.1.0`.

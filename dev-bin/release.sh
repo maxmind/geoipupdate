@@ -1,9 +1,15 @@
 #!/bin/bash
 
-set -eu -o pipefail
+# Prepares a release and pushes its tag. The tag push is the release: it starts
+# .github/workflows/release.yml, which runs GoReleaser on a runner. Nothing
+# here builds, signs or publishes anything, so no Docker, no registry logins and
+# no GitHub token are needed.
+#
+# The checks here are the ones that are only meaningful before the tag exists.
+# The workflow re-checks everything that can be derived from the tagged tree
+# itself.
 
-# Pre-flight checks - verify all required tools are available and configured
-# before making any changes to the repository
+set -eu -o pipefail
 
 check_command() {
     if ! command -v "$1" &>/dev/null; then
@@ -12,73 +18,13 @@ check_command() {
     fi
 }
 
-check_docker_auth() {
-    local registry="$1"
-    local name="$2"
-    local pattern="$3"
-    local config="${DOCKER_CONFIG:-$HOME/.docker}/config.json"
-
-    if [ ! -r "$config" ] || ! grep -Eq "$pattern" "$config"; then
-        echo "Error: Docker is not authenticated to $name."
-        echo "Run 'docker login $registry' before releasing."
-        exit 1
-    fi
-}
-
-# Verify gh CLI is authenticated
-if ! gh auth status &>/dev/null; then
-    echo "Error: gh CLI is not authenticated. Run 'gh auth login' first."
-    exit 1
-fi
-
-# Verify we can access this repository via gh
-if ! gh repo view --json name &>/dev/null; then
-    echo "Error: Cannot access repository via gh. Check your authentication and repository access."
-    exit 1
-fi
+check_command perl
 
 # Verify git can connect to the remote (catches SSH key issues, etc.)
 if ! git ls-remote origin &>/dev/null; then
     echo "Error: Cannot connect to git remote. Check your git credentials/SSH keys."
     exit 1
 fi
-
-check_command perl
-check_command go
-check_command goreleaser
-check_command docker
-
-docker_version=$(docker --version 2>&1)
-if [[ "$docker_version" != Docker\ version* ]]; then
-    echo "Error: docker must be Docker, but found: $docker_version"
-    echo "GoReleaser's Docker publishing expects Docker CLI output and fails with Podman."
-    exit 1
-fi
-
-if ! docker_version_output=$(docker version 2>&1); then
-    echo "Error: Docker is installed, but the Docker daemon is not reachable or the current user cannot access it."
-    if [ -n "${DOCKER_HOST:-}" ]; then
-        echo "DOCKER_HOST is set to: $DOCKER_HOST"
-        echo "Unset DOCKER_HOST if this should use the default Docker daemon."
-    fi
-    echo "$docker_version_output"
-    exit 1
-fi
-
-if ! docker buildx version &>/dev/null; then
-    echo "Error: Docker Buildx is not installed or not available to the Docker CLI."
-    echo "GoReleaser is configured to build Docker images with Buildx."
-    exit 1
-fi
-
-check_docker_auth \
-    docker.io \
-    "Docker Hub" \
-    '"(https://index\.docker\.io/v1/|docker\.io|registry-1\.docker\.io)"[[:space:]]*:'
-check_docker_auth \
-    ghcr.io \
-    "GitHub Container Registry" \
-    '"ghcr\.io"[[:space:]]*:'
 
 # Check that we're not on the main branch
 current_branch=$(git branch --show-current)
@@ -100,16 +46,9 @@ fi
 
 changelog=$(cat CHANGELOG.md)
 
-if [[ -z ${GITHUB_TOKEN:-} ]]; then
-    echo 'GITHUB_TOKEN must be set for goreleaser!'
-    exit 1
-fi
-
 regex='
 ## ([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?) \(([0-9]{4}-[0-9]{2}-[0-9]{2})\)
-
-((.|
-)*)'
+'
 
 if [[ ! $changelog =~ $regex ]]; then
     echo "Could not find date line in change log!"
@@ -118,7 +57,7 @@ fi
 
 version="${BASH_REMATCH[1]}"
 date="${BASH_REMATCH[3]}"
-notes="$(echo "${BASH_REMATCH[4]}" | sed -n -E '/^## [0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?/,$!p')"
+notes="$(dev-bin/changelog-section.pl "$version")"
 
 if [[ "$date" != "$(date +"%Y-%m-%d")" ]]; then
     echo "$date is not today!"
@@ -163,9 +102,6 @@ $notes"
 
 git tag -a -m "$message" "$tag"
 
-# goreleaser's `--clean' should clear out `dist', but it didn't work for me.
-rm -rf dist
-if ! goreleaser release --clean -f .goreleaser.yml --release-notes <(echo "$notes"); then
-    git tag -d "$tag"
-    exit 1
-fi
+# This is what triggers the release workflow. Watch it with
+# `gh run watch --exit-status` or at the Actions tab.
+git push origin "$tag"
