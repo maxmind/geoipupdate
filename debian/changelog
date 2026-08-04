@@ -15,6 +15,7 @@ geoipupdate (8.0.0-0+maxmind2) resolute; urgency=low
   * Rename debian/README.debian to debian/README.Debian so dh_installdocs
     installs it.
   * Drop GeoIP Legacy from the package description.
+  * Refer to the databases as GeoIP and GeoLite in the package description.
   * Update debian/copyright: refresh years, rename MIT to Expat, drop
     Files-Excluded.
 

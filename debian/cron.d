@@ -1,7 +1,5 @@
 # Regular cron job for the geoipupdate package, used to update GeoIP databases
 #
-# MaxMind typically updates their databases on Tuesdays.
-#
 # Daily, unlike Debian's weekly job; perl supplies the spread cron cannot.
 # The AccountID test is stricter than Debian's; our placeholder is uncommented.
 #
