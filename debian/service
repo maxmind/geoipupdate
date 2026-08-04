@@ -6,7 +6,7 @@ ConditionPathExists=/etc/GeoIP.conf
 [Service]
 Type=oneshot
 # Stricter than Debian's guard: our GeoIP.conf placeholder is uncommented.
-ExecCondition=grep -Eq '^[[:space:]]*AccountID[[:space:]]+0*[1-9][0-9]*' /etc/GeoIP.conf
+ExecCondition=/usr/bin/grep -Eq '^[[:space:]]*(AccountID|UserId)[[:space:]]+0*[1-9][0-9]*' /etc/GeoIP.conf
 ExecStart=/usr/bin/geoipupdate
 User=root
 ProtectSystem=strict
