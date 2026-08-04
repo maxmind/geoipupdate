@@ -20,11 +20,12 @@ Built-Using: ${misc:Built-Using}
 Depends: ca-certificates,
          ${misc:Depends},
          ${shlibs:Depends}
+Recommends: cron | cron-daemon
 Description: Tool for updating MaxMind GeoIP and GeoLite databases
  The GeoIP Update program performs automatic updates of MaxMind's GeoIP and
  GeoLite binary databases.
  .
  A MaxMind account is required. Put your account ID and license key in
- /etc/GeoIP.conf; until you do, the systemd timer and the cron job shipped
- with this package skip their scheduled runs rather than contacting MaxMind
- with the placeholder credentials.
+ /etc/GeoIP.conf; until you do, the scheduled runs shipped with this package
+ skip themselves rather than contacting MaxMind with the placeholder
+ credentials.
