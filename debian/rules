@@ -6,13 +6,17 @@ export GOCACHE := $(CURDIR)/.go-cache
 # We vendor our dependencies.
 export GOFLAGS := -mod=vendor
 
-# Install everything from the source tree, not just the *.go files.
+# Copy the whole tree into the build GOPATH; -mod=vendor needs go.mod, go.sum and vendor/modules.txt.
 export DH_GOLANG_INSTALL_ALL := 1
 
-DEB_VERSION := $(shell dpkg-parsechangelog -SVersion)
+include /usr/share/dpkg/pkg-info.mk
+ifeq ($(strip $(DEB_VERSION)),)
+$(error dpkg-parsechangelog returned an empty version)
+endif
 
-# Keep in sync with debian/dirs and debian/service.
+# Keep in sync with debian/install, debian/service and debian/cron.d.
 CONFFILE := /etc/GeoIP.conf
+# Keep in sync with debian/dirs and debian/service.
 DATADIR := /usr/share/GeoIP
 
 GO_LDFLAGS := -X main.defaultConfigFile=$(CONFFILE) \
@@ -25,7 +29,7 @@ GO_FLAGS := -buildmode=pie -ldflags "$(GO_LDFLAGS)"
 	dh $@ --buildsystem=golang --with=golang
 
 override_dh_auto_build:
-	make CONFFILE=$(CONFFILE) DATADIR=$(DATADIR) data
+	$(MAKE) CONFFILE=$(CONFFILE) DATADIR=$(DATADIR) data
 	dh_auto_build -- $(GO_FLAGS)
 
 override_dh_auto_install:
