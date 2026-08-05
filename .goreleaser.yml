@@ -117,15 +117,9 @@ dockers:
       - docker/healthcheck.sh
     build_flag_templates:
       - "--platform=linux/amd64"
-      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.version={{ .Version }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.created={{ .CommitDate }}"
-      - "--label=org.opencontainers.image.source=https://github.com/maxmind/geoipupdate"
-      - "--label=org.opencontainers.image.url=https://github.com/maxmind/geoipupdate"
-      - "--label=org.opencontainers.image.documentation=https://github.com/maxmind/geoipupdate/blob/main/README.md"
-      - "--label=org.opencontainers.image.licenses=Apache-2.0 OR MIT"
-      - "--label=org.opencontainers.image.vendor=MaxMind, Inc."
   - ids:
       - 'geoipupdate-unix'
     image_templates:
@@ -139,15 +133,9 @@ dockers:
       - docker/healthcheck.sh
     build_flag_templates:
       - "--platform=linux/arm64"
-      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.version={{ .Version }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.created={{ .CommitDate }}"
-      - "--label=org.opencontainers.image.source=https://github.com/maxmind/geoipupdate"
-      - "--label=org.opencontainers.image.url=https://github.com/maxmind/geoipupdate"
-      - "--label=org.opencontainers.image.documentation=https://github.com/maxmind/geoipupdate/blob/main/README.md"
-      - "--label=org.opencontainers.image.licenses=Apache-2.0 OR MIT"
-      - "--label=org.opencontainers.image.vendor=MaxMind, Inc."
   - ids:
       - 'geoipupdate-unix'
     image_templates:
@@ -162,15 +150,9 @@ dockers:
       - docker/healthcheck.sh
     build_flag_templates:
       - "--platform=linux/arm/v6"
-      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.version={{ .Version }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.created={{ .CommitDate }}"
-      - "--label=org.opencontainers.image.source=https://github.com/maxmind/geoipupdate"
-      - "--label=org.opencontainers.image.url=https://github.com/maxmind/geoipupdate"
-      - "--label=org.opencontainers.image.documentation=https://github.com/maxmind/geoipupdate/blob/main/README.md"
-      - "--label=org.opencontainers.image.licenses=Apache-2.0 OR MIT"
-      - "--label=org.opencontainers.image.vendor=MaxMind, Inc."
 docker_manifests:
   - name_template: "maxmindinc/geoipupdate:{{ .Tag }}"
     image_templates:
