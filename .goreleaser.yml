@@ -63,7 +63,10 @@ builds:
     env:
       - CGO_ENABLED=0
   # This is a separate build as we want to specify different paths in the
-  # ldflags.
+  # ldflags. It must only feed nfpms. Its binary has the same name as the one
+  # from geoipupdate-unix, so any archives or dockers entry that does not pin
+  # ids matches it too and may ship a binary that defaults to /etc/GeoIP.conf
+  # and /usr/share/GeoIP.
   - id: 'geoipupdate-packages'
     main: './cmd/geoipupdate'
     binary: 'geoipupdate'
