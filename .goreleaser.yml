@@ -6,6 +6,9 @@ version: 2
 # the order given.
 before:
   hooks:
+    # --clean only removes dist/, and 'make data' is timestamp-driven, so
+    # without this a stale build/ from a local 'make all' would be reused.
+    - 'rm -rf build'
     - 'make data BUILDDIR="build/unix"'
     - 'make data BUILDDIR="build/packages" CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP'
     - 'make data OS=Windows_NT BUILDDIR="build/windows"'
