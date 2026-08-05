@@ -1,7 +1,7 @@
 # Releasing
 
-- Make sure you have [`goreleaser`](https://goreleaser.com/), rpmbuild, and
-  pandoc installed. (rpmbuild is in the Ubuntu package `rpm`).
+- Run `mise install`. It provides [`goreleaser`](https://goreleaser.com/) and
+  pandoc at the versions in `mise.lock`.
 - Set release date in `CHANGELOG.md` and commit it.
 - Ensure you can run `docker` commands as your user (e.g., `docker images`).
 - Ensure Docker is set up to do cross-compilation. You can verify this with
