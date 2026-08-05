@@ -18,11 +18,24 @@
   `/usr/local` used by the other image. The images set the database directory
   explicitly, so this was only visible to those relying on the default
   configuration file path.
+- The `GeoIP.conf` and documentation in the Windows archive now give the default
+  paths correctly. They lost their separators, as in
+  `%SystemDrive%ProgramDataMaxMindGeoIPUpdateGeoIP`.
 - Binaries are now provided for `windows/arm64`, `freebsd/arm`, `freebsd/arm64`,
   `openbsd/arm` and `openbsd/arm64`.
 - Binaries are now built with `-trimpath` and no longer embed paths from the
-  build machine. Timestamps in the binaries and packages now come from the
-  commit rather than from the time of the build.
+  build machine, and the RPM no longer records the host it was built on.
+  Timestamps in the binaries and packages now come from the commit rather than
+  from the time of the build.
+- The Debian package now ships `/usr/share/doc/geoipupdate/copyright` and gives
+  its `Section` as `net`, which was previously empty. The RPM now has a
+  `Summary`. Both give the license as the SPDX expression `Apache-2.0 OR MIT`,
+  and point at the GitHub repository rather than the MaxMind website.
+- The documentation and man pages in the Debian and RPM packages are now mode
+  `0644` rather than `0664`.
+- The Docker images now carry `org.opencontainers.image.*` labels.
+- A prerelease no longer moves the `latest`, `v8` and `v8.1` Docker tags, or the
+  release marked "Latest" on GitHub.
 
 ## 8.0.0 (2026-07-10)
 
