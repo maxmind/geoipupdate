@@ -1,5 +1,42 @@
 # CHANGELOG
 
+## 8.1.0
+
+- On RPM-based distributions, upgrading the package no longer replaces an edited
+  `/etc/GeoIP.conf`. Previously, when a release changed the configuration file
+  shipped in the package, the upgrade installed the new file and moved the
+  edited one aside to `/etc/GeoIP.conf.rpmsave`, silently leaving `geoipupdate`
+  without the configured account ID and license key. Local edits are now kept
+  and the new file is written to `/etc/GeoIP.conf.rpmnew` instead.
+- The Debian and RPM packages now depend on `ca-certificates`. Without it,
+  `geoipupdate` failed with `x509: certificate signed by unknown authority` on
+  minimal and container installations.
+- The `linux/arm64` and `linux/arm/v6` Docker images now contain the same build
+  of `geoipupdate` as the `linux/amd64` image. They previously contained the
+  build made for the Debian and RPM packages, which defaults to
+  `/etc/GeoIP.conf` and `/usr/share/GeoIP` rather than the paths under
+  `/usr/local` used by the other image. The images set the database directory
+  explicitly, so this was only visible to those relying on the default
+  configuration file path.
+- The `GeoIP.conf` and documentation in the Windows archive now give the default
+  paths correctly. They lost their separators, as in
+  `%SystemDrive%ProgramDataMaxMindGeoIPUpdateGeoIP`.
+- Binaries are now provided for `windows/arm64`, `freebsd/arm`, `freebsd/arm64`,
+  `openbsd/arm` and `openbsd/arm64`.
+- Binaries are now built with `-trimpath` and no longer embed paths from the
+  build machine, and the RPM no longer records the host it was built on.
+  Timestamps in the binaries and packages now come from the commit rather than
+  from the time of the build.
+- The Debian package now ships `/usr/share/doc/geoipupdate/copyright` and gives
+  its `Section` as `net`, which was previously empty. The RPM now has a
+  `Summary`. Both give the license as the SPDX expression `Apache-2.0 OR MIT`,
+  and point at the GitHub repository rather than the MaxMind website.
+- The documentation and man pages in the Debian and RPM packages are now mode
+  `0644` rather than `0664`.
+- The Docker images now carry `org.opencontainers.image.*` labels.
+- A prerelease no longer moves the `latest`, `v8` and `v8.1` Docker tags, or the
+  release marked "Latest" on GitHub.
+
 ## 8.0.0 (2026-07-10)
 
 - BREAKING CHANGE: `geoipupdate` stops updating on the first error.
