@@ -29,6 +29,12 @@ sub _make_man {
     binmode $fh or die $!;
     print {$fh} "% $name($section)\n\n" or die $!;
     my $contents = _read($input);
+
+    # pandoc's Markdown reader takes a backslash as the start of an escape, so
+    # the backslashes in the Windows paths have to be doubled to survive into
+    # the man page.
+    $contents =~ s{\\}{\\\\}g;
+
     print {$fh} $contents or die $!;
     close $fh or die $!;
 
