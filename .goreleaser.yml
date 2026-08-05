@@ -210,6 +210,10 @@ nfpms:
     license: 'Apache-2.0 OR MIT'
     section: 'net'
     mtime: '{{ .CommitDate }}'
+    # The mode of each packaged file comes from the file in the checkout, masked
+    # with this. nfpm's default of 0o002 leaves the files group-writable when the
+    # release is built with a group-writable umask.
+    umask: 0o022
     formats:
       - deb
       - rpm
