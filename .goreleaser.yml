@@ -1,7 +1,9 @@
 project_name: 'geoipupdate'
 version: 2
-# These run once, serially. As per-build post hooks they ran once per target,
-# in parallel, all writing the same files under build/.
+# Keep these here rather than in builds[].hooks.post. Build hooks run once per
+# build target, concurrently, so several copies of one 'make data' would race to
+# write the same files in a single BUILDDIR. Global before hooks run once, in
+# the order given.
 before:
   hooks:
     - 'make data BUILDDIR="build/unix"'
