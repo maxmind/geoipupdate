@@ -51,6 +51,12 @@ builds:
       - 'openbsd'
     flags:
       - '-trimpath'
+    # All three builds set ldflags explicitly rather than taking GoReleaser's
+    # default, which also injects main.commit, main.date and main.builtBy. None
+    # of those exist in the source, and its main.date is the time of the build,
+    # so the default would put a build timestamp back into binaries that
+    # mod_timestamp is keeping reproducible. cmd/geoipupdate/version.go recovers
+    # the commit and its time from debug.ReadBuildInfo() instead.
     ldflags:
       - '-s -w -X main.version={{.Version}}'
     mod_timestamp: '{{ .CommitTimestamp }}'
