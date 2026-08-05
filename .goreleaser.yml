@@ -248,10 +248,11 @@ nfpms:
         dst: '/usr/share/doc/geoipupdate/LICENSE-MIT'
       - src: 'README.md'
         dst: '/usr/share/doc/geoipupdate/README.md'
-      # Required by Debian Policy 12.5. Harmless in the rpm, and shipping it in
-      # both avoids restating this whole list in an overrides.deb.contents.
+      # Debian Policy 12.5 requires a verbatim copyright file at this exact
+      # path. It is a Debian format, so it goes in the deb only.
       - src: 'packaging/copyright'
         dst: '/usr/share/doc/geoipupdate/copyright'
+        packager: 'deb'
       - src: 'build/packages/GeoIP.conf'
         dst: '/usr/share/doc/geoipupdate/GeoIP.conf'
       - src: 'build/packages/GeoIP.conf.md'
