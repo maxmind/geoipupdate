@@ -103,9 +103,6 @@ builds:
     mod_timestamp: '{{ .CommitTimestamp }}'
     env:
       - CGO_ENABLED=0
-# Do not migrate this to dockers_v2 yet. As of GoReleaser 2.15.3, dockers_v2
-# invokes Docker Buildx with flags that Podman's Docker-compatible CLI does not
-# support, and releases are currently run in a Podman-backed environment.
 dockers:
   - ids:
       - 'geoipupdate-unix'
