@@ -1,30 +1,44 @@
 #!/usr/bin/make -f
 
-# eoan builds failed with:
-# failed to initialize build cache at /sbuild-nonexistent/.cache/go-build:
-# mkdir /sbuild-nonexistent: permission denied
+# Build daemons can have a nonexistent HOME, breaking the default GOCACHE.
 export GOCACHE := $(CURDIR)/.go-cache
 
-# We vendor our dependencies
+# We vendor our dependencies.
 export GOFLAGS := -mod=vendor
 
-# We don't use DH_GOLANG_INSTALL_EXTRA as Xenial doesn't support it.
+# Copy the whole tree into the build GOPATH; -mod=vendor needs go.mod, go.sum and vendor/modules.txt.
 export DH_GOLANG_INSTALL_ALL := 1
 
-# Workaround for Bionic
-export PATH := $(PATH):/usr/lib/go-1.13/bin/
+include /usr/share/dpkg/pkg-info.mk
+ifeq ($(strip $(DEB_VERSION)),)
+$(error dpkg-parsechangelog returned an empty version)
+endif
 
-override_dh_auto_build:
-	make CONFFILE=/etc/GeoIP.conf DATADIR=/usr/share/GeoIP data
-	@# Hack! Rather than use dh_auto_build's build step that would come
-	@# from dh_golang, we do something similar in order to pass ldflags.
-	debian/deb-build.pl
+# Keep in sync with debian/install, debian/service and debian/cron.d.
+CONFFILE := /etc/GeoIP.conf
+# Keep in sync with debian/dirs and debian/service.
+DATADIR := /usr/share/GeoIP
 
-override_dh_auto_install:
-	dh_auto_install -- --no-source
+GO_LDFLAGS := -X main.defaultConfigFile=$(CONFFILE) \
+              -X main.defaultDatabaseDirectory=$(DATADIR) \
+              -X 'main.version=$(DEB_VERSION) (ubuntu-ppa)'
+
+GO_FLAGS := -buildmode=pie -ldflags "$(GO_LDFLAGS)"
 
 %:
 	dh $@ --buildsystem=golang --with=golang
 
+override_dh_auto_build:
+	$(MAKE) CONFFILE=$(CONFFILE) DATADIR=$(DATADIR) data
+	dh_auto_build -- $(GO_FLAGS)
+
+override_dh_auto_install:
+	dh_auto_install -- --no-source
+
 override_dh_installchangelogs:
 	dh_installchangelogs CHANGELOG.md
+
+override_dh_installsystemd:
+	@# Only the timer is enabled; starting the oneshot would block dpkg.
+	dh_installsystemd --no-enable --no-start geoipupdate.service
+	dh_installsystemd geoipupdate.timer

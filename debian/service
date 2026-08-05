@@ -1,0 +1,31 @@
+[Unit]
+Description=Daily GeoIP update
+Documentation=man:geoipupdate(1)
+ConditionPathExists=/etc/GeoIP.conf
+
+[Service]
+Type=oneshot
+TimeoutStartSec=30min
+# Stricter than Debian's guard: our GeoIP.conf placeholder is uncommented.
+ExecCondition=/usr/bin/grep -Eq '^[[:space:]]*(AccountID|UserId)[[:space:]]+0*[1-9][0-9]*' /etc/GeoIP.conf
+ExecStart=/usr/bin/geoipupdate
+User=root
+ProtectSystem=strict
+ProtectHome=true
+PrivateDevices=true
+PrivateTmp=true
+PrivateUsers=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectKernelLogs=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+RestrictNamespaces=true
+RestrictRealtime=true
+SystemCallFilter=@default @file-system @basic-io @system-service @signal @io-event @network-io
+# Our DATADIR, not Debian's /var/lib/GeoIP; moving it is tracked separately.
+ReadWritePaths=/usr/share/GeoIP/
+WorkingDirectory=/usr/share/GeoIP

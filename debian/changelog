@@ -1,3 +1,30 @@
+geoipupdate (8.0.0-0+maxmind2) resolute; urgency=low
+
+  * Ship a systemd service and timer, and an /etc/cron.d entry for systems
+    without systemd, so the databases are refreshed on a schedule. Taken from
+    Debian 7.1.1-1, with our own guard, DATADIR and schedule.
+  * Run the update daily at a randomized time: spread over 24h and fixed per
+    machine under systemd, spread over 12h and re-picked each run under cron.
+  * Accept the legacy UserId key in the guard, as geoipupdate itself does.
+  * Set TimeoutStartSec=30min so a stalled update cannot wedge the timer.
+  * Log cron output via logger, as cron discards it when there is no MTA.
+  * Depend on ca-certificates and recommend a cron daemon.
+  * Replace debian/compat with debhelper-compat (= 13), and bump
+    Standards-Version to 4.7.3.
+  * Set Rules-Requires-Root: no.
+  * Raise the golang-any floor to 2:1.25~0 to match go.mod.
+  * Drop debian/deb-build.pl in favour of dh_auto_build.
+  * Build a PIE binary.
+  * Drop the dead /usr/lib/go-1.13 PATH workaround.
+  * Rename debian/README.debian to debian/README.Debian so dh_installdocs
+    installs it, and rewrite it for the new scheduling and sandboxing.
+  * Rewrite the package description: drop GeoIP Legacy, refer to the
+    databases as GeoIP and GeoLite, and document the account requirement.
+  * Update debian/copyright: refresh years, rename MIT to Expat, drop the
+    uscan-only Files-Excluded, and cover the vendored dependencies.
+
+ -- Gregory J. Oschwald <goschwald@maxmind.com>  Fri, 31 Jul 2026 13:03:33 -0700
+
 geoipupdate (8.0.0-0+maxmind1) resolute; urgency=low
 
   * New upstream release.

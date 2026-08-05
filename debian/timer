@@ -1,0 +1,13 @@
+[Unit]
+Description=Periodic GeoIP update
+Documentation=man:geoipupdate(1)
+
+[Timer]
+# Debian runs this Wed+Sat; we run daily, spread across the whole day.
+OnCalendar=daily
+RandomizedDelaySec=24h
+FixedRandomDelay=true
+Persistent=true
+
+[Install]
+WantedBy=timers.target

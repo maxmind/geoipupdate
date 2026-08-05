@@ -1,0 +1,26 @@
+geoipupdate for Debian
+----------------------
+
+In order to use this package, edit /etc/GeoIP.conf or pass another
+configuration file to geoipupdate using the -f flag. You need a MaxMind
+account ID and license key; both are available from
+https://www.maxmind.com/en/accounts/current/license-key. The scheduled runs
+described below always read /etc/GeoIP.conf; -f applies to manual runs only.
+
+The update runs daily at a randomized time. Under systemd, geoipupdate.timer
+spreads it across 24 hours, at an offset fixed per machine. Otherwise
+/etc/cron.d/geoipupdate spreads it across the 12 hours after 00:47, picking a
+fresh time on every run. Both stay inert until /etc/GeoIP.conf holds a real
+account ID; neither checks LicenseKey, so a config with only one of the two
+will run and fail to authenticate.
+
+After editing the config, run "systemctl start geoipupdate.service" to check
+your credentials rather than waiting up to a day for the timer. "systemctl
+status geoipupdate.service" and "journalctl -u geoipupdate.service" show
+whether the scheduled updates are working.
+
+The databases are written to /usr/share/GeoIP. The systemd service runs in a
+sandbox that permits writes only there, so if you change DatabaseDirectory or
+LockFile, add the new path with "systemctl edit geoipupdate.service" and a
+ReadWritePaths= line. Otherwise timer-driven runs fail with "read-only file
+system" even though manual runs as root succeed.
