@@ -270,4 +270,3 @@ release:
   name_template: "{{.Version}}"
   target_commitish: "{{ .FullCommit }}"
   prerelease: auto
-  make_latest: '{{ if .Prerelease }}false{{ else }}true{{ end }}'
