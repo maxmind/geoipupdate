@@ -9,6 +9,9 @@ disable_backends = [
 go = "latest"
 hugo = "latest"
 lychee = "latest"
+# pandoc builds the man pages and goreleaser cuts the release.
+"aqua:jgm/pandoc" = "latest"
+"github:goreleaser/goreleaser" = "latest"
 "github:golangci/golangci-lint" = "latest"
 "github:houseabsolute/precious" = "latest"
 node = "latest"
