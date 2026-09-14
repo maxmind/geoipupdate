@@ -15,7 +15,7 @@ Vcs-Git: https://github.com/maxmind/geoipupdate.git
 XS-Go-Import-Path: github.com/maxmind/geoipupdate
 
 Package: geoipupdate
-Architecture: any
+Architecture: amd64 arm64
 Built-Using: ${misc:Built-Using}
 Depends: ca-certificates,
          ${misc:Depends},
