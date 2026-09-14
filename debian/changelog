@@ -12,7 +12,10 @@ geoipupdate (8.0.0-0+maxmind2) resolute; urgency=low
   * Replace debian/compat with debhelper-compat (= 13), and bump
     Standards-Version to 4.7.3.
   * Set Rules-Requires-Root: no.
-  * Raise the golang-any floor to 2:1.25~0 to match go.mod.
+  * Raise the golang-any floor to 2:1.26~0, as the next upstream release
+    requires Go 1.26.
+  * Build only for amd64 and arm64. The PPA gets Go from
+    ppa:longsleep/golang-backports, which does not provide Go 1.26 for armhf.
   * Drop debian/deb-build.pl in favour of dh_auto_build.
   * Build a PIE binary.
   * Drop the dead /usr/lib/go-1.13 PATH workaround.
@@ -23,7 +26,7 @@ geoipupdate (8.0.0-0+maxmind2) resolute; urgency=low
   * Update debian/copyright: refresh years, rename MIT to Expat, drop the
     uscan-only Files-Excluded, and cover the vendored dependencies.
 
- -- Gregory J. Oschwald <goschwald@maxmind.com>  Fri, 31 Jul 2026 13:03:33 -0700
+ -- William Storey <wstorey@maxmind.com>  Mon, 14 Sep 2026 21:11:00 +0000
 
 geoipupdate (8.0.0-0+maxmind1) resolute; urgency=low
 
