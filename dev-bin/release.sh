@@ -132,6 +132,11 @@ fi
 
 tag="v$version"
 
+if ! grep -q '[^[:space:]]' <<<"$notes"; then
+    echo "Release notes for $tag are empty. Add notes to CHANGELOG.md." >&2
+    exit 1
+fi
+
 if ! grep -q "^module github.com/maxmind/geoipupdate/$(echo "$tag" | cut -d . -f 1)" go.mod; then
     echo "Tag version does not match go.mod version!"
     exit 1
@@ -161,11 +166,12 @@ message="$version
 
 $notes"
 
-git tag -a -m "$message" "$tag"
+# "whitespace" keeps Markdown headings and adds a newline before a signature.
+git tag -a --cleanup=whitespace -m "$message" "$tag"
 
 # goreleaser's `--clean' should clear out `dist', but it didn't work for me.
 rm -rf dist
-if ! goreleaser release --clean -f .goreleaser.yml --release-notes <(echo "$notes"); then
+if ! GORELEASER_CURRENT_TAG="$tag" goreleaser release --clean -f .goreleaser.yml --release-notes <(echo "$notes"); then
     git tag -d "$tag"
     exit 1
 fi
