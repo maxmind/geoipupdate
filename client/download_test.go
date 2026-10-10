@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -266,6 +267,57 @@ func TestDownload(t *testing.T) {
 
 			res, err := c.Download(ctx, edition.EditionID, edition.MD5)
 			test.checkResult(t, res, err)
+		})
+	}
+}
+
+func TestDownloadRequestSelectsBuild(t *testing.T) {
+	tests := []struct {
+		description string
+		metadata    string
+		want        url.Values
+	}{
+		{
+			description: "build epoch in metadata",
+			metadata:    `{ "edition_id": "edition-1", "md5": "618dd27a10de24809ec160d6807f363f", "date": "2024-02-23", "build_epoch": 1708700000 }`,
+			want: url.Values{
+				"build_epoch": {"1708700000"},
+				"suffix":      {"tar.gz"},
+			},
+		},
+		{
+			description: "no build epoch in metadata",
+			metadata:    `{ "edition_id": "edition-1", "md5": "618dd27a10de24809ec160d6807f363f", "date": "2024-02-23" }`,
+			want: url.Values{
+				"date":   {"20240223"},
+				"suffix": {"tar.gz"},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			var got url.Values
+			server := httptest.NewServer(
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.HasPrefix(r.URL.Path, "/geoip/updates/metadata") {
+						_, err := w.Write([]byte(`{"databases": [` + test.metadata + `]}`))
+						assert.NoError(t, err)
+						return
+					}
+
+					got = r.URL.Query()
+					w.WriteHeader(http.StatusInternalServerError)
+				}),
+			)
+			defer server.Close()
+
+			c, err := New(10, "license", WithEndpoint(server.URL))
+			require.NoError(t, err)
+
+			_, err = c.Download(context.Background(), "edition-1", "")
+			require.Error(t, err)
+			assert.Equal(t, test.want, got)
 		})
 	}
 }
