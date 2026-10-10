@@ -17,9 +17,10 @@ const metadataEndpoint = "%s/geoip/updates/metadata?"
 // metadata represents the metadata content for a certain database returned by the
 // metadata endpoint.
 type metadata struct {
-	Date      string `json:"date"`
-	EditionID string `json:"edition_id"`
-	MD5       string `json:"md5"`
+	// BuildEpoch identifies the exact build that MD5 describes.
+	BuildEpoch int64  `json:"build_epoch"`
+	EditionID  string `json:"edition_id"`
+	MD5        string `json:"md5"`
 }
 
 func (c *Client) getMetadata(
@@ -70,6 +71,9 @@ func (c *Client) getMetadata(
 	}
 
 	edition := metadataResponse.Databases[0]
+	if edition.BuildEpoch == 0 {
+		return nil, fmt.Errorf("metadata response for edition %s has no build_epoch", editionID)
+	}
 
 	return &edition, nil
 }

@@ -80,7 +80,7 @@ func (c Client) Download(
 		}, nil
 	}
 
-	reader, modifiedTime, err := c.download(ctx, editionID, metadata.Date)
+	reader, modifiedTime, err := c.download(ctx, editionID, metadata.BuildEpoch)
 	if err != nil {
 		return DownloadResponse{}, err
 	}
@@ -97,13 +97,11 @@ const downloadEndpoint = "%s/geoip/databases/%s/download?"
 
 func (c *Client) download(
 	ctx context.Context,
-	editionID,
-	date string,
+	editionID string,
+	buildEpoch int64,
 ) (io.ReadCloser, time.Time, error) {
-	date = strings.ReplaceAll(date, "-", "")
-
 	params := url.Values{}
-	params.Add("date", date)
+	params.Add("build_epoch", strconv.FormatInt(buildEpoch, 10))
 	params.Add("suffix", "tar.gz")
 
 	escapedEdition := url.PathEscape(editionID)
