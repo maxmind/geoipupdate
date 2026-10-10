@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -19,7 +20,6 @@ import (
 func TestDownload(t *testing.T) {
 	edition := metadata{
 		EditionID: "edition-1",
-		Date:      "2024-02-02",
 		MD5:       "123456",
 	}
 	dbContent := "edition-1 content"
@@ -31,7 +31,7 @@ func TestDownload(t *testing.T) {
 		jsonData := `
 {
     "databases": [
-        { "edition_id": "edition-1", "md5": "618dd27a10de24809ec160d6807f363f", "date": "2024-02-23" }
+        { "edition_id": "edition-1", "md5": "618dd27a10de24809ec160d6807f363f", "date": "2024-02-23", "build_epoch": 1708700000 }
     ]
 }
 `
@@ -51,7 +51,12 @@ func TestDownload(t *testing.T) {
 			description:      "successful download",
 			preserveFileTime: false,
 			server: func(t *testing.T) *httptest.Server {
-				downloadHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				downloadHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(t, url.Values{
+						"build_epoch": {"1708700000"},
+						"suffix":      {"tar.gz"},
+					}, r.URL.Query())
+
 					var buf bytes.Buffer
 					gw := gzip.NewWriter(&buf)
 					tw := tar.NewWriter(gw)
