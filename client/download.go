@@ -80,7 +80,7 @@ func (c Client) Download(
 		}, nil
 	}
 
-	reader, modifiedTime, err := c.download(ctx, editionID, metadata.Date)
+	reader, modifiedTime, err := c.download(ctx, editionID, metadata)
 	if err != nil {
 		return DownloadResponse{}, err
 	}
@@ -97,13 +97,17 @@ const downloadEndpoint = "%s/geoip/databases/%s/download?"
 
 func (c *Client) download(
 	ctx context.Context,
-	editionID,
-	date string,
+	editionID string,
+	metadata *metadata,
 ) (io.ReadCloser, time.Time, error) {
-	date = strings.ReplaceAll(date, "-", "")
-
 	params := url.Values{}
-	params.Add("date", date)
+	// The build epoch selects the build whose MD5 the metadata gave. The
+	// date selects the latest build of that day, which can be a newer one.
+	if metadata.BuildEpoch != 0 {
+		params.Add("build_epoch", strconv.FormatInt(metadata.BuildEpoch, 10))
+	} else {
+		params.Add("date", strings.ReplaceAll(metadata.Date, "-", ""))
+	}
 	params.Add("suffix", "tar.gz")
 
 	escapedEdition := url.PathEscape(editionID)

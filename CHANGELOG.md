@@ -3,6 +3,11 @@
 ## 8.1.0
 
 - Go 1.26 or greater is now required to build `geoipupdate`.
+- When the server provides a build identifier, `geoipupdate` now downloads the
+  exact database build whose MD5 checksum it read from the metadata response.
+  Previously it requested the build by date, so if a new build of a database was
+  published on the same day during an update, the download could fail with a
+  checksum mismatch.
 - On RPM-based distributions, upgrading the package no longer replaces an edited
   `/etc/GeoIP.conf`. Previously, when a release changed the configuration file
   shipped in the package, the upgrade installed the new file and moved the
