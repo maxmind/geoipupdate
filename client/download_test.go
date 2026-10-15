@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -262,15 +263,46 @@ func TestDownload(t *testing.T) {
 			server := test.server(t)
 			defer server.Close()
 
+			bodies := &bodyTracker{}
 			c, err := New(
 				accountID,
 				licenseKey,
 				WithEndpoint(server.URL),
+				WithHTTPClient(&http.Client{Transport: bodies}),
 			)
 			require.NoError(t, err)
 
 			res, err := c.Download(ctx, edition.EditionID, edition.MD5)
 			test.checkResult(t, res, err)
+			if err != nil {
+				assert.Zero(t, bodies.open.Load(), "response bodies left open")
+			}
 		})
 	}
+}
+
+// bodyTracker counts the response bodies that are not closed yet.
+type bodyTracker struct {
+	open atomic.Int64
+}
+
+func (bt *bodyTracker) RoundTrip(req *http.Request) (*http.Response, error) {
+	res, err := http.DefaultTransport.RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
+	bt.open.Add(1)
+	res.Body = trackedBody{ReadCloser: res.Body, open: &bt.open}
+	return res, nil
+}
+
+type trackedBody struct {
+	io.ReadCloser
+
+	open *atomic.Int64
+}
+
+func (b trackedBody) Close() error {
+	b.open.Add(-1)
+	return b.ReadCloser.Close()
 }
