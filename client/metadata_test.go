@@ -27,7 +27,7 @@ func TestGetMetadata(t *testing.T) {
 						jsonData := `
 {
     "databases": [
-        { "edition_id": "edition-1", "md5": "123456", "date": "2024-02-23" }
+        { "edition_id": "edition-1", "md5": "123456", "date": "2024-02-23", "build_epoch": 1708700000 }
     ]
 }
 `
@@ -43,7 +43,7 @@ func TestGetMetadata(t *testing.T) {
 				require.NoError(t, err)
 
 				expectedMetadata := &metadata{
-					EditionID: "edition-1", MD5: "123456", Date: "2024-02-23",
+					EditionID: "edition-1", MD5: "123456", BuildEpoch: 1708700000,
 				}
 				require.Equal(t, expectedMetadata, receivedMetadata)
 			},
@@ -63,6 +63,29 @@ func TestGetMetadata(t *testing.T) {
 				require.Nil(t, receivedMetadata)
 				require.Error(t, err)
 				require.Regexp(t, "^unexpected HTTP status code", err.Error())
+			},
+		},
+		{
+			description:      "no build_epoch",
+			preserveFileTime: false,
+			server: func(t *testing.T) *httptest.Server {
+				server := httptest.NewServer(
+					http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+						_, err := w.Write([]byte(`{"databases": [
+        { "edition_id": "edition-1", "md5": "123456", "date": "2024-02-23" }
+    ]}`))
+						assert.NoError(t, err)
+					}),
+				)
+				return server
+			},
+			checkResult: func(t *testing.T, receivedMetadata *metadata, err error) {
+				require.Nil(t, receivedMetadata)
+				require.EqualError(
+					t,
+					err,
+					"metadata response for edition edition-1 has no build_epoch",
+				)
 			},
 		},
 	}

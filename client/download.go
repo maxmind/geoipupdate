@@ -80,7 +80,7 @@ func (c Client) Download(
 		}, nil
 	}
 
-	reader, modifiedTime, err := c.download(ctx, editionID, metadata.Date)
+	reader, modifiedTime, err := c.download(ctx, editionID, metadata.BuildEpoch)
 	if err != nil {
 		return DownloadResponse{}, err
 	}
@@ -97,13 +97,11 @@ const downloadEndpoint = "%s/geoip/databases/%s/download?"
 
 func (c *Client) download(
 	ctx context.Context,
-	editionID,
-	date string,
-) (io.ReadCloser, time.Time, error) {
-	date = strings.ReplaceAll(date, "-", "")
-
+	editionID string,
+	buildEpoch int64,
+) (_ io.ReadCloser, _ time.Time, err error) {
 	params := url.Values{}
-	params.Add("date", date)
+	params.Add("build_epoch", strconv.FormatInt(buildEpoch, 10))
 	params.Add("suffix", "tar.gz")
 
 	escapedEdition := url.PathEscape(editionID)
@@ -121,7 +119,8 @@ func (c *Client) download(
 		return nil, time.Time{}, fmt.Errorf("performing download request: %w", err)
 	}
 	// It is safe to close the response body reader as it wouldn't be
-	// consumed in case this function returns an error.
+	// consumed in case this function returns an error. err is a named result,
+	// so this sees every error return.
 	defer func() {
 		if err != nil {
 			// TODO(horgh): Should we fully consume the body?

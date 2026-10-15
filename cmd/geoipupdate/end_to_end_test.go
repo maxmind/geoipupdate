@@ -54,7 +54,8 @@ func TestUpdater(t *testing.T) {
     		    {
     		        "edition_id": "edition-1",
     		        "md5": "618dd27a10de24809ec160d6807f363f",
-    		        "date": "2024-02-23"
+    		        "date": "2024-02-23",
+    		        "build_epoch": 1708700000
     		    }
     		]
 		}`
@@ -64,7 +65,8 @@ func TestUpdater(t *testing.T) {
 		        {
 		            "edition_id": "edition-2",
 		            "md5": "c9bbf7cb507370339633b44001bae038",
-		            "date": "2024-02-23"
+		            "date": "2024-02-23",
+		            "build_epoch": 1708700000
 		        }
 		    ]
 		}`
