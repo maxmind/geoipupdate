@@ -6,6 +6,9 @@
 - `geoipupdate` now identifies the database to download by its build epoch
   rather than its date. Previously, if a new build was published on the same day
   during an update, the download could fail with a checksum mismatch.
+- `client.Client.Download` now closes the HTTP response when the download fails
+  with a non-200 status or an archive without an `.mmdb` file. Previously each
+  such failure leaked a connection.
 - On RPM-based distributions, upgrading the package no longer replaces an edited
   `/etc/GeoIP.conf`. Previously, when a release changed the configuration file
   shipped in the package, the upgrade installed the new file and moved the

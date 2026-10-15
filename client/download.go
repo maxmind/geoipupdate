@@ -99,7 +99,7 @@ func (c *Client) download(
 	ctx context.Context,
 	editionID string,
 	buildEpoch int64,
-) (io.ReadCloser, time.Time, error) {
+) (_ io.ReadCloser, _ time.Time, err error) {
 	params := url.Values{}
 	params.Add("build_epoch", strconv.FormatInt(buildEpoch, 10))
 	params.Add("suffix", "tar.gz")
@@ -119,7 +119,8 @@ func (c *Client) download(
 		return nil, time.Time{}, fmt.Errorf("performing download request: %w", err)
 	}
 	// It is safe to close the response body reader as it wouldn't be
-	// consumed in case this function returns an error.
+	// consumed in case this function returns an error. err is a named result,
+	// so this sees every error return.
 	defer func() {
 		if err != nil {
 			// TODO(horgh): Should we fully consume the body?
