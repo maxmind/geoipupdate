@@ -289,7 +289,7 @@ func setConfigFromFile(config *Config, path string) error {
 
 // setConfigFromEnv sets Config fields based on environment variables.
 func setConfigFromEnv(config *Config) error {
-	accountID, found, err := getValueFromEnvFile("GEOIPUPDATE_ACCOUNT_ID")
+	accountID, found, err := lookupEnvOrFile("GEOIPUPDATE_ACCOUNT_ID")
 	if err != nil {
 		return err
 	}
@@ -319,7 +319,7 @@ func setConfigFromEnv(config *Config) error {
 		config.URL = u.String()
 	}
 
-	licenseKey, found, err := getValueFromEnvFile("GEOIPUPDATE_LICENSE_KEY")
+	licenseKey, found, err := lookupEnvOrFile("GEOIPUPDATE_LICENSE_KEY")
 	if err != nil {
 		return err
 	}
@@ -353,7 +353,7 @@ func setConfigFromEnv(config *Config) error {
 		config.proxyURL = value
 	}
 
-	proxyUserInfo, found, err := getValueFromEnvFile("GEOIPUPDATE_PROXY_USER_PASSWORD")
+	proxyUserInfo, found, err := lookupEnvOrFile("GEOIPUPDATE_PROXY_USER_PASSWORD")
 	if err != nil {
 		return err
 	}
@@ -379,8 +379,8 @@ func setConfigFromEnv(config *Config) error {
 	return nil
 }
 
-// getValueFromEnvFile returns the value associated to an env variable or from a file containing it.
-func getValueFromEnvFile(key string) (string, bool, error) {
+// lookupEnvOrFile returns the value associated to an env variable or from a file containing it.
+func lookupEnvOrFile(key string) (string, bool, error) {
 	if path := os.Getenv(key + "_FILE"); path != "" {
 		content, err := os.ReadFile(filepath.Clean(path))
 		if err != nil {
