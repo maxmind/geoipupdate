@@ -612,6 +612,9 @@ func TestSetConfigFromEnv(t *testing.T) {
 	_, missingFileErr := os.ReadFile(filepath.Clean(missingFile))
 	require.Error(t, missingFileErr)
 
+	blankFile := filepath.Join(t.TempDir(), "blank")
+	require.NoError(t, os.WriteFile(blankFile, []byte(" \n\t\n"), 0o600))
+
 	tests := []struct {
 		Description                   string
 		AccountIDFileContents         string
@@ -807,6 +810,27 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 			Err: "failed to read GEOIPUPDATE_PROXY_USER_PASSWORD_FILE: " +
 				missingFileErr.Error(),
+		},
+		{
+			Description: "Blank ACCOUNT_ID_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID_FILE": blankFile,
+			},
+			Err: "GEOIPUPDATE_ACCOUNT_ID_FILE points to an empty file: " + blankFile,
+		},
+		{
+			Description: "Blank LICENSE_KEY_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_LICENSE_KEY_FILE": blankFile,
+			},
+			Err: "GEOIPUPDATE_LICENSE_KEY_FILE points to an empty file: " + blankFile,
+		},
+		{
+			Description: "Blank PROXY_USER_PASSWORD_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": blankFile,
+			},
+			Err: "GEOIPUPDATE_PROXY_USER_PASSWORD_FILE points to an empty file: " + blankFile,
 		},
 		{
 			Description: "Invalid PreserveFileTimes",

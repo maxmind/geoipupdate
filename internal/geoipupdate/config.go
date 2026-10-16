@@ -383,15 +383,19 @@ func setConfigFromEnv(config *Config) error {
 // and whether it is set, as os.LookupEnv does. If the variable named by
 // key+"_FILE" is not empty, lookupEnvOrFile instead reads the file at that
 // path. It then returns the file contents, with leading and trailing white
-// space removed, and true. The file takes precedence over the variable named
-// by key.
+// space removed, and true. If nothing remains, it returns an error. The file
+// takes precedence over the variable named by key.
 func lookupEnvOrFile(key string) (string, bool, error) {
 	if path := os.Getenv(key + "_FILE"); path != "" {
 		content, err := os.ReadFile(filepath.Clean(path))
 		if err != nil {
 			return "", false, fmt.Errorf("failed to read %s_FILE: %w", key, err)
 		}
-		return strings.TrimSpace(string(content)), true, nil
+		value := strings.TrimSpace(string(content))
+		if value == "" {
+			return "", false, fmt.Errorf("%s_FILE points to an empty file: %s", key, path)
+		}
+		return value, true, nil
 	}
 
 	value, found := os.LookupEnv(key)
