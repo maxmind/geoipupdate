@@ -287,25 +287,39 @@ func setConfigFromFile(config *Config, path string) error {
 	return nil
 }
 
-// setConfigFromEnv sets Config fields based on environment variables.
-func setConfigFromEnv(config *Config) error {
-	if value, ok := os.LookupEnv("GEOIPUPDATE_ACCOUNT_ID"); ok {
-		var err error
-		config.AccountID, err = strconv.Atoi(value)
-		if err != nil {
-			return errors.New("invalid account ID format")
-		}
+// getValueFromEnvFile returns the value associated to an env variable or from a file containing it.
+func getValueFromEnvFile(key string) (string, bool, error) {
+	var res string
+	var found bool
+
+	if value, ok := os.LookupEnv(key); ok {
+		res = value
+		found = true
 	}
 
-	if value := os.Getenv("GEOIPUPDATE_ACCOUNT_ID_FILE"); value != "" {
+	if value := os.Getenv(key + "_FILE"); value != "" {
 		var err error
 
-		accountID, err := os.ReadFile(filepath.Clean(value))
+		content, err := os.ReadFile(filepath.Clean(value))
 		if err != nil {
-			return fmt.Errorf("failed to open GEOIPUPDATE_ACCOUNT_ID_FILE: %w", err)
+			return "", true, fmt.Errorf("failed to open %s_FILE: %w", key, err)
 		}
 
-		config.AccountID, err = strconv.Atoi(strings.TrimSpace(string(accountID)))
+		found = true
+		res = strings.TrimSpace(string(content))
+	}
+
+	return res, found, nil
+}
+
+// setConfigFromEnv sets Config fields based on environment variables.
+func setConfigFromEnv(config *Config) error {
+	if value, found, err := getValueFromEnvFile("GEOIPUPDATE_ACCOUNT_ID"); found {
+		if err != nil {
+			return err
+		}
+
+		config.AccountID, err = strconv.Atoi(value)
 		if err != nil {
 			return errors.New("invalid account ID format")
 		}
@@ -330,19 +344,12 @@ func setConfigFromEnv(config *Config) error {
 		config.URL = u.String()
 	}
 
-	if value, ok := os.LookupEnv("GEOIPUPDATE_LICENSE_KEY"); ok {
-		config.LicenseKey = value
-	}
-
-	if value := os.Getenv("GEOIPUPDATE_LICENSE_KEY_FILE"); value != "" {
-		var err error
-
-		licenseKey, err := os.ReadFile(filepath.Clean(value))
+	if value, found, err := getValueFromEnvFile("GEOIPUPDATE_LICENSE_KEY"); found {
 		if err != nil {
-			return fmt.Errorf("failed to open GEOIPUPDATE_LICENSE_KEY_FILE: %w", err)
+			return err
 		}
 
-		config.LicenseKey = strings.TrimSpace(string(licenseKey))
+		config.LicenseKey = value
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_LOCK_FILE"); ok {
@@ -371,7 +378,11 @@ func setConfigFromEnv(config *Config) error {
 		config.proxyURL = value
 	}
 
-	if value, ok := os.LookupEnv("GEOIPUPDATE_PROXY_USER_PASSWORD"); ok {
+	if value, found, err := getValueFromEnvFile("GEOIPUPDATE_PROXY_USER_PASSWORD"); found {
+		if err != nil {
+			return err
+		}
+
 		config.proxyUserInfo = value
 	}
 
