@@ -19,13 +19,15 @@ sensitive.
 
 :   Your MaxMind account ID. This was formerly known as `UserId`. This can be
     overridden at run time by either the `GEOIPUPDATE_ACCOUNT_ID` or the
-    `GEOIPUPDATE_ACCOUNT_ID_FILE` environment variables.
+    `GEOIPUPDATE_ACCOUNT_ID_FILE` environment variables. If both are set,
+    `GEOIPUPDATE_ACCOUNT_ID_FILE` takes precedence.
 
 `LicenseKey`
 
 :   Your case-sensitive MaxMind license key. This can be overridden at run time
     by either the `GEOIPUPDATE_LICENSE_KEY` or `GEOIPUPDATE_LICENSE_KEY_FILE`
-    environment variables.
+    environment variables. If both are set, `GEOIPUPDATE_LICENSE_KEY_FILE`
+    takes precedence.
 
 `EditionIDs`
 
@@ -59,8 +61,10 @@ sensitive.
 `ProxyUserPassword`
 
 :   The proxy user name and password, separated by a colon. For instance,
-    `username:password`. This can be overridden at run time by the
-    `GEOIPUPDATE_PROXY_USER_PASSWORD` environment variable.
+    `username:password`. This can be overridden at run time by either the
+    `GEOIPUPDATE_PROXY_USER_PASSWORD` or the
+    `GEOIPUPDATE_PROXY_USER_PASSWORD_FILE` environment variables. If both are
+    set, `GEOIPUPDATE_PROXY_USER_PASSWORD_FILE` takes precedence.
 
 `PreserveFileTimes`
 

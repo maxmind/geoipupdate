@@ -37,6 +37,10 @@
 - The Docker images now carry `org.opencontainers.image.*` labels.
 - A prerelease no longer moves the `latest`, `v8` and `v8.1` Docker tags, or the
   release marked "Latest" on GitHub.
+- Added the `GEOIPUPDATE_PROXY_USER_PASSWORD_FILE` environment variable. It sets
+  the proxy user name and password from a file, in the same way as
+  `GEOIPUPDATE_ACCOUNT_ID_FILE` and `GEOIPUPDATE_LICENSE_KEY_FILE`. Pull request
+  by Tom Hubrecht. GitHub #570.
 
 ## 8.0.0 (2026-07-10)
 
