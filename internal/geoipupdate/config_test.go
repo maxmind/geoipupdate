@@ -742,6 +742,28 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
+			Description:                   "Only the _FILE variables",
+			AccountIDFileContents:         "2",
+			LicenseKeyFileContents:        "000000000002",
+			ProxyUserPasswordFileContents: "username2:password2",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID_FILE": filepath.Join(t.TempDir(), "accountIDFile"),
+				"GEOIPUPDATE_LICENSE_KEY_FILE": filepath.Join(
+					t.TempDir(),
+					"licenseKeyFile",
+				),
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": filepath.Join(
+					t.TempDir(),
+					"proxyUserPasswordFile",
+				),
+			},
+			Expected: Config{
+				AccountID:     2,
+				LicenseKey:    "000000000002",
+				proxyUserInfo: "username2:password2",
+			},
+		},
+		{
 			Description: "Empty config",
 			Env:         map[string]string{},
 			Expected:    Config{},
