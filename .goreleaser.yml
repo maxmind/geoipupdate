@@ -252,6 +252,8 @@ nfpms:
       - src: 'build/packages/GeoIP.conf'
         dst: '/etc/GeoIP.conf'
         type: 'config|noreplace'
+        file_info:
+          mode: 0o640
 release:
   name_template: "{{.Version}}"
   target_commitish: "{{ .FullCommit }}"
