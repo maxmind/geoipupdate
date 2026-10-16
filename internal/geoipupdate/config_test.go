@@ -656,7 +656,7 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
-			Description:                   "ACCOUNT_ID_FILE, LICENSE_KEY_FILE and PROXY_USER_PASSWORD override",
+			Description:                   "ACCOUNT_ID_FILE, LICENSE_KEY_FILE and PROXY_USER_PASSWORD_FILE override",
 			AccountIDFileContents:         "2",
 			LicenseKeyFileContents:        "000000000002",
 			ProxyUserPasswordFileContents: "username2:password2",
@@ -699,7 +699,7 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
-			Description:                   "Clean up ACCOUNT_ID_FILE, LICENSE_KEY_FILE and PROXY_USER_PASSWORD",
+			Description:                   "Clean up ACCOUNT_ID_FILE, LICENSE_KEY_FILE and PROXY_USER_PASSWORD_FILE",
 			AccountIDFileContents:         "\n\n2\t\n",
 			LicenseKeyFileContents:        "\n000000000002\t\n\n",
 			ProxyUserPasswordFileContents: "\nusername2:password2\t\n\n",
