@@ -379,7 +379,12 @@ func setConfigFromEnv(config *Config) error {
 	return nil
 }
 
-// lookupEnvOrFile returns the value associated to an env variable or from a file containing it.
+// lookupEnvOrFile returns the value of the environment variable named by key
+// and whether it is set, as os.LookupEnv does. If the variable named by
+// key+"_FILE" is not empty, lookupEnvOrFile instead reads the file at that
+// path. It then returns the file contents, with leading and trailing white
+// space removed, and true. The file takes precedence over the variable named
+// by key.
 func lookupEnvOrFile(key string) (string, bool, error) {
 	if path := os.Getenv(key + "_FILE"); path != "" {
 		content, err := os.ReadFile(filepath.Clean(path))
