@@ -384,7 +384,7 @@ func getValueFromEnvFile(key string) (string, bool, error) {
 	if path := os.Getenv(key + "_FILE"); path != "" {
 		content, err := os.ReadFile(filepath.Clean(path))
 		if err != nil {
-			return "", false, fmt.Errorf("failed to open %s_FILE: %w", key, err)
+			return "", false, fmt.Errorf("failed to read %s_FILE: %w", key, err)
 		}
 		return strings.TrimSpace(string(content)), true, nil
 	}

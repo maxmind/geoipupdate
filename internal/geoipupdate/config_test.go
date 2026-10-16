@@ -791,21 +791,21 @@ func TestSetConfigFromEnv(t *testing.T) {
 			Env: map[string]string{
 				"GEOIPUPDATE_ACCOUNT_ID_FILE": missingFile,
 			},
-			Err: "failed to open GEOIPUPDATE_ACCOUNT_ID_FILE: " + missingFileErr.Error(),
+			Err: "failed to read GEOIPUPDATE_ACCOUNT_ID_FILE: " + missingFileErr.Error(),
 		},
 		{
 			Description: "Missing LICENSE_KEY_FILE",
 			Env: map[string]string{
 				"GEOIPUPDATE_LICENSE_KEY_FILE": missingFile,
 			},
-			Err: "failed to open GEOIPUPDATE_LICENSE_KEY_FILE: " + missingFileErr.Error(),
+			Err: "failed to read GEOIPUPDATE_LICENSE_KEY_FILE: " + missingFileErr.Error(),
 		},
 		{
 			Description: "Missing PROXY_USER_PASSWORD_FILE",
 			Env: map[string]string{
 				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": missingFile,
 			},
-			Err: "failed to open GEOIPUPDATE_PROXY_USER_PASSWORD_FILE: " +
+			Err: "failed to read GEOIPUPDATE_PROXY_USER_PASSWORD_FILE: " +
 				missingFileErr.Error(),
 		},
 		{
