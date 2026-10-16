@@ -38,6 +38,8 @@ The following environment variables are optional:
   1080 will be used.
 * `GEOIPUPDATE_PROXY_USER_PASSWORD` - The proxy user name and password,
   separated by a colon. For instance, `username:password`.
+* `GEOIPUPDATE_PROXY_USER_PASSWORD_FILE` - A file containing the proxy user
+  name and password, separated by a colon.
 * `GEOIPUPDATE_PRESERVE_FILE_TIMES` - Whether to preserve modification times
   of files downloaded from the server. This option is either `0` or `1`. The
   default is `0`.
