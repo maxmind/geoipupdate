@@ -287,31 +287,6 @@ func setConfigFromFile(config *Config, path string) error {
 	return nil
 }
 
-// getValueFromEnvFile returns the value associated to an env variable or from a file containing it.
-func getValueFromEnvFile(key string) (string, bool, error) {
-	var res string
-	var found bool
-
-	if value, ok := os.LookupEnv(key); ok {
-		res = value
-		found = true
-	}
-
-	if value := os.Getenv(key + "_FILE"); value != "" {
-		var err error
-
-		content, err := os.ReadFile(filepath.Clean(value))
-		if err != nil {
-			return "", true, fmt.Errorf("failed to open %s_FILE: %w", key, err)
-		}
-
-		found = true
-		res = strings.TrimSpace(string(content))
-	}
-
-	return res, found, nil
-}
-
 // setConfigFromEnv sets Config fields based on environment variables.
 func setConfigFromEnv(config *Config) error {
 	accountID, found, err := getValueFromEnvFile("GEOIPUPDATE_ACCOUNT_ID")
@@ -402,6 +377,31 @@ func setConfigFromEnv(config *Config) error {
 	}
 
 	return nil
+}
+
+// getValueFromEnvFile returns the value associated to an env variable or from a file containing it.
+func getValueFromEnvFile(key string) (string, bool, error) {
+	var res string
+	var found bool
+
+	if value, ok := os.LookupEnv(key); ok {
+		res = value
+		found = true
+	}
+
+	if value := os.Getenv(key + "_FILE"); value != "" {
+		var err error
+
+		content, err := os.ReadFile(filepath.Clean(value))
+		if err != nil {
+			return "", true, fmt.Errorf("failed to open %s_FILE: %w", key, err)
+		}
+
+		found = true
+		res = strings.TrimSpace(string(content))
+	}
+
+	return res, found, nil
 }
 
 // setConfigFromFlags sets Config fields based on option flags.
