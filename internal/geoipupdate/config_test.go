@@ -607,6 +607,11 @@ func TestSetConfigFromFile(t *testing.T) {
 }
 
 func TestSetConfigFromEnv(t *testing.T) {
+	// The text of the error for a missing file differs between platforms.
+	missingFile := filepath.Join(t.TempDir(), "missing")
+	_, missingFileErr := os.ReadFile(filepath.Clean(missingFile))
+	require.Error(t, missingFileErr)
+
 	tests := []struct {
 		Description                   string
 		AccountIDFileContents         string
@@ -758,6 +763,28 @@ func TestSetConfigFromEnv(t *testing.T) {
 			Expected: Config{
 				AccountID: 2,
 			},
+		},
+		{
+			Description: "Missing ACCOUNT_ID_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID_FILE": missingFile,
+			},
+			Err: "failed to open GEOIPUPDATE_ACCOUNT_ID_FILE: " + missingFileErr.Error(),
+		},
+		{
+			Description: "Missing LICENSE_KEY_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_LICENSE_KEY_FILE": missingFile,
+			},
+			Err: "failed to open GEOIPUPDATE_LICENSE_KEY_FILE: " + missingFileErr.Error(),
+		},
+		{
+			Description: "Missing PROXY_USER_PASSWORD_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": missingFile,
+			},
+			Err: "failed to open GEOIPUPDATE_PROXY_USER_PASSWORD_FILE: " +
+				missingFileErr.Error(),
 		},
 		{
 			Description: "Invalid PreserveFileTimes",
