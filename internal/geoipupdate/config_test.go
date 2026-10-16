@@ -749,6 +749,17 @@ func TestSetConfigFromEnv(t *testing.T) {
 			Err: `invalid account ID format`,
 		},
 		{
+			Description:           "ACCOUNT_ID_FILE overrides invalid ACCOUNT_ID",
+			AccountIDFileContents: "2",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID":      "1a",
+				"GEOIPUPDATE_ACCOUNT_ID_FILE": filepath.Join(t.TempDir(), "accountIDFile"),
+			},
+			Expected: Config{
+				AccountID: 2,
+			},
+		},
+		{
 			Description: "Invalid PreserveFileTimes",
 			Env: map[string]string{
 				"GEOIPUPDATE_PRESERVE_FILE_TIMES": "1a",
