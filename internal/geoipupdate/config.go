@@ -314,12 +314,12 @@ func getValueFromEnvFile(key string) (string, bool, error) {
 
 // setConfigFromEnv sets Config fields based on environment variables.
 func setConfigFromEnv(config *Config) error {
-	if value, found, err := getValueFromEnvFile("GEOIPUPDATE_ACCOUNT_ID"); found {
-		if err != nil {
-			return err
-		}
-
-		config.AccountID, err = strconv.Atoi(value)
+	accountID, found, err := getValueFromEnvFile("GEOIPUPDATE_ACCOUNT_ID")
+	if err != nil {
+		return err
+	}
+	if found {
+		config.AccountID, err = strconv.Atoi(accountID)
 		if err != nil {
 			return errors.New("invalid account ID format")
 		}
@@ -344,12 +344,12 @@ func setConfigFromEnv(config *Config) error {
 		config.URL = u.String()
 	}
 
-	if value, found, err := getValueFromEnvFile("GEOIPUPDATE_LICENSE_KEY"); found {
-		if err != nil {
-			return err
-		}
-
-		config.LicenseKey = value
+	licenseKey, found, err := getValueFromEnvFile("GEOIPUPDATE_LICENSE_KEY")
+	if err != nil {
+		return err
+	}
+	if found {
+		config.LicenseKey = licenseKey
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_LOCK_FILE"); ok {
@@ -378,12 +378,12 @@ func setConfigFromEnv(config *Config) error {
 		config.proxyURL = value
 	}
 
-	if value, found, err := getValueFromEnvFile("GEOIPUPDATE_PROXY_USER_PASSWORD"); found {
-		if err != nil {
-			return err
-		}
-
-		config.proxyUserInfo = value
+	proxyUserInfo, found, err := getValueFromEnvFile("GEOIPUPDATE_PROXY_USER_PASSWORD")
+	if err != nil {
+		return err
+	}
+	if found {
+		config.proxyUserInfo = proxyUserInfo
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_RETRY_FOR"); ok {
