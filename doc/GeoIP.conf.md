@@ -61,8 +61,10 @@ sensitive.
 `ProxyUserPassword`
 
 :   The proxy user name and password, separated by a colon. For instance,
-    `username:password`. This can be overridden at run time by the
-    `GEOIPUPDATE_PROXY_USER_PASSWORD` environment variable.
+    `username:password`. This can be overridden at run time by either the
+    `GEOIPUPDATE_PROXY_USER_PASSWORD` or the
+    `GEOIPUPDATE_PROXY_USER_PASSWORD_FILE` environment variables. If both are
+    set, `GEOIPUPDATE_PROXY_USER_PASSWORD_FILE` takes precedence.
 
 `PreserveFileTimes`
 
