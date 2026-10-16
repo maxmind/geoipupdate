@@ -381,25 +381,16 @@ func setConfigFromEnv(config *Config) error {
 
 // getValueFromEnvFile returns the value associated to an env variable or from a file containing it.
 func getValueFromEnvFile(key string) (string, bool, error) {
-	var res string
-	var found bool
-
-	if value, ok := os.LookupEnv(key); ok {
-		res = value
-		found = true
-	}
-
-	if value := os.Getenv(key + "_FILE"); value != "" {
-		content, err := os.ReadFile(filepath.Clean(value))
+	if path := os.Getenv(key + "_FILE"); path != "" {
+		content, err := os.ReadFile(filepath.Clean(path))
 		if err != nil {
-			return "", true, fmt.Errorf("failed to open %s_FILE: %w", key, err)
+			return "", false, fmt.Errorf("failed to open %s_FILE: %w", key, err)
 		}
-
-		found = true
-		res = strings.TrimSpace(string(content))
+		return strings.TrimSpace(string(content)), true, nil
 	}
 
-	return res, found, nil
+	value, found := os.LookupEnv(key)
+	return value, found, nil
 }
 
 // setConfigFromFlags sets Config fields based on option flags.
