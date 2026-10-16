@@ -390,8 +390,6 @@ func getValueFromEnvFile(key string) (string, bool, error) {
 	}
 
 	if value := os.Getenv(key + "_FILE"); value != "" {
-		var err error
-
 		content, err := os.ReadFile(filepath.Clean(value))
 		if err != nil {
 			return "", true, fmt.Errorf("failed to open %s_FILE: %w", key, err)
