@@ -54,10 +54,12 @@ individually with the `-e` flag.
 
 Environment variables override any options set in the config file.
 
-If both a variable and its `_FILE` form are set, for example
-`GEOIPUPDATE_LICENSE_KEY` and `GEOIPUPDATE_LICENSE_KEY_FILE`, `geoipupdate`
-uses the value from the file. `geoipupdate` removes leading and trailing white
-space from the contents of the file.
+If the `_FILE` form of a variable is set and not empty, `geoipupdate` uses the
+value from the file and ignores the variable. For example,
+`GEOIPUPDATE_LICENSE_KEY_FILE` takes precedence over `GEOIPUPDATE_LICENSE_KEY`.
+`geoipupdate` removes leading and trailing white space from the contents of the
+file. If the file is empty or contains only white space, `geoipupdate` returns
+an error.
 
 ## Running
 
