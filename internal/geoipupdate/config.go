@@ -289,7 +289,7 @@ func setConfigFromFile(config *Config, path string) error {
 
 // setConfigFromEnv sets Config fields based on environment variables.
 func setConfigFromEnv(config *Config) error {
-	accountID, found, err := lookupEnvOrFile("GEOIPUPDATE_ACCOUNT_ID")
+	accountID, found, err := lookupFileOrEnv("GEOIPUPDATE_ACCOUNT_ID")
 	if err != nil {
 		return err
 	}
@@ -319,7 +319,7 @@ func setConfigFromEnv(config *Config) error {
 		config.URL = u.String()
 	}
 
-	licenseKey, found, err := lookupEnvOrFile("GEOIPUPDATE_LICENSE_KEY")
+	licenseKey, found, err := lookupFileOrEnv("GEOIPUPDATE_LICENSE_KEY")
 	if err != nil {
 		return err
 	}
@@ -353,7 +353,7 @@ func setConfigFromEnv(config *Config) error {
 		config.proxyURL = value
 	}
 
-	proxyUserInfo, found, err := lookupEnvOrFile("GEOIPUPDATE_PROXY_USER_PASSWORD")
+	proxyUserInfo, found, err := lookupFileOrEnv("GEOIPUPDATE_PROXY_USER_PASSWORD")
 	if err != nil {
 		return err
 	}
@@ -379,13 +379,13 @@ func setConfigFromEnv(config *Config) error {
 	return nil
 }
 
-// lookupEnvOrFile returns the value of the environment variable named by key
+// lookupFileOrEnv returns the value of the environment variable named by key
 // and whether it is set, as os.LookupEnv does. If the variable named by
-// key+"_FILE" is not empty, lookupEnvOrFile instead reads the file at that
+// key+"_FILE" is not empty, lookupFileOrEnv instead reads the file at that
 // path. It then returns the file contents, with leading and trailing white
 // space removed, and true. If nothing remains, it returns an error. The file
 // takes precedence over the variable named by key.
-func lookupEnvOrFile(key string) (string, bool, error) {
+func lookupFileOrEnv(key string) (string, bool, error) {
 	if path := os.Getenv(key + "_FILE"); path != "" {
 		content, err := os.ReadFile(filepath.Clean(path))
 		if err != nil {
