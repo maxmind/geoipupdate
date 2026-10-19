@@ -13,6 +13,12 @@ The file consists of one setting per line. Lines starting with `#`
 are comments and will not be processed. All setting keywords are case
 sensitive.
 
+The `AccountID`, `LicenseKey` and `ProxyUserPassword` settings can also be
+overridden at run time by an environment variable that contains the path to a
+file, for example `GEOIPUPDATE_LICENSE_KEY_FILE`. The file holds the value.
+`geoipupdate` removes leading and trailing white space from the contents of
+the file.
+
 ## Required settings:
 
 `AccountID`
