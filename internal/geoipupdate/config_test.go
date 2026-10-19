@@ -16,6 +16,12 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
+	proxyUserPasswordFile := filepath.Join(t.TempDir(), "proxy-user-password")
+	require.NoError(
+		t,
+		os.WriteFile(proxyUserPasswordFile, []byte("username2:password2\n"), 0o600),
+	)
+
 	tests := []struct {
 		Description string
 		Input       string
@@ -494,6 +500,53 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				RetryFor:    5 * time.Minute,
 				Parallelism: 1,
 				URL:         "http://test",
+			},
+		},
+		{
+			Description: "Empty PROXY_USER_PASSWORD clears ProxyUserPassword",
+			Input:       "AccountID\t\t123\nLicenseKey\t\t456\nEditionIDs\t\tGeoIP2-City\nProxy\t\t127.0.0.1:8888\nProxyUserPassword\t\tusername:password\n",
+			Env: map[string]string{
+				"GEOIPUPDATE_PROXY_USER_PASSWORD": "",
+			},
+			Output: &Config{
+				AccountID:         123,
+				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "456",
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				Proxy: &url.URL{
+					Scheme: "http",
+					Host:   "127.0.0.1:8888",
+				},
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
+				URL:         "https://updates.maxmind.com",
+			},
+		},
+		{
+			Description: "PROXY_USER_PASSWORD_FILE overrides ProxyUserPassword",
+			Input:       "AccountID\t\t123\nLicenseKey\t\t456\nEditionIDs\t\tGeoIP2-City\nProxy\t\t127.0.0.1:8888\nProxyUserPassword\t\tusername:password\n",
+			Env: map[string]string{
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": proxyUserPasswordFile,
+			},
+			Output: &Config{
+				AccountID:         123,
+				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "456",
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				Proxy: &url.URL{
+					Scheme: "http",
+					User:   url.UserPassword("username2", "password2"),
+					Host:   "127.0.0.1:8888",
+				},
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
+				URL:         "https://updates.maxmind.com",
 			},
 		},
 	}
