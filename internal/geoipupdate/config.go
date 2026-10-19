@@ -393,7 +393,11 @@ func lookupEnvOrFile(key string) (string, bool, error) {
 		}
 		value := strings.TrimSpace(string(content))
 		if value == "" {
-			return "", false, fmt.Errorf("%s_FILE points to an empty file: %s", key, path)
+			return "", false, fmt.Errorf(
+				"%s_FILE is set to %q, but that file is empty or contains only white space",
+				key,
+				path,
+			)
 		}
 		return value, true, nil
 	}

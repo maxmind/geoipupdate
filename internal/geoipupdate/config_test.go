@@ -816,21 +816,30 @@ func TestSetConfigFromEnv(t *testing.T) {
 			Env: map[string]string{
 				"GEOIPUPDATE_ACCOUNT_ID_FILE": blankFile,
 			},
-			Err: "GEOIPUPDATE_ACCOUNT_ID_FILE points to an empty file: " + blankFile,
+			Err: fmt.Sprintf(
+				"GEOIPUPDATE_ACCOUNT_ID_FILE is set to %q, but that file is empty or contains only white space",
+				blankFile,
+			),
 		},
 		{
 			Description: "Blank LICENSE_KEY_FILE",
 			Env: map[string]string{
 				"GEOIPUPDATE_LICENSE_KEY_FILE": blankFile,
 			},
-			Err: "GEOIPUPDATE_LICENSE_KEY_FILE points to an empty file: " + blankFile,
+			Err: fmt.Sprintf(
+				"GEOIPUPDATE_LICENSE_KEY_FILE is set to %q, but that file is empty or contains only white space",
+				blankFile,
+			),
 		},
 		{
 			Description: "Blank PROXY_USER_PASSWORD_FILE",
 			Env: map[string]string{
 				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": blankFile,
 			},
-			Err: "GEOIPUPDATE_PROXY_USER_PASSWORD_FILE points to an empty file: " + blankFile,
+			Err: fmt.Sprintf(
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE is set to %q, but that file is empty or contains only white space",
+				blankFile,
+			),
 		},
 		{
 			Description: "Invalid PreserveFileTimes",
