@@ -1122,36 +1122,18 @@ func TestParseProxy(t *testing.T) {
 }
 
 func withEnvVars(t *testing.T, newEnvVars map[string]string, f func()) {
-	origEnv := os.Environ()
-
-	// Use Cleanup so that the environment is restored even if f fails the
-	// test.
-	t.Cleanup(func() {
-		// Clean the environment
-		os.Clearenv()
-
-		// Reset the original environment variables
-		for _, pair := range origEnv {
-			parts := strings.SplitN(pair, "=", 2)
-			//nolint:usetesting // t.Setenv causes errors on Windows for some reason.
-			err := os.Setenv(parts[0], parts[1])
-			require.NoError(t, err)
-		}
-	})
-
 	// Unset the GEOIPUPDATE_* variables from the shell so that only
-	// newEnvVars apply.
-	for _, pair := range origEnv {
+	// newEnvVars apply. t.Setenv restores them when the test ends.
+	for _, pair := range os.Environ() {
 		key, _, _ := strings.Cut(pair, "=")
 		if strings.HasPrefix(key, "GEOIPUPDATE_") {
+			t.Setenv(key, "")
 			require.NoError(t, os.Unsetenv(key))
 		}
 	}
 
 	for key, val := range newEnvVars {
-		//nolint:usetesting // t.Setenv causes errors on Windows for some reason.
-		err := os.Setenv(key, val)
-		require.NoError(t, err)
+		t.Setenv(key, val)
 	}
 
 	// Execute the test
