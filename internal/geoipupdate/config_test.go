@@ -500,18 +500,18 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
-			withEnvVars(t, test.Env, func() {
-				tempName := filepath.Join(t.TempDir(), "/GeoIP-test.conf")
-				require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
-				testFlags := append([]Option{WithConfigFile(tempName)}, test.Flags...)
-				config, err := NewConfig(testFlags...)
-				if test.Err == "" {
-					require.NoError(t, err, test.Description)
-				} else {
-					require.EqualError(t, err, test.Err, test.Description)
-				}
-				assert.Equal(t, test.Output, config, test.Description)
-			})
+			setEnvVars(t, test.Env)
+
+			tempName := filepath.Join(t.TempDir(), "/GeoIP-test.conf")
+			require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
+			testFlags := append([]Option{WithConfigFile(tempName)}, test.Flags...)
+			config, err := NewConfig(testFlags...)
+			if test.Err == "" {
+				require.NoError(t, err, test.Description)
+			} else {
+				require.EqualError(t, err, test.Err, test.Description)
+			}
+			assert.Equal(t, test.Output, config, test.Description)
 		})
 	}
 }
@@ -916,17 +916,17 @@ func TestSetConfigFromEnv(t *testing.T) {
 				)
 			}
 
-			withEnvVars(t, test.Env, func() {
-				var config Config
+			setEnvVars(t, test.Env)
 
-				err := setConfigFromEnv(&config)
-				if test.Err == "" {
-					require.NoError(t, err, test.Description)
-				} else {
-					require.EqualError(t, err, test.Err, test.Description)
-				}
-				assert.Equal(t, test.Expected, config, test.Description)
-			})
+			var config Config
+
+			err := setConfigFromEnv(&config)
+			if test.Err == "" {
+				require.NoError(t, err, test.Description)
+			} else {
+				require.EqualError(t, err, test.Err, test.Description)
+			}
+			assert.Equal(t, test.Expected, config, test.Description)
 		})
 	}
 }
@@ -1130,7 +1130,7 @@ func TestParseProxy(t *testing.T) {
 	}
 }
 
-func withEnvVars(t *testing.T, newEnvVars map[string]string, f func()) {
+func setEnvVars(t *testing.T, newEnvVars map[string]string) {
 	// Unset the GEOIPUPDATE_* variables from the shell so that only
 	// newEnvVars apply. t.Setenv restores them when the test ends.
 	for _, pair := range os.Environ() {
@@ -1144,7 +1144,4 @@ func withEnvVars(t *testing.T, newEnvVars map[string]string, f func()) {
 	for key, val := range newEnvVars {
 		t.Setenv(key, val)
 	}
-
-	// Execute the test
-	f()
 }
