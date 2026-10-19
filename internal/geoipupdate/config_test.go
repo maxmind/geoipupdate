@@ -1139,6 +1139,15 @@ func withEnvVars(t *testing.T, newEnvVars map[string]string, f func()) {
 		}
 	})
 
+	// Unset the GEOIPUPDATE_* variables from the shell so that only
+	// newEnvVars apply.
+	for _, pair := range origEnv {
+		key, _, _ := strings.Cut(pair, "=")
+		if strings.HasPrefix(key, "GEOIPUPDATE_") {
+			require.NoError(t, os.Unsetenv(key))
+		}
+	}
+
 	for key, val := range newEnvVars {
 		//nolint:usetesting // t.Setenv causes errors on Windows for some reason.
 		err := os.Setenv(key, val)
