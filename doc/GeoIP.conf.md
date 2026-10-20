@@ -13,19 +13,29 @@ The file consists of one setting per line. Lines starting with `#`
 are comments and will not be processed. All setting keywords are case
 sensitive.
 
+The `AccountID`, `LicenseKey` and `ProxyUserPassword` settings can also be
+overridden at run time by an environment variable that contains the path to a
+file, for example `GEOIPUPDATE_LICENSE_KEY_FILE`. The file holds the value.
+`geoipupdate` removes leading and trailing white space from the contents of
+the file. If the file is empty or contains only white space, `geoipupdate`
+returns an error.
+
 ## Required settings:
 
 `AccountID`
 
 :   Your MaxMind account ID. This was formerly known as `UserId`. This can be
     overridden at run time by either the `GEOIPUPDATE_ACCOUNT_ID` or the
-    `GEOIPUPDATE_ACCOUNT_ID_FILE` environment variables.
+    `GEOIPUPDATE_ACCOUNT_ID_FILE` environment variables. If
+    `GEOIPUPDATE_ACCOUNT_ID_FILE` is set and not empty, `geoipupdate` uses the
+    file and ignores `GEOIPUPDATE_ACCOUNT_ID`.
 
 `LicenseKey`
 
 :   Your case-sensitive MaxMind license key. This can be overridden at run time
     by either the `GEOIPUPDATE_LICENSE_KEY` or `GEOIPUPDATE_LICENSE_KEY_FILE`
-    environment variables.
+    environment variables. If `GEOIPUPDATE_LICENSE_KEY_FILE` is set and not
+    empty, `geoipupdate` uses the file and ignores `GEOIPUPDATE_LICENSE_KEY`.
 
 `EditionIDs`
 
@@ -59,8 +69,11 @@ sensitive.
 `ProxyUserPassword`
 
 :   The proxy user name and password, separated by a colon. For instance,
-    `username:password`. This can be overridden at run time by the
-    `GEOIPUPDATE_PROXY_USER_PASSWORD` environment variable.
+    `username:password`. This can be overridden at run time by either the
+    `GEOIPUPDATE_PROXY_USER_PASSWORD` or the
+    `GEOIPUPDATE_PROXY_USER_PASSWORD_FILE` environment variables. If
+    `GEOIPUPDATE_PROXY_USER_PASSWORD_FILE` is set and not empty, `geoipupdate`
+    uses the file and ignores `GEOIPUPDATE_PROXY_USER_PASSWORD`.
 
 `PreserveFileTimes`
 

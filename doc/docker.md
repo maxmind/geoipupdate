@@ -38,6 +38,8 @@ The following environment variables are optional:
   1080 will be used.
 * `GEOIPUPDATE_PROXY_USER_PASSWORD` - The proxy user name and password,
   separated by a colon. For instance, `username:password`.
+* `GEOIPUPDATE_PROXY_USER_PASSWORD_FILE` - A file containing the proxy user
+  name and password, separated by a colon.
 * `GEOIPUPDATE_PRESERVE_FILE_TIMES` - Whether to preserve modification times
   of files downloaded from the server. This option is either `0` or `1`. The
   default is `0`.
@@ -51,6 +53,14 @@ passed in with the `--env-file` flag. Alternatively, you may pass them in
 individually with the `-e` flag.
 
 Environment variables override any options set in the config file.
+
+`GEOIPUPDATE_ACCOUNT_ID`, `GEOIPUPDATE_LICENSE_KEY` and
+`GEOIPUPDATE_PROXY_USER_PASSWORD` each have a `_FILE` form, for example
+`GEOIPUPDATE_LICENSE_KEY_FILE`. If the `_FILE` form is set and not empty,
+`geoipupdate` uses the value from the file and ignores the other variable.
+`geoipupdate` removes leading and trailing white space from the contents of the
+file. If the file is empty or contains only white space, `geoipupdate` returns
+an error.
 
 ## Running
 

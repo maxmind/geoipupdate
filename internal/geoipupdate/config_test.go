@@ -16,6 +16,12 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
+	proxyUserPasswordFile := filepath.Join(t.TempDir(), "proxy-user-password")
+	require.NoError(
+		t,
+		os.WriteFile(proxyUserPasswordFile, []byte("username2:password2\n"), 0o600),
+	)
+
 	tests := []struct {
 		Description string
 		Input       string
@@ -496,22 +502,69 @@ EditionIDs    GeoLite2-City      GeoLite2-Country
 				URL:         "http://test",
 			},
 		},
+		{
+			Description: "Empty PROXY_USER_PASSWORD clears ProxyUserPassword",
+			Input:       "AccountID\t\t123\nLicenseKey\t\t456\nEditionIDs\t\tGeoIP2-City\nProxy\t\t127.0.0.1:8888\nProxyUserPassword\t\tusername:password\n",
+			Env: map[string]string{
+				"GEOIPUPDATE_PROXY_USER_PASSWORD": "",
+			},
+			Output: &Config{
+				AccountID:         123,
+				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "456",
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				Proxy: &url.URL{
+					Scheme: "http",
+					Host:   "127.0.0.1:8888",
+				},
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
+				URL:         "https://updates.maxmind.com",
+			},
+		},
+		{
+			Description: "PROXY_USER_PASSWORD_FILE overrides ProxyUserPassword",
+			Input:       "AccountID\t\t123\nLicenseKey\t\t456\nEditionIDs\t\tGeoIP2-City\nProxy\t\t127.0.0.1:8888\nProxyUserPassword\t\tusername:password\n",
+			Env: map[string]string{
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": proxyUserPasswordFile,
+			},
+			Output: &Config{
+				AccountID:         123,
+				DatabaseDirectory: filepath.Clean(vars.DefaultDatabaseDirectory),
+				EditionIDs:        []string{"GeoIP2-City"},
+				LicenseKey:        "456",
+				LockFile: filepath.Clean(
+					filepath.Join(vars.DefaultDatabaseDirectory, ".geoipupdate.lock"),
+				),
+				Proxy: &url.URL{
+					Scheme: "http",
+					User:   url.UserPassword("username2", "password2"),
+					Host:   "127.0.0.1:8888",
+				},
+				RetryFor:    5 * time.Minute,
+				Parallelism: 1,
+				URL:         "https://updates.maxmind.com",
+			},
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.Description, func(t *testing.T) {
-			withEnvVars(t, test.Env, func() {
-				tempName := filepath.Join(t.TempDir(), "/GeoIP-test.conf")
-				require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
-				testFlags := append([]Option{WithConfigFile(tempName)}, test.Flags...)
-				config, err := NewConfig(testFlags...)
-				if test.Err == "" {
-					require.NoError(t, err, test.Description)
-				} else {
-					require.EqualError(t, err, test.Err, test.Description)
-				}
-				assert.Equal(t, test.Output, config, test.Description)
-			})
+			setEnvVars(t, test.Env)
+
+			tempName := filepath.Join(t.TempDir(), "/GeoIP-test.conf")
+			require.NoError(t, os.WriteFile(tempName, []byte(test.Input), 0o600))
+			testFlags := append([]Option{WithConfigFile(tempName)}, test.Flags...)
+			config, err := NewConfig(testFlags...)
+			if test.Err == "" {
+				require.NoError(t, err, test.Description)
+			} else {
+				require.EqualError(t, err, test.Err, test.Description)
+			}
+			assert.Equal(t, test.Output, config, test.Description)
 		})
 	}
 }
@@ -607,6 +660,14 @@ func TestSetConfigFromFile(t *testing.T) {
 }
 
 func TestSetConfigFromEnv(t *testing.T) {
+	// The text of the error for a missing file differs between platforms.
+	missingFile := filepath.Join(t.TempDir(), "missing")
+	_, missingFileErr := os.ReadFile(filepath.Clean(missingFile))
+	require.Error(t, missingFileErr)
+
+	blankFile := filepath.Join(t.TempDir(), "blank")
+	require.NoError(t, os.WriteFile(blankFile, []byte(" \n\t\n"), 0o600))
+
 	tests := []struct {
 		Description                   string
 		AccountIDFileContents         string
@@ -651,7 +712,7 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
-			Description:                   "ACCOUNT_ID_FILE, LICENSE_KEY_FILE and PROXY_USER_PASSWORD override",
+			Description:                   "ACCOUNT_ID_FILE, LICENSE_KEY_FILE and PROXY_USER_PASSWORD_FILE override",
 			AccountIDFileContents:         "2",
 			LicenseKeyFileContents:        "000000000002",
 			ProxyUserPasswordFileContents: "username2:password2",
@@ -694,7 +755,7 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
-			Description:                   "Clean up ACCOUNT_ID_FILE, LICENSE_KEY_FILE and PROXY_USER_PASSWORD",
+			Description:                   "Clean up ACCOUNT_ID_FILE, LICENSE_KEY_FILE and PROXY_USER_PASSWORD_FILE",
 			AccountIDFileContents:         "\n\n2\t\n",
 			LicenseKeyFileContents:        "\n000000000002\t\n\n",
 			ProxyUserPasswordFileContents: "\nusername2:password2\t\n\n",
@@ -737,6 +798,28 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
+			Description:                   "Only the _FILE variables",
+			AccountIDFileContents:         "2",
+			LicenseKeyFileContents:        "000000000002",
+			ProxyUserPasswordFileContents: "username2:password2",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID_FILE": filepath.Join(t.TempDir(), "accountIDFile"),
+				"GEOIPUPDATE_LICENSE_KEY_FILE": filepath.Join(
+					t.TempDir(),
+					"licenseKeyFile",
+				),
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": filepath.Join(
+					t.TempDir(),
+					"proxyUserPasswordFile",
+				),
+			},
+			Expected: Config{
+				AccountID:     2,
+				LicenseKey:    "000000000002",
+				proxyUserInfo: "username2:password2",
+			},
+		},
+		{
 			Description: "Empty config",
 			Env:         map[string]string{},
 			Expected:    Config{},
@@ -747,6 +830,69 @@ func TestSetConfigFromEnv(t *testing.T) {
 				"GEOIPUPDATE_ACCOUNT_ID": "1a",
 			},
 			Err: `invalid account ID format`,
+		},
+		{
+			Description:           "ACCOUNT_ID_FILE overrides invalid ACCOUNT_ID",
+			AccountIDFileContents: "2",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID":      "1a",
+				"GEOIPUPDATE_ACCOUNT_ID_FILE": filepath.Join(t.TempDir(), "accountIDFile"),
+			},
+			Expected: Config{
+				AccountID: 2,
+			},
+		},
+		{
+			Description: "Missing ACCOUNT_ID_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID_FILE": missingFile,
+			},
+			Err: "failed to read GEOIPUPDATE_ACCOUNT_ID_FILE: " + missingFileErr.Error(),
+		},
+		{
+			Description: "Missing LICENSE_KEY_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_LICENSE_KEY_FILE": missingFile,
+			},
+			Err: "failed to read GEOIPUPDATE_LICENSE_KEY_FILE: " + missingFileErr.Error(),
+		},
+		{
+			Description: "Missing PROXY_USER_PASSWORD_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": missingFile,
+			},
+			Err: "failed to read GEOIPUPDATE_PROXY_USER_PASSWORD_FILE: " +
+				missingFileErr.Error(),
+		},
+		{
+			Description: "Blank ACCOUNT_ID_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID_FILE": blankFile,
+			},
+			Err: fmt.Sprintf(
+				"GEOIPUPDATE_ACCOUNT_ID_FILE is set to %q, but that file is empty or contains only white space",
+				blankFile,
+			),
+		},
+		{
+			Description: "Blank LICENSE_KEY_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_LICENSE_KEY_FILE": blankFile,
+			},
+			Err: fmt.Sprintf(
+				"GEOIPUPDATE_LICENSE_KEY_FILE is set to %q, but that file is empty or contains only white space",
+				blankFile,
+			),
+		},
+		{
+			Description: "Blank PROXY_USER_PASSWORD_FILE",
+			Env: map[string]string{
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE": blankFile,
+			},
+			Err: fmt.Sprintf(
+				"GEOIPUPDATE_PROXY_USER_PASSWORD_FILE is set to %q, but that file is empty or contains only white space",
+				blankFile,
+			),
 		},
 		{
 			Description: "Invalid PreserveFileTimes",
@@ -823,17 +969,17 @@ func TestSetConfigFromEnv(t *testing.T) {
 				)
 			}
 
-			withEnvVars(t, test.Env, func() {
-				var config Config
+			setEnvVars(t, test.Env)
 
-				err := setConfigFromEnv(&config)
-				if test.Err == "" {
-					require.NoError(t, err, test.Description)
-				} else {
-					require.EqualError(t, err, test.Err, test.Description)
-				}
-				assert.Equal(t, test.Expected, config, test.Description)
-			})
+			var config Config
+
+			err := setConfigFromEnv(&config)
+			if test.Err == "" {
+				require.NoError(t, err, test.Description)
+			} else {
+				require.EqualError(t, err, test.Err, test.Description)
+			}
+			assert.Equal(t, test.Expected, config, test.Description)
 		})
 	}
 }
@@ -1037,26 +1183,18 @@ func TestParseProxy(t *testing.T) {
 	}
 }
 
-func withEnvVars(t *testing.T, newEnvVars map[string]string, f func()) {
-	origEnv := os.Environ()
-
-	for key, val := range newEnvVars {
-		//nolint:usetesting // t.Setenv causes errors on Windows for some reason.
-		err := os.Setenv(key, val)
-		require.NoError(t, err)
+func setEnvVars(t *testing.T, newEnvVars map[string]string) {
+	// Unset the GEOIPUPDATE_* variables from the shell so that only
+	// newEnvVars apply. t.Setenv restores them when the test ends.
+	for _, pair := range os.Environ() {
+		key, _, _ := strings.Cut(pair, "=")
+		if strings.HasPrefix(key, "GEOIPUPDATE_") {
+			t.Setenv(key, "")
+			require.NoError(t, os.Unsetenv(key))
+		}
 	}
 
-	// Execute the test
-	f()
-
-	// Clean the environment
-	os.Clearenv()
-
-	// Reset the original environment variables
-	for _, pair := range origEnv {
-		parts := strings.SplitN(pair, "=", 2)
-		//nolint:usetesting // t.Setenv causes errors on Windows for some reason.
-		err := os.Setenv(parts[0], parts[1])
-		require.NoError(t, err)
+	for key, val := range newEnvVars {
+		t.Setenv(key, val)
 	}
 }

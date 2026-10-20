@@ -287,39 +287,14 @@ func setConfigFromFile(config *Config, path string) error {
 	return nil
 }
 
-// getValueFromEnvFile returns the value associated to an env variable or from a file containing it.
-func getValueFromEnvFile(key string) (string, bool, error) {
-	var res string
-	var found bool
-
-	if value, ok := os.LookupEnv(key); ok {
-		res = value
-		found = true
-	}
-
-	if value := os.Getenv(key + "_FILE"); value != "" {
-		var err error
-
-		content, err := os.ReadFile(filepath.Clean(value))
-		if err != nil {
-			return "", true, fmt.Errorf("failed to open %s_FILE: %w", key, err)
-		}
-
-		found = true
-		res = strings.TrimSpace(string(content))
-	}
-
-	return res, found, nil
-}
-
 // setConfigFromEnv sets Config fields based on environment variables.
 func setConfigFromEnv(config *Config) error {
-	if value, found, err := getValueFromEnvFile("GEOIPUPDATE_ACCOUNT_ID"); found {
-		if err != nil {
-			return err
-		}
-
-		config.AccountID, err = strconv.Atoi(value)
+	accountID, found, err := lookupFileOrEnv("GEOIPUPDATE_ACCOUNT_ID")
+	if err != nil {
+		return err
+	}
+	if found {
+		config.AccountID, err = strconv.Atoi(accountID)
 		if err != nil {
 			return errors.New("invalid account ID format")
 		}
@@ -344,12 +319,12 @@ func setConfigFromEnv(config *Config) error {
 		config.URL = u.String()
 	}
 
-	if value, found, err := getValueFromEnvFile("GEOIPUPDATE_LICENSE_KEY"); found {
-		if err != nil {
-			return err
-		}
-
-		config.LicenseKey = value
+	licenseKey, found, err := lookupFileOrEnv("GEOIPUPDATE_LICENSE_KEY")
+	if err != nil {
+		return err
+	}
+	if found {
+		config.LicenseKey = licenseKey
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_LOCK_FILE"); ok {
@@ -378,12 +353,12 @@ func setConfigFromEnv(config *Config) error {
 		config.proxyURL = value
 	}
 
-	if value, found, err := getValueFromEnvFile("GEOIPUPDATE_PROXY_USER_PASSWORD"); found {
-		if err != nil {
-			return err
-		}
-
-		config.proxyUserInfo = value
+	proxyUserInfo, found, err := lookupFileOrEnv("GEOIPUPDATE_PROXY_USER_PASSWORD")
+	if err != nil {
+		return err
+	}
+	if found {
+		config.proxyUserInfo = proxyUserInfo
 	}
 
 	if value, ok := os.LookupEnv("GEOIPUPDATE_RETRY_FOR"); ok {
@@ -402,6 +377,33 @@ func setConfigFromEnv(config *Config) error {
 	}
 
 	return nil
+}
+
+// lookupFileOrEnv returns the value of the environment variable named by key
+// and whether it is set, as os.LookupEnv does. If the variable named by
+// key+"_FILE" is not empty, lookupFileOrEnv instead reads the file at that
+// path. It then returns the file contents, with leading and trailing white
+// space removed, and true. If nothing remains, it returns an error. The file
+// takes precedence over the variable named by key.
+func lookupFileOrEnv(key string) (string, bool, error) {
+	if path := os.Getenv(key + "_FILE"); path != "" {
+		content, err := os.ReadFile(filepath.Clean(path))
+		if err != nil {
+			return "", false, fmt.Errorf("failed to read %s_FILE: %w", key, err)
+		}
+		value := strings.TrimSpace(string(content))
+		if value == "" {
+			return "", false, fmt.Errorf(
+				"%s_FILE is set to %q, but that file is empty or contains only white space",
+				key,
+				path,
+			)
+		}
+		return value, true, nil
+	}
+
+	value, found := os.LookupEnv(key)
+	return value, found, nil
 }
 
 // setConfigFromFlags sets Config fields based on option flags.
