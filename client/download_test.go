@@ -8,7 +8,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -19,7 +21,6 @@ import (
 func TestDownload(t *testing.T) {
 	edition := metadata{
 		EditionID: "edition-1",
-		Date:      "2024-02-02",
 		MD5:       "123456",
 	}
 	dbContent := "edition-1 content"
@@ -31,7 +32,7 @@ func TestDownload(t *testing.T) {
 		jsonData := `
 {
     "databases": [
-        { "edition_id": "edition-1", "md5": "618dd27a10de24809ec160d6807f363f", "date": "2024-02-23" }
+        { "edition_id": "edition-1", "md5": "618dd27a10de24809ec160d6807f363f", "date": "2024-02-23", "build_epoch": 1708700000 }
     ]
 }
 `
@@ -51,7 +52,12 @@ func TestDownload(t *testing.T) {
 			description:      "successful download",
 			preserveFileTime: false,
 			server: func(t *testing.T) *httptest.Server {
-				downloadHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				downloadHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(t, url.Values{
+						"build_epoch": {"1708700000"},
+						"suffix":      {"tar.gz"},
+					}, r.URL.Query())
+
 					var buf bytes.Buffer
 					gw := gzip.NewWriter(&buf)
 					tw := tar.NewWriter(gw)
@@ -257,15 +263,46 @@ func TestDownload(t *testing.T) {
 			server := test.server(t)
 			defer server.Close()
 
+			bodies := &bodyTracker{}
 			c, err := New(
 				accountID,
 				licenseKey,
 				WithEndpoint(server.URL),
+				WithHTTPClient(&http.Client{Transport: bodies}),
 			)
 			require.NoError(t, err)
 
 			res, err := c.Download(ctx, edition.EditionID, edition.MD5)
 			test.checkResult(t, res, err)
+			if err != nil {
+				assert.Zero(t, bodies.open.Load(), "response bodies left open")
+			}
 		})
 	}
+}
+
+// bodyTracker counts the response bodies that are not closed yet.
+type bodyTracker struct {
+	open atomic.Int64
+}
+
+func (bt *bodyTracker) RoundTrip(req *http.Request) (*http.Response, error) {
+	res, err := http.DefaultTransport.RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
+	bt.open.Add(1)
+	res.Body = trackedBody{ReadCloser: res.Body, open: &bt.open}
+	return res, nil
+}
+
+type trackedBody struct {
+	io.ReadCloser
+
+	open *atomic.Int64
+}
+
+func (b trackedBody) Close() error {
+	b.open.Add(-1)
+	return b.ReadCloser.Close()
 }
