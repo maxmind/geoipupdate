@@ -387,6 +387,7 @@ func setConfigFromEnv(config *Config) error {
 // takes precedence over the variable named by key.
 func lookupFileOrEnv(key string) (string, bool, error) {
 	if path := os.Getenv(key + "_FILE"); path != "" {
+		//nolint:gosec // The user sets this path to the file to read.
 		content, err := os.ReadFile(filepath.Clean(path))
 		if err != nil {
 			return "", false, fmt.Errorf("failed to read %s_FILE: %w", key, err)

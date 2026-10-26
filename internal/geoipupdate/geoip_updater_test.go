@@ -146,7 +146,8 @@ func TestRetryWhenWriting(t *testing.T) {
 			// The md5 here belongs to the tar.gz sent below.
 			metadata := []byte(
 				`{"databases":[{"edition_id":"foo-db-name",` +
-					`"md5":"83e01ba43c2a66e30cb3007c1a300c78","date":"2023-04-27"}]}`)
+					`"md5":"83e01ba43c2a66e30cb3007c1a300c78","date":"2023-04-27"}]}`,
+			)
 			_, err := w.Write(metadata)
 			assert.NoError(t, err)
 
