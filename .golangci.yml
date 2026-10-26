@@ -37,6 +37,7 @@ linters:
     # We often don't initialize all of the struct fields. This is fine
     # generally
     - exhaustruct
+    - exhaustruct_v5
 
     # We tried this linter but most places we do forced type asserts are
     # pretty safe, e.g., an atomic.Value when everything is encapsulated
@@ -739,7 +740,9 @@ formatters:
 
     gofumpt:
       module-path: github.com/maxmind/geoipupdate/v8
-      extra-rules: true
+      extra:
+        group-params: true
+        clothe-returns: true
 
     goimports:
       local-prefixes:
