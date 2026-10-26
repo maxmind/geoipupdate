@@ -23,11 +23,7 @@ type ReadResult struct {
 }
 
 // MarshalJSON is a custom json marshaler that strips out zero time fields.
-func (r *ReadResult) MarshalJSON() ([]byte, error) {
-	if r == nil {
-		return []byte("null"), nil
-	}
-
+func (r ReadResult) MarshalJSON() ([]byte, error) {
 	type partialResult ReadResult
 	s := &struct {
 		partialResult
@@ -35,7 +31,7 @@ func (r *ReadResult) MarshalJSON() ([]byte, error) {
 		ModifiedAt int64 `json:"modified_at,omitempty"`
 		CheckedAt  int64 `json:"checked_at,omitempty"`
 	}{
-		partialResult: partialResult(*r),
+		partialResult: partialResult(r),
 		ModifiedAt:    0,
 		CheckedAt:     0,
 	}
