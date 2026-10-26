@@ -23,8 +23,7 @@ func IsRetryableError(err error) bool {
 		return false
 	}
 
-	var httpErr HTTPError
-	if errors.As(err, &httpErr) {
+	if httpErr, ok := errors.AsType[HTTPError](err); ok {
 		return isRetryableHTTPStatusCode(httpErr.StatusCode)
 	}
 
