@@ -743,6 +743,7 @@ formatters:
       extra:
         group-params: true
         clothe-returns: true
+        balance-calls: true
 
     goimports:
       local-prefixes:
