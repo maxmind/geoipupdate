@@ -47,6 +47,15 @@
   the proxy user name and password from a file, in the same way as
   `GEOIPUPDATE_ACCOUNT_ID_FILE` and `GEOIPUPDATE_LICENSE_KEY_FILE`. Pull request
   by Tom Hubrecht. GitHub #570.
+- The Docker image now sets `GEOIPUPDATE_DB_DIR` to `/usr/share/GeoIP`.
+  Previously only the entrypoint set it, so a manual
+  `docker exec ... geoipupdate` run used a different database directory than the
+  entrypoint. A manual run that uses a configuration file with
+  `DatabaseDirectory` now writes to `/usr/share/GeoIP` unless you override
+  `GEOIPUPDATE_DB_DIR`, because the environment variable takes precedence over
+  the configuration file. GitHub #565.
+- With `--verbose`, `geoipupdate` now prints `Using no config file` when it uses
+  no configuration file. Previously it printed an empty file name. GitHub #565.
 
 ## 8.0.0 (2026-07-10)
 
