@@ -54,6 +54,8 @@
   `DatabaseDirectory` now writes to `/usr/share/GeoIP` unless you override
   `GEOIPUPDATE_DB_DIR`, because the environment variable takes precedence over
   the configuration file. GitHub #565.
+- With `--verbose`, `geoipupdate` now prints `Using no config file` when it uses
+  no configuration file. Previously it printed an empty file name. GitHub #565.
 
 ## 8.0.0 (2026-07-10)
 
