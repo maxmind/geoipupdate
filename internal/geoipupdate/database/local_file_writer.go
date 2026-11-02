@@ -55,7 +55,6 @@ func (w *LocalFileWriter) Write(
 	lastModified time.Time,
 ) (err error) {
 	defer func() {
-		_, _ = io.Copy(io.Discard, reader) //nolint:errcheck // Best effort.
 		if closeErr := reader.Close(); closeErr != nil {
 			err = errors.Join(
 				err,
