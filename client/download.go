@@ -38,8 +38,7 @@ type DownloadResponse struct {
 	// If the Download call does not return an error, Reader will always be
 	// non-nil.
 	//
-	// If UpdateAvailable is true, the caller must read Reader to completion and
-	// close it.
+	// If UpdateAvailable is true, the caller must close Reader.
 	Reader io.ReadCloser
 
 	// UpdateAvailable is true if there is an update available for download. It
@@ -123,13 +122,11 @@ func (c *Client) download(
 	// so this sees every error return.
 	defer func() {
 		if err != nil {
-			// TODO(horgh): Should we fully consume the body?
 			response.Body.Close()
 		}
 	}()
 
 	if response.StatusCode != http.StatusOK {
-		// TODO(horgh): Should we fully consume the body?
 		//nolint:errcheck // we are already returning an error.
 		buf, _ := io.ReadAll(io.LimitReader(response.Body, 256))
 		httpErr := HTTPError{

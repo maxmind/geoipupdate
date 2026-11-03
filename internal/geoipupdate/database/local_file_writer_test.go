@@ -87,6 +87,45 @@ func TestLocalFileWriterWrite(t *testing.T) {
 	}
 }
 
+// readCloseRecorder records how many bytes were read from it and whether it
+// was closed.
+type readCloseRecorder struct {
+	io.Reader
+
+	bytesRead int
+	closed    bool
+}
+
+func (r *readCloseRecorder) Read(p []byte) (int, error) {
+	n, err := r.Reader.Read(p)
+	r.bytesRead += n
+	return n, err
+}
+
+func (r *readCloseRecorder) Close() error {
+	r.closed = true
+	return nil
+}
+
+// TestLocalFileWriterWriteErrorDoesNotReadRest tests that Write closes the
+// reader without reading the rest of the database when it fails.
+func TestLocalFileWriterWriteErrorDoesNotReadRest(t *testing.T) {
+	editionID := "GeoIP2-City"
+	tempDir := t.TempDir()
+
+	fw, err := NewLocalFileWriter(tempDir, false, false)
+	require.NoError(t, err)
+
+	// A directory at the temporary file path makes the writer setup fail.
+	require.NoError(t, os.Mkdir(fw.getFilePath(editionID)+tempExtension, 0o750))
+
+	reader := &readCloseRecorder{Reader: strings.NewReader("database content")}
+	err = fw.Write(editionID, reader, "cfa36ddc8279b5483a5aa25e9a6151f4", time.Time{})
+	require.Error(t, err)
+	require.Zero(t, reader.bytesRead)
+	require.True(t, reader.closed)
+}
+
 // TestLocalFileWriterGetHash tests functionality of the LocalFileWriter.GetHash method.
 func TestLocalFileWriterGetHash(t *testing.T) {
 	editionID := "GeoIP2-City"
