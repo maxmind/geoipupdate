@@ -18,5 +18,6 @@ COPY docker/healthcheck.sh /usr/bin/healthcheck.sh
 
 ENTRYPOINT ["/usr/bin/entry.sh"]
 HEALTHCHECK --interval=10s --timeout=10s CMD [ "/usr/bin/healthcheck.sh" ]
+ENV GEOIPUPDATE_DB_DIR=/usr/share/GeoIP
 VOLUME [ "/usr/share/GeoIP" ]
 WORKDIR /var/lib/geoipupdate
