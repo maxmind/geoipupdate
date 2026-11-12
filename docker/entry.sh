@@ -47,7 +47,11 @@ mkdir -p $log_dir
 
 while true; do
     echo "# STATE: Running geoipupdate"
-    /usr/bin/geoipupdate $flags 1>$log_file
+    # The health check reads the output of the last successful run. If the run
+    # fails, set -e stops the script before the mv, so the check never reads a
+    # partial file.
+    /usr/bin/geoipupdate $flags 1>"$log_file.tmp"
+    mv "$log_file.tmp" "$log_file"
     if [ "$frequency" -eq 0 ]; then
         break
     fi

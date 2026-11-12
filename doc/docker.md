@@ -150,3 +150,16 @@ Note - When using docker-compose, you need to either:
 * set `restart: on-failure`
 
 If you don't, the container will continuously restart.
+
+### Health check
+
+The image has a health check. It passes if a run succeeded within the last
+`GEOIPUPDATE_FREQUENCY` hours plus 1 hour.
+
+* The status is `starting` until the first run succeeds. It then changes to
+  `healthy` within 10 seconds. A service that uses
+  `depends_on: condition: service_healthy` starts after the first download.
+* If the first run does not succeed within 1 hour, the status changes to
+  `unhealthy`.
+* If a run fails, the container exits. If a restart policy keeps restarting it,
+  the status can stay `starting`. The container logs show the failed runs.

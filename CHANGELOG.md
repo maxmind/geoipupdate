@@ -53,6 +53,11 @@
   by Tom Hubrecht. GitHub #570.
 - In verbose mode, `geoipupdate` now prints `Using no config file` instead of an
   empty file name. GitHub #565.
+- The Docker health check now passes if a run succeeded within the last
+  `GEOIPUPDATE_FREQUENCY` hours plus 1 hour. The first run gets 1 hour.
+  Previously a container that took its editions from `GEOIPUPDATE_CONF_FILE` was
+  always unhealthy, and a container with more than one edition was unhealthy
+  during each run.
 
 ## 8.0.0 (2026-07-10)
 
