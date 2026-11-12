@@ -58,6 +58,12 @@
   Previously a container that took its editions from `GEOIPUPDATE_CONF_FILE` was
   always unhealthy, and a container with more than one edition was unhealthy
   during each run.
+- An empty `GEOIPUPDATE_ACCOUNT_ID`, `GEOIPUPDATE_EDITION_IDS`,
+  `GEOIPUPDATE_HOST`, `GEOIPUPDATE_LICENSE_KEY`, `GEOIPUPDATE_PARALLELISM` or
+  `GEOIPUPDATE_RETRY_FOR` now fails with an error that names the variable.
+  Previously the error could mislead. For example, an empty
+  `GEOIPUPDATE_LICENSE_KEY` gave "the `LicenseKey` option is required" even when
+  the config file set it.
 
 ## 8.0.0 (2026-07-10)
 
