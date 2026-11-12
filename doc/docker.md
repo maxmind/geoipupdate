@@ -46,7 +46,10 @@ The following environment variables are optional:
 * `GEOIPUPDATE_VERBOSE` - Enable verbose mode. Prints out the steps that
   `geoipupdate` takes. Set to `1` to enable.
 * `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download the
-  databases. The default is `/usr/share/GeoIP`.
+  databases. The default is `/usr/share/GeoIP`. If this variable is not set,
+  the entrypoint still uses `/usr/share/GeoIP` when the config file sets
+  `DatabaseDirectory`. A run started with `docker exec` uses
+  `DatabaseDirectory`.
 
 The environment variables can be placed in a file with one per line and
 passed in with the `--env-file` flag. Alternatively, you may pass them in

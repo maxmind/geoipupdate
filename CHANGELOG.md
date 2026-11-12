@@ -20,13 +20,15 @@
 - The Debian and RPM packages now depend on `ca-certificates`. Without it,
   `geoipupdate` failed with `x509: certificate signed by unknown authority` on
   minimal and container installations.
-- The `linux/arm64` and `linux/arm/v6` Docker images now contain the same build
-  of `geoipupdate` as the `linux/amd64` image. They previously contained the
-  build made for the Debian and RPM packages, which defaults to
-  `/etc/GeoIP.conf` and `/usr/share/GeoIP` rather than the paths under
-  `/usr/local` used by the other image. The images set the database directory
-  explicitly, so this was only visible to those relying on the default
-  configuration file path.
+- In the Docker images, a run that does not go through the entrypoint, such as
+  one started with `docker exec`, now defaults to the `/usr/share/GeoIP` volume.
+  Previously such a run in the `linux/amd64` image used
+  `/usr/local/share/GeoIP`. To keep that directory, pass
+  `-d /usr/local/share/GeoIP`. GitHub #565.
+- The `linux/arm64` and `linux/arm/v6` Docker images now default to the
+  `/usr/local/etc/GeoIP.conf` configuration file, as the `linux/amd64` image
+  does. Previously they defaulted to `/etc/GeoIP.conf`. If you mounted your
+  configuration file there, set `GEOIPUPDATE_CONF_FILE` to `/etc/GeoIP.conf`.
 - The `GeoIP.conf` and documentation in the Windows archive now give the default
   paths correctly. They lost their separators, as in
   `%SystemDrive%ProgramDataMaxMindGeoIPUpdateGeoIP`.
