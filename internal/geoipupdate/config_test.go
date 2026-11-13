@@ -936,6 +936,59 @@ func TestSetConfigFromEnv(t *testing.T) {
 			},
 			Err: "`GEOIPUPDATE_VERBOSE' must be 0 or 1",
 		},
+		{
+			Description: "Empty ACCOUNT_ID",
+			Env: map[string]string{
+				"GEOIPUPDATE_ACCOUNT_ID": "",
+			},
+			Err: "GEOIPUPDATE_ACCOUNT_ID is set but empty: set a value or unset the variable",
+		},
+		{
+			Description: "Empty EDITION_IDS",
+			Env: map[string]string{
+				"GEOIPUPDATE_EDITION_IDS": "",
+			},
+			Err: "GEOIPUPDATE_EDITION_IDS is set but empty: set a value or unset the variable",
+		},
+		{
+			Description: "Empty HOST",
+			Env: map[string]string{
+				"GEOIPUPDATE_HOST": "",
+			},
+			Err: "GEOIPUPDATE_HOST is set but empty: set a value or unset the variable",
+		},
+		{
+			Description: "Empty LICENSE_KEY",
+			Env: map[string]string{
+				"GEOIPUPDATE_LICENSE_KEY": "",
+			},
+			Err: "GEOIPUPDATE_LICENSE_KEY is set but empty: set a value or unset the variable",
+		},
+		{
+			Description: "Empty PARALLELISM",
+			Env: map[string]string{
+				"GEOIPUPDATE_PARALLELISM": "",
+			},
+			Err: "GEOIPUPDATE_PARALLELISM is set but empty: set a value or unset the variable",
+		},
+		{
+			Description: "Empty RETRY_FOR",
+			Env: map[string]string{
+				"GEOIPUPDATE_RETRY_FOR": "",
+			},
+			Err: "GEOIPUPDATE_RETRY_FOR is set but empty: set a value or unset the variable",
+		},
+		{
+			Description:            "LICENSE_KEY_FILE overrides an empty LICENSE_KEY",
+			LicenseKeyFileContents: "000000000002",
+			Env: map[string]string{
+				"GEOIPUPDATE_LICENSE_KEY":      "",
+				"GEOIPUPDATE_LICENSE_KEY_FILE": filepath.Join(t.TempDir(), "licenseKeyFile"),
+			},
+			Expected: Config{
+				LicenseKey: "000000000002",
+			},
+		},
 	}
 
 	for _, test := range tests {

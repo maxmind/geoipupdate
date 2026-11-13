@@ -14,6 +14,8 @@ lychee = "latest"
 "github:goreleaser/goreleaser" = "latest"
 "github:golangci/golangci-lint" = "latest"
 "github:houseabsolute/precious" = "latest"
+# yq checks the GoReleaser config in CI.
+"aqua:mikefarah/yq" = "latest"
 node = "latest"
 "npm:prettier" = "latest"
 

@@ -289,11 +289,18 @@ func setConfigFromFile(config *Config, path string) error {
 
 // setConfigFromEnv sets Config fields based on environment variables.
 func setConfigFromEnv(config *Config) error {
+	if err := checkEmptyEnv(); err != nil {
+		return err
+	}
+
 	accountID, found, err := lookupFileOrEnv("GEOIPUPDATE_ACCOUNT_ID")
 	if err != nil {
 		return err
 	}
 	if found {
+		if accountID == "" {
+			return emptyEnvError("GEOIPUPDATE_ACCOUNT_ID")
+		}
 		config.AccountID, err = strconv.Atoi(accountID)
 		if err != nil {
 			return errors.New("invalid account ID format")
@@ -324,6 +331,9 @@ func setConfigFromEnv(config *Config) error {
 		return err
 	}
 	if found {
+		if licenseKey == "" {
+			return emptyEnvError("GEOIPUPDATE_LICENSE_KEY")
+		}
 		config.LicenseKey = licenseKey
 	}
 
@@ -377,6 +387,31 @@ func setConfigFromEnv(config *Config) error {
 	}
 
 	return nil
+}
+
+// checkEmptyEnv returns an error if one of the variables below is set but
+// empty. These variables have no _FILE form, and an empty value always fails
+// for them. setConfigFromEnv checks ACCOUNT_ID and LICENSE_KEY after their
+// _FILE forms, which take precedence.
+func checkEmptyEnv() error {
+	for _, key := range []string{
+		"GEOIPUPDATE_EDITION_IDS",
+		"GEOIPUPDATE_HOST",
+		"GEOIPUPDATE_PARALLELISM",
+		"GEOIPUPDATE_RETRY_FOR",
+	} {
+		if value, ok := os.LookupEnv(key); ok && value == "" {
+			return emptyEnvError(key)
+		}
+	}
+	return nil
+}
+
+// emptyEnvError returns the error for a variable that is set but empty, where
+// an empty value cannot work. Without it, the error that the empty value
+// causes later does not name the variable.
+func emptyEnvError(key string) error {
+	return fmt.Errorf("%s is set but empty: set a value or unset the variable", key)
 }
 
 // lookupFileOrEnv returns the value of the environment variable named by key
