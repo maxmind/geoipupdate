@@ -7,7 +7,7 @@ require (
 	github.com/gofrs/flock v0.13.1
 	github.com/spf13/pflag v1.1.0
 	github.com/stretchr/testify v1.12.1
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.62.0
 	golang.org/x/sync v0.25.0
 )
 
