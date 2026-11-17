@@ -39,6 +39,45 @@ checksum = "sha256:4725a1883e2171c2e181e6fd45003acb59ca4e9cbe031fdd3b79ef0d697d3
 url = "https://github.com/jgm/pandoc/releases/download/3.10.1/pandoc-3.10.1-windows-x86_64.zip"
 url_api = "https://api.github.com/repos/jgm/pandoc/releases/assets/486227797"
 
+[[tools."aqua:mikefarah/yq"]]
+version = "4.52.5"
+backend = "aqua:mikefarah/yq"
+
+[tools."aqua:mikefarah/yq"."platforms.linux-arm64"]
+checksum = "sha256:90fa510c50ee8ca75544dbfffed10c88ed59b36834df35916520cddc623d9aaa"
+url = "https://github.com/mikefarah/yq/releases/download/v4.52.5/yq_linux_arm64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/381629681"
+
+[tools."aqua:mikefarah/yq"."platforms.linux-arm64-musl"]
+checksum = "sha256:90fa510c50ee8ca75544dbfffed10c88ed59b36834df35916520cddc623d9aaa"
+url = "https://github.com/mikefarah/yq/releases/download/v4.52.5/yq_linux_arm64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/381629681"
+
+[tools."aqua:mikefarah/yq"."platforms.linux-x64"]
+checksum = "sha256:75d893a0d5940d1019cb7cdc60001d9e876623852c31cfc6267047bc31149fa9"
+url = "https://github.com/mikefarah/yq/releases/download/v4.52.5/yq_linux_amd64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/381629671"
+
+[tools."aqua:mikefarah/yq"."platforms.linux-x64-musl"]
+checksum = "sha256:75d893a0d5940d1019cb7cdc60001d9e876623852c31cfc6267047bc31149fa9"
+url = "https://github.com/mikefarah/yq/releases/download/v4.52.5/yq_linux_amd64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/381629671"
+
+[tools."aqua:mikefarah/yq"."platforms.macos-arm64"]
+checksum = "sha256:45a12e64d4bd8a31c72ee1b889e81f1b1110e801baad3d6f030c111db0068de0"
+url = "https://github.com/mikefarah/yq/releases/download/v4.52.5/yq_darwin_arm64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/381629667"
+
+[tools."aqua:mikefarah/yq"."platforms.macos-x64"]
+checksum = "sha256:6e399d1eb466860c3202d231727197fdce055888c5c7bec6964156983dd1559d"
+url = "https://github.com/mikefarah/yq/releases/download/v4.52.5/yq_darwin_amd64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/381629659"
+
+[tools."aqua:mikefarah/yq"."platforms.windows-x64"]
+checksum = "sha256:47594981f3848a4b4447494adeca9555f908f7cf0a89c4da3fd0243a4631da1c"
+url = "https://github.com/mikefarah/yq/releases/download/v4.52.5/yq_windows_amd64.exe"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/381629701"
+
 [[tools."github:golangci/golangci-lint"]]
 version = "2.15.0"
 backend = "github:golangci/golangci-lint"

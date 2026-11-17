@@ -54,7 +54,7 @@ builds:
       - 'openbsd'
     flags:
       - '-trimpath'
-    # All three builds set ldflags explicitly rather than taking GoReleaser's
+    # All builds set ldflags explicitly rather than taking GoReleaser's
     # default, which also injects main.commit, main.date and main.builtBy. None
     # of those exist in the source, and its main.date is the time of the build,
     # so the default would put a build timestamp back into binaries that
@@ -66,10 +66,10 @@ builds:
     env:
       - CGO_ENABLED=0
   # This is a separate build as we want to specify different paths in the
-  # ldflags. It must only feed nfpms. Its binary has the same name as the one
-  # from geoipupdate-unix, so any archives or dockers entry that does not pin
-  # ids matches it too and may ship a binary that defaults to /etc/GeoIP.conf
-  # and /usr/share/GeoIP.
+  # ldflags. It must only feed nfpms. Its binary has the same name as the ones
+  # from geoipupdate-unix and geoipupdate-docker, so any archives or dockers
+  # entry that does not pin ids matches it too and may ship a binary that
+  # defaults to /etc/GeoIP.conf and /usr/share/GeoIP.
   - id: 'geoipupdate-packages'
     main: './cmd/geoipupdate'
     binary: 'geoipupdate'
@@ -84,6 +84,25 @@ builds:
       - '-trimpath'
     ldflags:
       - '-s -w -X main.version={{.Version}} -X main.defaultConfigFile=/etc/GeoIP.conf -X main.defaultDatabaseDirectory=/usr/share/GeoIP'
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    env:
+      - CGO_ENABLED=0
+  # The Docker images use this build, so a geoipupdate run started with
+  # docker exec defaults to the image volume, as the entrypoint does. It must
+  # only feed dockers, for the same reason as geoipupdate-packages.
+  - id: 'geoipupdate-docker'
+    main: './cmd/geoipupdate'
+    binary: 'geoipupdate'
+    goarch:
+      - 'amd64'
+      - 'arm'
+      - 'arm64'
+    goos:
+      - 'linux'
+    flags:
+      - '-trimpath'
+    ldflags:
+      - '-s -w -X main.version={{.Version}} -X main.defaultDatabaseDirectory=/usr/share/GeoIP'
     mod_timestamp: '{{ .CommitTimestamp }}'
     env:
       - CGO_ENABLED=0
@@ -105,7 +124,7 @@ builds:
       - CGO_ENABLED=0
 dockers:
   - ids:
-      - 'geoipupdate-unix'
+      - 'geoipupdate-docker'
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-amd64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-amd64"
@@ -121,7 +140,7 @@ dockers:
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.created={{ .CommitDate }}"
   - ids:
-      - 'geoipupdate-unix'
+      - 'geoipupdate-docker'
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm64"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm64"
@@ -137,7 +156,7 @@ dockers:
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.created={{ .CommitDate }}"
   - ids:
-      - 'geoipupdate-unix'
+      - 'geoipupdate-docker'
     image_templates:
       - "maxmindinc/geoipupdate:{{ .Tag }}-arm-v6"
       - "ghcr.io/maxmind/geoipupdate:{{ .Tag }}-arm-v6"

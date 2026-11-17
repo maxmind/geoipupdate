@@ -17,6 +17,6 @@ COPY docker/entry.sh /usr/bin/entry.sh
 COPY docker/healthcheck.sh /usr/bin/healthcheck.sh
 
 ENTRYPOINT ["/usr/bin/entry.sh"]
-HEALTHCHECK --interval=10s --timeout=10s CMD [ "/usr/bin/healthcheck.sh" ]
+HEALTHCHECK --interval=10s --timeout=10s --start-period=1h CMD [ "/usr/bin/healthcheck.sh" ]
 VOLUME [ "/usr/share/GeoIP" ]
 WORKDIR /var/lib/geoipupdate

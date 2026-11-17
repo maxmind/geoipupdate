@@ -1,0 +1,54 @@
+name: GoReleaser
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '5 6 * * SUN'
+
+permissions: {}
+
+jobs:
+  goreleaser:
+    name: check and build
+    runs-on: ubuntu-latest
+    env:
+      MISE_AUTO_INSTALL: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup mise
+        uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5.2.3
+        with:
+          install: false
+      # Install only what the job uses, not the repo's full toolchain.
+      - name: Install Go, GoReleaser, pandoc and yq
+        run: mise install go github:goreleaser/goreleaser aqua:jgm/pandoc aqua:mikefarah/yq
+      - name: Check the configuration
+        run: mise exec -- goreleaser check
+      # goreleaser check and goreleaser build do not resolve these ids.
+      - name: Check that the Docker images use the Docker build
+        run: |
+          if ! mise exec -- yq -e '(.dockers | length) > 0 and ([.dockers[] | (.ids // []) | join(",")] | all_c(. == "geoipupdate-docker"))' .goreleaser.yml; then
+            echo "Every dockers entry must use only the geoipupdate-docker build." >&2
+            exit 1
+          fi
+      # This also runs the before hooks and builds the archives and packages.
+      - name: Build a snapshot release
+        run: mise exec -- goreleaser release --snapshot --clean --skip=docker
+      # A run started with docker exec relies on the database directory default.
+      # GitHub #565 also reported an empty config file name in the verbose
+      # output.
+      - name: Check the verbose output of the Docker binary
+        env:
+          GEOIPUPDATE_ACCOUNT_ID: '1'
+          GEOIPUPDATE_LICENSE_KEY: 'unused'
+          GEOIPUPDATE_EDITION_IDS: 'GeoLite2-ASN'
+          GEOIPUPDATE_HOST: 'http://127.0.0.1:9'
+          GEOIPUPDATE_RETRY_FOR: '0s'
+        run: |
+          out=$(dist/geoipupdate-docker_linux_amd64_v1/geoipupdate -v -f '' 2>&1 || true)
+          echo "$out"
+          echo "$out" | grep -Fx 'Using no config file'
+          echo "$out" | grep -Fx 'Using database directory /usr/share/GeoIP'

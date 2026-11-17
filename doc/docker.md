@@ -46,7 +46,10 @@ The following environment variables are optional:
 * `GEOIPUPDATE_VERBOSE` - Enable verbose mode. Prints out the steps that
   `geoipupdate` takes. Set to `1` to enable.
 * `GEOIPUPDATE_DB_DIR` - The directory where geoipupdate will download the
-  databases. The default is `/usr/share/GeoIP`.
+  databases. The default is `/usr/share/GeoIP`. If this variable is not set,
+  the entrypoint still uses `/usr/share/GeoIP` when the config file sets
+  `DatabaseDirectory`. A run started with `docker exec` uses
+  `DatabaseDirectory`.
 
 The environment variables can be placed in a file with one per line and
 passed in with the `--env-file` flag. Alternatively, you may pass them in
@@ -147,3 +150,16 @@ Note - When using docker-compose, you need to either:
 * set `restart: on-failure`
 
 If you don't, the container will continuously restart.
+
+### Health check
+
+The image has a health check. It passes if a run succeeded within the last
+`GEOIPUPDATE_FREQUENCY` hours plus 1 hour.
+
+* The status is `starting` until the first run succeeds. It then changes to
+  `healthy` within 10 seconds. A service that uses
+  `depends_on: condition: service_healthy` starts after the first download.
+* If the first run does not succeed within 1 hour, the status changes to
+  `unhealthy`.
+* If a run fails, the container exits. If a restart policy keeps restarting it,
+  the status can stay `starting`. The container logs show the failed runs.

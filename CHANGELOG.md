@@ -20,13 +20,15 @@
 - The Debian and RPM packages now depend on `ca-certificates`. Without it,
   `geoipupdate` failed with `x509: certificate signed by unknown authority` on
   minimal and container installations.
-- The `linux/arm64` and `linux/arm/v6` Docker images now contain the same build
-  of `geoipupdate` as the `linux/amd64` image. They previously contained the
-  build made for the Debian and RPM packages, which defaults to
-  `/etc/GeoIP.conf` and `/usr/share/GeoIP` rather than the paths under
-  `/usr/local` used by the other image. The images set the database directory
-  explicitly, so this was only visible to those relying on the default
-  configuration file path.
+- In the Docker images, a run that does not go through the entrypoint, such as
+  one started with `docker exec`, now defaults to the `/usr/share/GeoIP` volume.
+  Previously such a run in the `linux/amd64` image used
+  `/usr/local/share/GeoIP`. To keep that directory, pass
+  `-d /usr/local/share/GeoIP`. GitHub #565.
+- The `linux/arm64` and `linux/arm/v6` Docker images now default to the
+  `/usr/local/etc/GeoIP.conf` configuration file, as the `linux/amd64` image
+  does. Previously they defaulted to `/etc/GeoIP.conf`. If you mounted your
+  configuration file there, set `GEOIPUPDATE_CONF_FILE` to `/etc/GeoIP.conf`.
 - The `GeoIP.conf` and documentation in the Windows archive now give the default
   paths correctly. They lost their separators, as in
   `%SystemDrive%ProgramDataMaxMindGeoIPUpdateGeoIP`.
@@ -49,6 +51,19 @@
   the proxy user name and password from a file, in the same way as
   `GEOIPUPDATE_ACCOUNT_ID_FILE` and `GEOIPUPDATE_LICENSE_KEY_FILE`. Pull request
   by Tom Hubrecht. GitHub #570.
+- In verbose mode, `geoipupdate` now prints `Using no config file` instead of an
+  empty file name. GitHub #565.
+- The Docker health check now passes if a run succeeded within the last
+  `GEOIPUPDATE_FREQUENCY` hours plus 1 hour. The first run gets 1 hour.
+  Previously a container that took its editions from `GEOIPUPDATE_CONF_FILE` was
+  always unhealthy, and a container with more than one edition was unhealthy
+  during each run.
+- An empty `GEOIPUPDATE_ACCOUNT_ID`, `GEOIPUPDATE_EDITION_IDS`,
+  `GEOIPUPDATE_HOST`, `GEOIPUPDATE_LICENSE_KEY`, `GEOIPUPDATE_PARALLELISM` or
+  `GEOIPUPDATE_RETRY_FOR` now fails with an error that names the variable.
+  Previously the error could mislead. For example, an empty
+  `GEOIPUPDATE_LICENSE_KEY` gave "the `LicenseKey` option is required" even when
+  the config file set it.
 
 ## 8.0.0 (2026-07-10)
 

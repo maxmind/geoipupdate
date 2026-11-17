@@ -53,7 +53,11 @@ func main() {
 
 	if config.Verbose {
 		log.Printf("geoipupdate version %s", version)
-		log.Printf("Using config file %s", args.ConfigFile)
+		if args.ConfigFile == "" {
+			log.Print("Using no config file")
+		} else {
+			log.Printf("Using config file %s", args.ConfigFile)
+		}
 		log.Printf("Using database directory %s", config.DatabaseDirectory)
 	}
 
